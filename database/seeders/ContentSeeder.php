@@ -6,6 +6,7 @@ use App\Models\Appliance;
 use App\Models\Area;
 use App\Models\Brand;
 use App\Models\Post;
+use App\Models\PostCategory;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Vendor;
@@ -24,7 +25,7 @@ class ContentSeeder extends Seeder
         | النشر آلي: الخدمة اللي محتواها كامل بتتنشر (is_published=true)،
         | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
         */
-        $servicesData = require __DIR__ . '/data/services.php';
+        $servicesData = require __DIR__.'/data/services.php';
         foreach ($servicesData as $slug => $fields) {
             $service = Service::updateOrCreate(['slug' => $slug], $fields);
 
@@ -50,7 +51,7 @@ class ContentSeeder extends Seeder
         | نفس منطق الخدمات: المنطقة اللي محتواها كامل بتتنشر تلقائياً،
         | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
         */
-        $areasData = require __DIR__ . '/data/areas.php';
+        $areasData = require __DIR__.'/data/areas.php';
         foreach ($areasData as $slug => $fields) {
             $area = Area::updateOrCreate(['slug' => $slug], $fields);
 
@@ -71,7 +72,7 @@ class ContentSeeder extends Seeder
         | الماركات (المرحلة 3) — من database/seeders/data/brands.php.
         | نفس منطق النشر الآلي حسب اكتمال المحتوى. بدون لوجوهات، بدون ادّعاء وكالة.
         */
-        $brandsData = require __DIR__ . '/data/brands.php';
+        $brandsData = require __DIR__.'/data/brands.php';
         foreach ($brandsData as $slug => $fields) {
             $brand = Brand::updateOrCreate(['slug' => $slug], $fields);
 
@@ -102,22 +103,47 @@ class ContentSeeder extends Seeder
             ]);
         }
 
-        Post::updateOrCreate(['slug' => 'post-placeholder-1'], [
-            'title_ar'     => 'مقال تجريبي (TODO)',
-            'excerpt'      => 'ملخّص المقال هيتكتب هنا.',
-            'is_published' => false,
-        ]);
+        /*
+        | المدونة (المرحلة 5) — تكييفات بس.
+        | التصنيفات الأربعة أول حاجة، وبعدين المقالات (3 كاملة بتتنشر + مسوّدات).
+        | النشر آلي حسب اكتمال المحتوى (Post::hasCompleteContent).
+        */
+        $categoriesData = require __DIR__.'/data/post_categories.php';
+        foreach ($categoriesData as $slug => $fields) {
+            PostCategory::updateOrCreate(['slug' => $slug], $fields);
+        }
+
+        // تنظيف مقال placeholder قديم (المرحلة 1) اتعوّض بمحتوى حقيقي.
+        Post::where('slug', 'post-placeholder-1')->delete();
+
+        $catIds = PostCategory::pluck('id', 'slug');
+
+        $postsData = require __DIR__.'/data/posts.php';
+        foreach ($postsData as $slug => $fields) {
+            $category = $fields['category'] ?? null;
+            unset($fields['category']);
+            $fields['category_id'] = $category ? ($catIds[$category] ?? null) : null;
+
+            $post = Post::updateOrCreate(['slug' => $slug], $fields);
+
+            // المقال الكامل بيتنشر تلقائياً؛ المسوّدة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
+            $complete = $post->hasCompleteContent();
+            $post->forceFill([
+                'is_published' => $complete,
+                'published_at' => $complete ? ($post->published_at ?? $now) : null,
+            ])->save();
+        }
 
         Product::updateOrCreate(['slug' => 'product-placeholder-1'], [
-            'name_ar'      => 'منتج تجريبي (TODO)',
-            'excerpt'      => 'وصف المنتج هيتكتب هنا.',
-            'price'        => null, // لا سعر => مفيش offers في الـ schema
+            'name_ar' => 'منتج تجريبي (TODO)',
+            'excerpt' => 'وصف المنتج هيتكتب هنا.',
+            'price' => null, // لا سعر => مفيش offers في الـ schema
             'is_published' => false,
         ]);
 
         Vendor::updateOrCreate(['slug' => 'vendor-placeholder-1'], [
-            'name_ar'      => 'تاجر تجريبي (TODO)',
-            'about'        => 'نبذة عن التاجر هتتكتب هنا.',
+            'name_ar' => 'تاجر تجريبي (TODO)',
+            'about' => 'نبذة عن التاجر هتتكتب هنا.',
             'is_published' => false,
         ]);
     }

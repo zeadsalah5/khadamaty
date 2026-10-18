@@ -154,8 +154,29 @@ class SitemapController extends Controller
                 'lastmod' => $this->iso($m->updated_at),
             ])->all();
 
+        // المدونة: ضمّ صفحات التصنيفات اللي فيها مقالات منشورة (indexable).
+        // التصنيف الفاضي بيبقى noindex فمابيدخلش السايت ماب.
+        if ($type === 'blog') {
+            foreach ($this->blogCategoryUrls($base) as $catUrl) {
+                $urls[] = $catUrl;
+            }
+        }
+
         // مفيش منشور => urlset فاضي (الـ index مابيشاورش عليه أصلاً).
         return $this->urlsetXml($urls);
+    }
+
+    /** روابط صفحات تصنيفات المدونة اللي فيها مقالات منشورة. */
+    protected function blogCategoryUrls(string $base): array
+    {
+        return \App\Models\PostCategory::query()
+            ->whereHas('posts', fn ($q) => $q->where('is_published', true))
+            ->orderBy('sort')
+            ->get()
+            ->map(fn ($c) => [
+                'loc'     => $base . '/blog/category/' . $c->getRouteKey(),
+                'lastmod' => $this->iso($c->posts()->where('is_published', true)->max('updated_at')),
+            ])->all();
     }
 
     protected function pagesLastmod(): ?string

@@ -4,14 +4,26 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    /**
+     * صلاحية الدخول للوحة الإدارة (/admin).
+     * مفيش تسجيل حسابات عام في الموقع، فأي يوزر موجود هو أدمن.
+     * (لو حبيت تقيّدها أكتر لاحقاً، اعمل فلتر على الإيميل أو عمود is_admin هنا.)
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
+    }
 
     /**
      * The attributes that are mass assignable.

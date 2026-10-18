@@ -93,6 +93,7 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
     Route::get('/brands/{brand}', [BrandController::class, 'show'])->name('brands.show');
 
     Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+    Route::get('/blog/category/{category}', [BlogController::class, 'category'])->name('blog.category');
     Route::get('/blog/{post}', [BlogController::class, 'show'])->name('blog.show');
 
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');

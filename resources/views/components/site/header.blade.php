@@ -4,6 +4,7 @@
         'الخدمات'         => route('services.index'),
         'المناطق'         => route('areas.index'),
         'الماركات'        => route('brands.index'),
+        'المدونة'         => route('blog.index'),
         'الأسعار'         => route('prices'),
         'مين إحنا'        => route('about'),
         'الأسئلة الشائعة'  => route('faq'),

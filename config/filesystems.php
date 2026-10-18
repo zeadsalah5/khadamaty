@@ -47,6 +47,17 @@ return [
             'report' => false,
         ],
 
+        // قرص صور المدونة — بيتخزّن في public/images/blog مباشرةً عشان يتوافق
+        // مع نمط الصور في الموقع (asset('images/blog/...')) من غير storage:link.
+        'blog' => [
+            'driver' => 'local',
+            'root' => public_path('images/blog'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/blog',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

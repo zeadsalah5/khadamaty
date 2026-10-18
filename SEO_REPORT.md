@@ -158,3 +158,38 @@ Remaining (content and config, for the site owner, not mechanical):
 - Set `CANONICAL_HOST` and a real `APP_URL` before go-live (canonical, OG and sitemap are on `localhost` now).
 - Fill the `eta_note` (approximate arrival time per area) and the warranty / parts-source `TODO`s in `database/seeders/data/areas.php` and `database/seeders/data/brands.php`, then re-seed.
 - Optionally upload brand logos to `public/images/brands/` and set the `logo` field; the pages switch from the letter placeholder automatically.
+
+---
+
+# SEO Audit Report — Stage 5 (Blog)
+
+**Repo:** khadamaty air conditioner (local, no git remote set)
+**Live domain:** not set yet (canonical and OG fall back to `APP_URL`; `CANONICAL_HOST` is still a TODO in `config/site.php`)
+**Scope audited:** blog hub `/blog`, category `/blog/category/{slug}`, and article `/blog/{slug}` (rendered output, server-rendered Blade)
+**Generated:** 2026-10-18
+
+## Headline findings
+
+- The blog ships SEO-complete. Published articles emit a valid `Article` block (with `datePublished` and `dateModified`), plus `BreadcrumbList`, and the hub and category pages emit `ItemList` and `BreadcrumbList`. All 5 JSON-LD blocks per article parse with 0 errors.
+- Pagination canonicals are correct. The first page points to `/blog` (and `/blog/category/{slug}`); pages after the first carry a self-referencing `rel=canonical` with `?page=N`, so paginated pages are not treated as duplicates of page one.
+- The incomplete-content gate works end to end. An article is published only when title, excerpt, body and category are all filled. The 17 draft topics are `noindex,follow`, return 404, and stay out of the sitemap. A category with only drafts (توفير كهرباء) is `noindex` and excluded from the sitemap. Verified on the running server.
+- Internal linking is strong. Each article links to the relevant services (inline and in a "خدمات ممكن تهمّك" block), to its category, to related articles, and back to the hub via breadcrumbs. A booking CTA appears on every article.
+
+## Full findings by category (Stage 5)
+
+- A. Structural baseline: pass. One `<h1>` per article; unique title and description (SEO overrides fall back to title and excerpt); canonical, robots, Open Graph (`og:type=article`, `og:image` from the cover), Twitter card, `<html lang="ar" dir="rtl">`, charset and viewport all present.
+- B. AI search readiness: pass. `Article` schema on article pages with populated `datePublished`/`dateModified`; `BreadcrumbList` on every nested blog page; `ItemList` on hub and category; H2 headings drive the auto table of contents (no skipped levels in the sample articles).
+- C. Linking and structure: pass. Clean URLs (no `.html`), hub and related and service links on every article, descriptive Arabic anchor text, category pagination reflected in the URL (`?page=N`).
+- D. Content basics: pass. 3 sample articles at roughly 700 to 900 words of unique Egyptian-colloquial copy, no fabricated figures or studies, uncertain specifics marked `TODO`, no keyword stuffing, H1 carries the primary term. Article covers are optional (a placeholder renders when none is set), so no missing alt text.
+- E. Infrastructure: pass. `sitemap-blog.xml` lists the 3 published articles and the 3 categories that have published articles, excludes drafts and empty categories. `robots.txt` and the sitemap index are unchanged and still correct.
+
+## Remaining (owner / config, not mechanical)
+
+- Set `CANONICAL_HOST` and a real `APP_URL` before go-live (blog canonical, OG and sitemap are on `localhost` now, same as the rest of the site).
+- Write and publish the 17 draft articles from the admin panel (`/admin`), or fill `database/seeders/data/posts.php` and re-seed. They stay `noindex` and out of the sitemap until complete.
+- Fill the `TODO` notes inside the 3 sample articles (for example an estimated capacity table and a fixed maintenance-schedule) before relying on them as final copy.
+- Optionally upload article cover images from the admin panel (stored in `public/images/blog`); cards and articles switch from the placeholder automatically.
+
+## What this audit did NOT check
+
+- Backlinks, rankings, Core Web Vitals (run Lighthouse separately), and schema validity in Google's Rich Results Test (run that manually with the extracted JSON-LD).
