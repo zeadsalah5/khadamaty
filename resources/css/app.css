@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/* الخطوط */
+@theme {
+    --font-sans: "Cairo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    /* ألوان العلامة */
+    --color-brand: #E5171F;      /* الأحمر الأساسي */
+    --color-brand-600: #cf121a;  /* أحمر أغمق للـ hover */
+    --color-brand-50: #fdeaea;   /* أحمر فاتح جداً للخلفيات الخفيفة */
+    --color-navy: #1B2230;       /* الكحلي للهيدر بار والفوتر */
+    --color-navy-700: #2a3346;
+    --color-accent: #0E9F6E;     /* الأخضر للزرار المميز */
+    --color-accent-600: #0c8a5f;
+    --color-ink: #1B2230;        /* لون النص الأساسي */
+    --color-muted: #647084;      /* نص ثانوي */
+    --color-surface: #F6F7F9;    /* رمادي فاتح للأقسام */
+    --color-line: #E7EAEF;       /* لون الحدود */
+}
+
+/* أساسيات */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: #ffffff;
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* احترام تقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *:not(.slider-track) {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+    }
+    /* السلايدر يفضل بينزلق حتى مع تقليل الحركة (طلب صريح) */
+    .slider-track {
+        transition: transform 0.5s ease !important;
+    }
+}
+
+/* إظهار واضح للتركيز بلوحة المفاتيح */
+:where(a, button, input, select, textarea, summary):focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* القطع المائل في آخر الهيرو */
+.hero-cut {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    width: 100%;
+    height: clamp(40px, 7vw, 90px);
+    display: block;
+}
+
+/* سهم مؤشر الـ FAQ */
+details > summary {
+    list-style: none;
+}
+details > summary::-webkit-details-marker {
+    display: none;
+}
+details[open] .faq-icon {
+    transform: rotate(180deg);
+}
+
+/* معالج التشخيص — حالة الخطوة النشطة في شريط التقدّم */
+.diag-step.is-active .diag-num {
+    background-color: var(--color-brand);
+    border-color: var(--color-brand);
+    color: #ffffff;
+}
+.diag-step:not(.is-active) {
+    color: var(--color-muted);
+}
+
+/* سلايدر الهيرو */
+.slider-track {
+    transition: transform 0.5s ease;
+    will-change: transform;
+}
+.slider-slide {
+    min-width: 100%;
+}
+.slider-dot.is-active {
+    background-color: #ffffff;
+    width: 1.6rem; /* نقطة ممدودة للشريحة الحالية */
+}

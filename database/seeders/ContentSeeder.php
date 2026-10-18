@@ -1,0 +1,124 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Appliance;
+use App\Models\Area;
+use App\Models\Brand;
+use App\Models\Post;
+use App\Models\Product;
+use App\Models\Service;
+use App\Models\Vendor;
+use Illuminate\Database\Seeder;
+
+class ContentSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $now = now();
+
+        /*
+        | الخدمات (المرحلة 2) — 9 خدمات بـ slugs إنجليزي ثابتة ومحتوى عربي من
+        | database/seeders/data/services.php. الـ slug إنجليزي والمحتوى عربي.
+        |
+        | النشر آلي: الخدمة اللي محتواها كامل بتتنشر (is_published=true)،
+        | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
+        */
+        $servicesData = require __DIR__ . '/data/services.php';
+        foreach ($servicesData as $slug => $fields) {
+            $service = Service::updateOrCreate(['slug' => $slug], $fields);
+
+            // النشر بناءً على اكتمال المحتوى (مش بنلغي نشر حاجة اتنشرت يدوياً بمحتوى كامل).
+            $complete = $service->hasCompleteContent();
+            $service->forceFill([
+                'is_published' => $complete,
+                'published_at' => $complete ? ($service->published_at ?? $now) : null,
+            ])->save();
+        }
+
+        /*
+        | تنظيف الـ slugs القديمة (المرحلة 1) اللي اتعوّضت بالخدمات الجديدة.
+        | ده شغل seeder (مش migration) فمش بيكسر قاعدة "متمسحش بيانات في الـ migration".
+        | الـ 301 من القديم للجديد متظبّط في config/redirects.php.
+        */
+        Service::whereIn('slug', [
+            'maintenance', 'cleaning', 'freon-charge', 'ac-install', 'move-install', 'repair',
+        ])->delete();
+
+        /*
+        | المناطق (المرحلة 3) — من database/seeders/data/areas.php.
+        | نفس منطق الخدمات: المنطقة اللي محتواها كامل بتتنشر تلقائياً،
+        | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
+        */
+        $areasData = require __DIR__ . '/data/areas.php';
+        foreach ($areasData as $slug => $fields) {
+            $area = Area::updateOrCreate(['slug' => $slug], $fields);
+
+            $complete = $area->hasCompleteContent();
+            $area->forceFill([
+                'is_published' => $complete,
+                'published_at' => $complete ? ($area->published_at ?? $now) : null,
+            ])->save();
+        }
+
+        /*
+        | تنظيف slugs مناطق قديمة اتشالت من القايمة (المرحلة 1/2).
+        | الـ 301 من القديم لـ /areas متظبّط في config/redirects.php.
+        */
+        Area::whereIn('slug', ['cairo', 'giza', 'heliopolis', 'helwan', 'shubra'])->delete();
+
+        /*
+        | الماركات (المرحلة 3) — من database/seeders/data/brands.php.
+        | نفس منطق النشر الآلي حسب اكتمال المحتوى. بدون لوجوهات، بدون ادّعاء وكالة.
+        */
+        $brandsData = require __DIR__ . '/data/brands.php';
+        foreach ($brandsData as $slug => $fields) {
+            $brand = Brand::updateOrCreate(['slug' => $slug], $fields);
+
+            $complete = $brand->hasCompleteContent();
+            $brand->forceFill([
+                'is_published' => $complete,
+                'published_at' => $complete ? ($brand->published_at ?? $now) : null,
+            ])->save();
+        }
+
+        // تنظيف ماركات placeholder قديمة.
+        Brand::whereIn('slug', ['brand-placeholder-1', 'brand-placeholder-2'])->delete();
+
+        /*
+        | ما تحت ده كله placeholders غير منشورة (is_published=false):
+        | بترجّع 404، noindex، ومش بتدخل السايت ماب. صاحب الموقع ينشرها بعد التعبئة.
+        | TODO: استبدل البيانات دي بمحتوى حقيقي وانشرها.
+        */
+        $appliances = [
+            ['air-conditioners', 'تكييفات'],
+            ['refrigerators',    'ثلاجات'],
+            ['washing-machines', 'غسالات'],
+            ['home-appliances',  'أجهزة منزلية'],
+        ];
+        foreach ($appliances as [$slug, $name]) {
+            Appliance::updateOrCreate(['slug' => $slug], [
+                'name_ar' => $name, 'is_published' => false,
+            ]);
+        }
+
+        Post::updateOrCreate(['slug' => 'post-placeholder-1'], [
+            'title_ar'     => 'مقال تجريبي (TODO)',
+            'excerpt'      => 'ملخّص المقال هيتكتب هنا.',
+            'is_published' => false,
+        ]);
+
+        Product::updateOrCreate(['slug' => 'product-placeholder-1'], [
+            'name_ar'      => 'منتج تجريبي (TODO)',
+            'excerpt'      => 'وصف المنتج هيتكتب هنا.',
+            'price'        => null, // لا سعر => مفيش offers في الـ schema
+            'is_published' => false,
+        ]);
+
+        Vendor::updateOrCreate(['slug' => 'vendor-placeholder-1'], [
+            'name_ar'      => 'تاجر تجريبي (TODO)',
+            'about'        => 'نبذة عن التاجر هتتكتب هنا.',
+            'is_published' => false,
+        ]);
+    }
+}
