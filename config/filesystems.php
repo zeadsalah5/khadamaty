@@ -69,10 +69,12 @@ return [
         ],
 
         // صور المتجر (منتجات + أقسام) — public/images/products (نفس نمط قرص الماركات).
+        // الرابط نسبي (/images/products) عشان العرض يشتغل على أي host/port من غير ما يعتمد
+        // على APP_URL؛ روابط الـ schema/og بتتعمل absolute عند الاستخدام (imageUrls + Seo).
         'products' => [
             'driver' => 'local',
             'root' => public_path('images/products'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/products',
+            'url' => '/images/products',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

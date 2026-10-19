@@ -142,13 +142,13 @@ class Product extends Model
         return $image ? \Illuminate\Support\Facades\Storage::disk('products')->url($image->path) : null;
     }
 
-    /** كل روابط الصور المطلقة (للـ schema والمعرض). */
+    /** كل روابط الصور المطلقة (للـ schema) — بنعمل absolute لأن ديسك products نسبي. */
     public function imageUrls(): array
     {
         $disk = \Illuminate\Support\Facades\Storage::disk('products');
         $images = $this->relationLoaded('images') ? $this->images : $this->images()->get();
 
-        return $images->map(fn ($img) => $disk->url($img->path))->values()->all();
+        return $images->map(fn ($img) => url($disk->url($img->path)))->values()->all();
     }
 
     /** في عرض؟ سعر عرض موجود وأقل من السعر الأساسي. */
