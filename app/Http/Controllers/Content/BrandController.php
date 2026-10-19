@@ -61,6 +61,11 @@ class BrandController extends PageController
         $services = $this->publishedServices($brand->suitable_services ?? []);
         $areas = Area::query()->published()->orderBy('name_ar')->get();
 
+        // منتجات المتجر التابعة للماركة (المنشورة) — قسم «منتجات {الماركة}».
+        $products = $brand->products()->published()
+            ->with(['primaryImage', 'category', 'brand'])
+            ->orderByDesc('updated_at')->take(8)->get();
+
         return view('pages.brand', [
             'brand'        => $brand,
             'title'        => $brand->name_ar,
@@ -69,6 +74,7 @@ class BrandController extends PageController
             'services'     => $services,
             'serviceIcons' => $this->serviceIcons(),
             'areas'        => $areas,
+            'products'     => $products,
             'breadcrumbs'  => [
                 ['label' => 'الرئيسية', 'url' => '/'],
                 ['label' => $this->indexTitle, 'url' => $this->basePath],

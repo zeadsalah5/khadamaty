@@ -13,6 +13,24 @@
             ['label' => 'اتصل بينا', 'url' => route('contact')],
         ];
     }
+    // رابط «المتجر» يظهر بس لو فيه منتج منشور؛ ومبيظهرش لو المتجر فاضي (حتى لو مضاف في القايمة).
+    $hasShop = \App\Support\Store\Storefront::hasPublished();
+    $isShopLink = fn ($url) => \Illuminate\Support\Str::contains($url, '/shop');
+    $navHasShop = collect($nav)->contains(fn ($i) => $isShopLink($i['url'] ?? ''));
+
+    if ($hasShop && ! $navHasShop) {
+        // ندخّل «المتجر» بعد الماركات لو موجودة، وإلا في الآخر.
+        $pos = collect($nav)->search(fn ($i) => \Illuminate\Support\Str::contains($i['url'] ?? '', '/brands'));
+        $shopItem = ['label' => 'المتجر', 'url' => route('shop.index')];
+        if ($pos !== false) {
+            array_splice($nav, $pos + 1, 0, [$shopItem]);
+        } else {
+            $nav[] = $shopItem;
+        }
+    } elseif (! $hasShop && $navHasShop) {
+        $nav = array_values(array_filter($nav, fn ($i) => ! $isShopLink($i['url'] ?? '')));
+    }
+
     // الروابط النسبية (/services) تتحوّل لمطلقة؛ الروابط الكاملة والأنكور تفضل زيّها.
     $nav = array_map(function ($i) {
         $i['url'] = \Illuminate\Support\Str::startsWith($i['url'], ['http://', 'https://', '#', 'mailto:', 'tel:', '//'])

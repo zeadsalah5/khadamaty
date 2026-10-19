@@ -152,6 +152,23 @@
         </section>
     @endif
 
+    {{-- ============ منتجات الماركة في المتجر ============ --}}
+    @if ($products->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <div class="mb-6 flex items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold md:text-3xl">منتجات {{ $title }} في المتجر</h2>
+                    <p class="mt-2 leading-relaxed text-muted">تكييفات وقطع غيار {{ $title }} المتاحة عندنا دلوقتي.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+                @foreach ($products as $product)
+                    <x-product-card :product="$product" />
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     {{-- ============ مناطق الخدمة ============ --}}
     @if ($areas->isNotEmpty())
         <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">

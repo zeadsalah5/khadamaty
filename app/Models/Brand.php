@@ -4,10 +4,17 @@ namespace App\Models;
 
 use App\Models\Concerns\Publishable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Brand extends Model
 {
     use Publishable;
+
+    /** منتجات المتجر التابعة للماركة (brand_id). */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
 
     protected $fillable = [
         'slug', 'name_ar', 'excerpt', 'intro',

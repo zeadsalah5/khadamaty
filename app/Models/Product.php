@@ -16,7 +16,7 @@ class Product extends Model
     protected $fillable = [
         'slug', 'name_ar', 'excerpt', 'description', 'specs',
         'brand_id', 'category_id', 'condition',
-        'price', 'sale_price', 'stock_qty', 'status',
+        'price', 'sale_price', 'stock_qty', 'status', 'sold_at',
         'warranty_note', 'model_number', 'sku',
         'seo_title', 'seo_description',
         'is_published', 'published_at',
@@ -25,11 +25,15 @@ class Product extends Model
     protected $casts = [
         'is_published' => 'boolean',
         'published_at' => 'datetime',
+        'sold_at'      => 'datetime',
         'price'        => 'decimal:2',
         'sale_price'   => 'decimal:2',
         'stock_qty'    => 'integer',
         'specs'        => 'array',
     ];
+
+    /** عدد الأيام اللي بعدها المنتج المباع يبقى noindex ويخرج من السايت ماب. */
+    public const SOLD_NOINDEX_DAYS = 60;
 
     // ───────────────────────── العلاقات ─────────────────────────
 
@@ -96,6 +100,88 @@ class Product extends Model
             : $this->primaryImage()->first() ?? $this->images()->first();
 
         return $image ? \Illuminate\Support\Facades\Storage::disk('products')->url($image->path) : null;
+    }
+
+    /** كل روابط الصور المطلقة (للـ schema والمعرض). */
+    public function imageUrls(): array
+    {
+        $disk = \Illuminate\Support\Facades\Storage::disk('products');
+        $images = $this->relationLoaded('images') ? $this->images : $this->images()->get();
+
+        return $images->map(fn ($img) => $disk->url($img->path))->values()->all();
+    }
+
+    /** في عرض؟ سعر عرض موجود وأقل من السعر الأساسي. */
+    public function hasSale(): bool
+    {
+        return $this->sale_price !== null && (float) $this->sale_price > 0
+            && $this->hasRealPrice() && (float) $this->sale_price < (float) $this->price;
+    }
+
+    /** نسبة الخصم (عدد صحيح مقرّب) أو null لو مفيش عرض. */
+    public function discountPercent(): ?int
+    {
+        if (! $this->hasSale()) {
+            return null;
+        }
+
+        $percent = (1 - ((float) $this->sale_price / (float) $this->price)) * 100;
+
+        return (int) round($percent);
+    }
+
+    public function isSold(): bool
+    {
+        return $this->status === 'sold';
+    }
+
+    /** متوفر للبيع؟ مش مباع وفيه مخزون (أو جهاز مستعمل قطعة واحدة لسه مش مباعة). */
+    public function isInStock(): bool
+    {
+        return ! $this->isSold() && $this->stock_qty > 0;
+    }
+
+    /** قيمة schema.org/itemCondition حسب حالة الجهاز. */
+    public function schemaCondition(): string
+    {
+        return $this->isUsed()
+            ? 'https://schema.org/UsedCondition'
+            : 'https://schema.org/NewCondition';
+    }
+
+    /** قيمة schema.org availability حسب التوفر/البيع. */
+    public function schemaAvailability(): string
+    {
+        if ($this->isSold()) {
+            return 'https://schema.org/SoldOut';
+        }
+
+        return $this->isInStock()
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock';
+    }
+
+    /** المنتج المباع بقاله أكتر من ٦٠ يوم؟ (يبقى noindex ويخرج من السايت ماب). */
+    public function isStaleSold(): bool
+    {
+        return $this->isSold()
+            && $this->sold_at !== null
+            && $this->sold_at->lt(now()->subDays(self::SOLD_NOINDEX_DAYS));
+    }
+
+    /** يتفهرس؟ المنشور بس، والمباع القديم (٦٠ يوم+) لأ. */
+    public function isIndexable(): bool
+    {
+        return $this->is_published && ! $this->isStaleSold();
+    }
+
+    /** مسار الصفحة الكانوني: /shop/{category}/{product}. */
+    public function path(): string
+    {
+        $category = $this->relationLoaded('category') ? $this->category : $this->category()->first();
+        $categorySlug = $category?->slug ?? 'shop';
+
+        return '/shop/' . $categorySlug . '/' . $this->slug;
     }
 
     // ───────────────────────── قاعدة النشر ─────────────────────────

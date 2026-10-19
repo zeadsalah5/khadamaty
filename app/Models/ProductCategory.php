@@ -49,4 +49,29 @@ class ProductCategory extends Model
             ? $this->parent->name_ar . ' › ' . $this->name_ar
             : $this->name_ar;
     }
+
+    /** مسار صفحة القسم: /shop/{slug}. */
+    public function path(): string
+    {
+        return '/shop/' . $this->slug;
+    }
+
+    /** معرّفات القسم نفسه + أقسامه الفرعية (عشان نجمع منتجات الشجرة كلها). */
+    public function descendantIds(): array
+    {
+        $ids = [$this->id];
+
+        $children = $this->relationLoaded('children') ? $this->children : $this->children()->get();
+        foreach ($children as $child) {
+            $ids = array_merge($ids, $child->descendantIds());
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /** استعلام منتجات القسم (وأقسامه الفرعية) المنشورة. */
+    public function publishedProductsQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return Product::query()->published()->whereIn('category_id', $this->descendantIds());
+    }
 }

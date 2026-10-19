@@ -19,25 +19,12 @@
                 :datePublished="optional($model->published_at)->toIso8601String()"
                 :dateModified="optional($model->updated_at)->toIso8601String()" />
             @break
-        @case('product')
-            <x-schema.product
-                :name="$title"
-                :description="$subtitle"
-                :url="$canonical"
-                :sku="$model->sku"
-                :image="$model->imageUrl()"
-                :brand="$model->brand?->name_ar"
-                :price="$model->displayPrice()" />
-            @break
     @endswitch
 @endpush
 
 @section('content')
     <x-page-hero :title="$title" :subtitle="$subtitle ?? null" :breadcrumbs="$breadcrumbs ?? []" />
 
-    @if ($type === 'product')
-        @include('pages.partials.product', ['product' => $model])
-    @else
     <section class="mx-auto max-w-6xl px-4 pb-16 md:pb-20">
         @php $body = $model->body ?? null; @endphp
         @if (! empty($body))
@@ -52,5 +39,4 @@
             </div>
         @endif
     </section>
-    @endif
 @endsection

@@ -112,6 +112,14 @@ class SitemapController extends Controller
             ];
         }
 
+        // /used — صفحة محتوى ثابتة قابلة للفهرسة (بتدخل لو فيه منتجات أصلاً في المتجر).
+        if (Product::query()->published()->count() > 0) {
+            $urls[] = [
+                'loc'     => $base . '/used',
+                'lastmod' => $this->pagesLastmod(),
+            ];
+        }
+
         // فهرس كل نوع بيدخل بس لو فيه عناصر منشورة (غير كده هو noindex).
         foreach ($this->types() as [$model, $path]) {
             $query = $model::query()->published();
@@ -122,6 +130,11 @@ class SitemapController extends Controller
                 'loc'     => $base . $path,
                 'lastmod' => $this->iso($query->max('updated_at')),
             ];
+        }
+
+        // صفحات أقسام المتجر اللي فيها منتجات منشورة (محتوى فريد indexable).
+        foreach ($this->publishedShopCategoryUrls($base) as $catUrl) {
+            $urls[] = $catUrl;
         }
 
         return $this->urlsetXml($urls);
@@ -145,6 +158,21 @@ class SitemapController extends Controller
     {
         [$model, $path] = $this->types()[$type];
         $base = $this->base();
+
+        // المنتجات: المسار الكانوني /shop/{category}/{slug}، والمباع القديم (٦٠ يوم+) بيخرج.
+        if ($type === 'products') {
+            $urls = Product::query()->published()
+                ->with('category')
+                ->orderByDesc('updated_at')
+                ->get()
+                ->filter(fn (Product $p) => $p->isIndexable() && $p->category)
+                ->map(fn (Product $p) => [
+                    'loc'     => $base . $p->path(),
+                    'lastmod' => $this->iso($p->updated_at),
+                ])->values()->all();
+
+            return $this->urlsetXml($urls);
+        }
 
         $urls = $model::query()->published()
             ->orderByDesc('updated_at')
@@ -177,6 +205,19 @@ class SitemapController extends Controller
                 'loc'     => $base . '/blog/category/' . $c->getRouteKey(),
                 'lastmod' => $this->iso($c->posts()->where('is_published', true)->max('updated_at')),
             ])->all();
+    }
+
+    /** روابط صفحات أقسام المتجر اللي فيها منتجات منشورة (indexable). */
+    protected function publishedShopCategoryUrls(string $base): array
+    {
+        return \App\Models\ProductCategory::query()->published()
+            ->orderBy('position')
+            ->get()
+            ->filter(fn ($c) => $c->publishedProductsQuery()->exists())
+            ->map(fn ($c) => [
+                'loc'     => $base . $c->path(),
+                'lastmod' => $this->iso($c->publishedProductsQuery()->max('updated_at')),
+            ])->values()->all();
     }
 
     protected function pagesLastmod(): ?string

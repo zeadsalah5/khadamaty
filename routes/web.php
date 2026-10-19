@@ -96,8 +96,11 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
     Route::get('/blog/category/{category}', [BlogController::class, 'category'])->name('blog.category');
     Route::get('/blog/{post}', [BlogController::class, 'show'])->name('blog.show');
 
+    // المتجر: هب + فهرس قسم + صفحة منتج (مسار كانوني /shop/{category}/{product}).
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
-    Route::get('/shop/{product}', [ShopController::class, 'show'])->name('shop.show');
+    Route::get('/used', [ShopController::class, 'used'])->name('shop.used');
+    Route::get('/shop/{category}', [ShopController::class, 'category'])->name('shop.category');
+    Route::get('/shop/{category}/{product}', [ShopController::class, 'show'])->name('shop.show');
 
     Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index');
     Route::get('/vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');

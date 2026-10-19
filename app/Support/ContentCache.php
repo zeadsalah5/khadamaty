@@ -22,6 +22,7 @@ class ContentCache
         'catalog.faqs_home',
         'footer.pages',
         'redirects.map',
+        'shop.has_published',
     ];
 
     /** مسح كل كاش المحتوى + الإعدادات (التعديل يظهر فوراً). */

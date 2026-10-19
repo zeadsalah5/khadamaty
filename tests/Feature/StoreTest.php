@@ -158,18 +158,128 @@ class StoreTest extends TestCase
         $published = Product::create([
             'slug' => 'shown', 'name_ar' => 'منتج ظاهر', 'category_id' => $this->category()->id,
             'condition' => 'new', 'price' => 999, 'status' => 'published', 'is_published' => true,
+            'published_at' => now(),
         ]);
         ProductImage::create(['product_id' => $published->id, 'path' => 'a.webp', 'is_primary' => true]);
 
         $this->get('/shop')->assertStatus(200)->assertSee('منتج ظاهر');
-        $this->get('/shop/shown')->assertStatus(200)->assertSee('منتج ظاهر');
+        $this->get('/shop/air-conditioners')->assertStatus(200)->assertSee('منتج ظاهر');
+        $this->get('/shop/air-conditioners/shown')->assertStatus(200)->assertSee('منتج ظاهر');
 
         // مسوّدة => 404.
         Product::create([
             'slug' => 'hidden', 'name_ar' => 'مسوّدة', 'category_id' => $this->category()->id,
             'condition' => 'new', 'status' => 'draft', 'is_published' => false,
         ]);
-        $this->get('/shop/hidden')->assertStatus(404);
+        $this->get('/shop/air-conditioners/hidden')->assertStatus(404);
+    }
+
+    // ───────────────────────── 6B: روابط/كانونيكال/فهرسة ─────────────────────────
+
+    protected function publish(array $attrs = []): Product
+    {
+        $product = Product::create(array_merge([
+            'slug' => 'p-pub', 'name_ar' => 'منتج منشور', 'category_id' => $this->category()->id,
+            'condition' => 'new', 'price' => 5000, 'status' => 'published', 'is_published' => true,
+            'published_at' => now(),
+        ], $attrs));
+        ProductImage::create(['product_id' => $product->id, 'path' => 'a.webp', 'is_primary' => true]);
+
+        return $product->fresh();
+    }
+
+    public function test_product_url_is_category_nested_and_legacy_redirects(): void
+    {
+        $this->publish(['slug' => 'split-ac']);
+
+        // الكانونيكال الجديد شغّال.
+        $this->get('/shop/air-conditioners/split-ac')->assertStatus(200);
+
+        // الرابط القديم (/shop/{slug}) => 301 للكانونيكال الجديد.
+        $this->get('/shop/split-ac')->assertRedirect('/shop/air-conditioners/split-ac');
+
+        // قسم غير القسم الصحيح => 301 للصح.
+        $this->get('/shop/spare-parts/split-ac')->assertRedirect('/shop/air-conditioners/split-ac');
+    }
+
+    public function test_filtered_category_is_noindex_and_canonical_points_to_base(): void
+    {
+        $this->publish(['slug' => 'split-ac']);
+
+        $res = $this->get('/shop/air-conditioners?brand=none&sort=price_asc');
+        $res->assertStatus(200);
+        $res->assertSee('name="robots" content="noindex,follow"', false);
+        // الكانونيكال على صفحة القسم الأساسية (من غير query string).
+        $res->assertSee('rel="canonical" href="' . rtrim(app(\App\Support\Seo::class)->baseUrl(), '/') . '/shop/air-conditioners"', false);
+    }
+
+    public function test_search_and_condition_filter(): void
+    {
+        $this->publish(['slug' => 'cool-split', 'name_ar' => 'سبليت بارد', 'condition' => 'new']);
+        $used = $this->publish(['slug' => 'used-split', 'name_ar' => 'سبليت مستعمل', 'condition' => 'used', 'stock_qty' => 1]);
+        ProductImage::create(['product_id' => $used->id, 'path' => 'b.webp']);
+        ProductImage::create(['product_id' => $used->id, 'path' => 'c.webp']);
+        ProductUsedDetail::create(['product_id' => $used->id, 'condition_grade' => 'جيد', 'inspection' => [['item' => 'الكمبروسر', 'ok' => true]]]);
+
+        // بحث بالعربي.
+        $this->get('/shop/air-conditioners?q=' . urlencode('مستعمل'))
+            ->assertStatus(200)->assertSee('سبليت مستعمل')->assertDontSee('سبليت بارد');
+
+        // فلتر الحالة.
+        $this->get('/shop/air-conditioners?condition=new')
+            ->assertStatus(200)->assertSee('سبليت بارد')->assertDontSee('سبليت مستعمل');
+    }
+
+    public function test_sold_used_product_is_200_and_noindex_after_60_days(): void
+    {
+        $product = $this->publish([
+            'slug' => 'sold-ac', 'condition' => 'used', 'status' => 'sold',
+            'sold_at' => now()->subDays(70), 'stock_qty' => 0,
+        ]);
+
+        $res = $this->get('/shop/air-conditioners/sold-ac');
+        $res->assertStatus(200)->assertSee('تم البيع');
+        $res->assertSee('name="robots" content="noindex,follow"', false);
+    }
+
+    public function test_out_of_stock_product_is_200_with_unavailable_notice(): void
+    {
+        $this->publish(['slug' => 'oos-ac', 'stock_qty' => 0]);
+
+        $this->get('/shop/air-conditioners/oos-ac')
+            ->assertStatus(200)->assertSee('غير متوفر حالياً');
+    }
+
+    public function test_used_page_is_indexable(): void
+    {
+        $res = $this->get('/used');
+        $res->assertStatus(200)->assertSee('درجات الحالة');
+        $res->assertSee('name="robots" content="index,follow"', false);
+    }
+
+    public function test_empty_shop_hides_header_shop_link_and_noindex(): void
+    {
+        // مفيش منتج منشور => /shop noindex والهيدر مفيهوش «المتجر».
+        $res = $this->get('/');
+        $res->assertDontSee('>المتجر<', false);
+
+        $this->get('/shop')->assertSee('name="robots" content="noindex,follow"', false);
+
+        // بعد نشر منتج => الرابط يظهر.
+        $this->publish(['slug' => 'now-live']);
+        \App\Support\ContentCache::flush();
+        $this->get('/')->assertSee('المتجر');
+    }
+
+    public function test_products_sitemap_uses_nested_urls_and_excludes_stale_sold(): void
+    {
+        $this->publish(['slug' => 'live-ac']);
+        $this->publish(['slug' => 'old-sold', 'condition' => 'used', 'status' => 'sold', 'sold_at' => now()->subDays(90)]);
+
+        $xml = $this->get('/sitemap-products.xml')->assertStatus(200)->getContent();
+
+        $this->assertStringContainsString('/shop/air-conditioners/live-ac', $xml);
+        $this->assertStringNotContainsString('old-sold', $xml);
     }
 
     // ───────────────────────── مساعد: بناء ملف XLSX للاختبار ─────────────────────────
