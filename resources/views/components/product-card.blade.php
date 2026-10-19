@@ -1,7 +1,7 @@
 @props(['product'])
 {{--
-    كارت منتج موحّد (المرحلة 6B) — يُستخدم في الهب والقسم والماركة والمستعمل والمشابهة.
-    زرار «أضف للسلة» يوجّه لواتساب دلوقتي (السلة الحقيقية في 6C).
+    كارت منتج موحّد — يُستخدم في الهب والقسم والماركة والمستعمل والمشابهة.
+    زرار «أضف للسلة» بيضيف للسلة الحقيقية (POST على cart.add).
 --}}
 @php
     use Illuminate\Support\Facades\Storage;
@@ -16,9 +16,6 @@
     $discount = $product->discountPercent();
     $sold     = $product->isSold();
     $inStock  = $product->isInStock();
-
-    $waText = rawurlencode('عايز أستفسر عن: ' . $product->name_ar . ' — ' . url($product->path()));
-    $waUrl  = 'https://wa.me/' . site('whatsapp') . '?text=' . $waText;
 @endphp
 
 <article class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white transition-all hover:border-brand hover:shadow-lg hover:shadow-brand/5">
@@ -91,19 +88,23 @@
             {{ $sold ? 'تم البيع' : ($inStock ? 'متوفر' : 'غير متوفر حالياً') }}
         </p>
 
-        {{-- أضف للسلة (يوجّه لواتساب في 6B) --}}
+        {{-- أضف للسلة (السلة الحقيقية — 6C) --}}
         <div class="relative z-10 mt-auto pt-3">
-            @if ($sold)
+            @if ($sold || ! $inStock)
                 <a href="{{ url($product->path()) }}"
                    class="flex w-full items-center justify-center gap-2 rounded-full border border-line px-4 py-2.5 text-sm font-bold text-ink transition-colors hover:border-brand hover:text-brand">
-                    شوف بدائل
+                    {{ $sold ? 'شوف بدائل' : 'اعرف التفاصيل' }}
                 </a>
             @else
-                <a href="{{ $waUrl }}" target="_blank" rel="noopener"
-                   class="flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-600">
-                    <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-                    أضف للسلة
-                </a>
+                <form method="POST" action="{{ route('cart.add') }}" class="w-full">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                    <button type="submit"
+                            class="flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-600">
+                        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+                        أضف للسلة
+                    </button>
+                </form>
             @endif
         </div>
     </div>
