@@ -129,18 +129,33 @@
                 @endif
 
                 {{-- CTA --}}
-                <div class="mt-6 flex flex-wrap gap-3">
-                    @if (! $sold && $inStock)
-                        <a href="{{ $waUrl }}" target="_blank" rel="noopener"
-                           class="inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3 font-bold text-white transition-colors hover:bg-brand-600">
-                            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
-                            أضف للسلة
-                        </a>
+                <div class="mt-6">
+                    @if (! $sold && $inStock && $display)
+                        @if (session('cart_error'))
+                            <div class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700">{{ session('cart_error') }}</div>
+                        @endif
+                        <form method="POST" action="{{ route('cart.add') }}" class="flex flex-wrap items-center gap-3">
+                            @csrf
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            @unless ($isUsed)
+                                <label for="qty" class="sr-only">الكمية</label>
+                                <input id="qty" type="number" name="qty" value="1" min="1" max="{{ min(20, (int) $product->stock_qty) }}"
+                                       inputmode="numeric" aria-label="الكمية"
+                                       class="w-16 rounded-full border border-line px-3 py-3 text-center focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30">
+                            @endunless
+                            <button type="submit"
+                                    class="inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3 font-bold text-white transition-colors hover:bg-brand-600">
+                                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+                                أضف للسلة
+                            </button>
+                        </form>
                     @endif
-                    <a href="https://wa.me/{{ site('whatsapp') }}?text={{ $waText }}" target="_blank" rel="noopener"
-                       class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-accent hover:text-accent">اسأل على واتساب</a>
-                    <a href="tel:{{ site('phone_tel') }}"
-                       class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-brand hover:text-brand">اتصل</a>
+                    <div class="mt-3 flex flex-wrap gap-3">
+                        <a href="https://wa.me/{{ site('whatsapp') }}?text={{ $waText }}" target="_blank" rel="noopener"
+                           class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-accent hover:text-accent">اسأل على واتساب</a>
+                        <a href="tel:{{ site('phone_tel') }}"
+                           class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-brand hover:text-brand">اتصل</a>
+                    </div>
                 </div>
 
                 {{-- بيانات سريعة --}}

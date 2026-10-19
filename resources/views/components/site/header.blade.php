@@ -38,6 +38,9 @@
         return $i;
     }, $nav);
     $bookUrl = url('/') . '#booking';
+
+    // عداد السلة (من الـ session) — يظهر بس لو المتجر فيه منتجات منشورة.
+    $cartCount = $hasShop ? \App\Support\Store\Cart::count() : 0;
 @endphp
 
 <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-line">
@@ -53,6 +56,15 @@
 
         {{-- أزرار — ديسكتوب --}}
         <div class="hidden lg:flex items-center gap-3">
+            @if ($hasShop)
+                <a href="{{ route('cart.show') }}" aria-label="سلة المشتريات{{ $cartCount ? ' (' . $cartCount . ' منتج)' : '' }}"
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+                    @if ($cartCount)
+                        <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $cartCount }}</span>
+                    @endif
+                </a>
+            @endif
             <a href="tel:{{ site('phone_tel') }}"
                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-line text-ink font-semibold text-sm hover:border-brand hover:text-brand transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
@@ -64,12 +76,25 @@
             </a>
         </div>
 
-        {{-- زر قايمة الموبايل --}}
-        <button type="button" id="menu-toggle"
-                class="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-line text-ink"
-                aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobile-menu">
-            <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
+        {{-- أيقونة السلة + زر القايمة — موبايل --}}
+        <div class="flex items-center gap-2 lg:hidden">
+            @if ($hasShop)
+                <a href="{{ route('cart.show') }}" aria-label="سلة المشتريات{{ $cartCount ? ' (' . $cartCount . ' منتج)' : '' }}"
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+                    @if ($cartCount)
+                        <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $cartCount }}</span>
+                    @endif
+                </a>
+            @endif
+
+            {{-- زر قايمة الموبايل --}}
+            <button type="button" id="menu-toggle"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-line text-ink"
+                    aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobile-menu">
+                <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+        </div>
     </nav>
 
     {{-- قايمة الموبايل --}}

@@ -78,10 +78,20 @@ class ContentSeeder extends Seeder
             $area = Area::updateOrCreate(['slug' => $slug], $fields);
 
             $complete = $area->hasCompleteContent();
-            $area->forceFill([
+
+            $fill = [
                 'is_published' => $complete,
                 'published_at' => $complete ? ($area->published_at ?? $now) : null,
-            ])->save();
+            ];
+
+            // توصيل المتجر (المرحلة 6C): نفعّله على المناطق المنشورة كـ placeholder
+            // برسوم 0 وملاحظة TODO — صاحب الموقع يضبط الرسوم من الداشبورد.
+            if ($complete && $area->delivery_note === null && (float) $area->delivery_fee === 0.0) {
+                $fill['delivers'] = true;
+                $fill['delivery_note'] = 'TODO: صاحب الموقع يحدد رسوم التوصيل لهذه المنطقة.';
+            }
+
+            $area->forceFill($fill)->save();
         }
 
         /*

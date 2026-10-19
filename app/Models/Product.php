@@ -141,6 +141,38 @@ class Product extends Model
         return ! $this->isSold() && $this->stock_qty > 0;
     }
 
+    // ───────────────────────── المخزون (الطلبات — المرحلة 6C) ─────────────────────────
+
+    /** حجز كمية من المخزون (خصم). بيتنادى جوّه transaction مع lock عند إنشاء الطلب. */
+    public function reserve(int $qty): void
+    {
+        $this->decrement('stock_qty', min($qty, (int) $this->stock_qty));
+    }
+
+    /** إرجاع كمية للمخزون (إلغاء/مرتجع)؛ والمستعمل المباع يرجع available. */
+    public function release(int $qty): void
+    {
+        $this->increment('stock_qty', $qty);
+        $this->unmarkSold();
+    }
+
+    /** تعليم المنتج كـ«مباع» (المستعمل عند التوصيل). */
+    public function markSold(): void
+    {
+        $this->forceFill(['status' => 'sold', 'sold_at' => now()])->save();
+    }
+
+    /** شيل علامة «مباع» ورجّع المنتج لحالته حسب النشر. */
+    public function unmarkSold(): void
+    {
+        if ($this->status === 'sold') {
+            $this->forceFill([
+                'status'  => $this->is_published ? 'published' : 'draft',
+                'sold_at' => null,
+            ])->save();
+        }
+    }
+
     /** قيمة schema.org/itemCondition حسب حالة الجهاز. */
     public function schemaCondition(): string
     {

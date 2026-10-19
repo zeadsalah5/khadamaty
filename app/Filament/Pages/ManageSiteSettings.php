@@ -37,6 +37,8 @@ class ManageSiteSettings extends Page implements HasForms
             'phone_tel' => 'company',
             'whatsapp' => 'company',
             'email' => 'company',
+            'order_notify_email' => 'company',
+            'order_notify_whatsapp' => 'company',
             'working_hours' => 'company',
             'social_links' => 'company',
             'default_og_image' => 'seo',
@@ -73,6 +75,12 @@ class ManageSiteSettings extends Page implements HasForms
                     Forms\Components\Textarea::make('working_hours')
                         ->label('ساعات العمل (اختياري)')->rows(2)
                         ->helperText('بيظهر في الفوتر لو متملّي.'),
+                    Forms\Components\TextInput::make('order_notify_email')
+                        ->label('إيميل إشعارات الطلبات (اختياري)')->email()->maxLength(255)
+                        ->helperText('يتبعتله إيميل بكل طلب جديد من المتجر. سيبه فاضي لو مش عايز.'),
+                    Forms\Components\TextInput::make('order_notify_whatsapp')
+                        ->label('واتساب إشعارات الطلبات (اختياري)')->maxLength(30)
+                        ->helperText('دولي بدون + — لرابط الواتساب الجاهز في لوحة الطلبات. فاضي = رقم الواتساب العام.'),
                     Forms\Components\Repeater::make('social_links')
                         ->label('روابط السوشيال ميديا (اختياري)')
                         ->schema([

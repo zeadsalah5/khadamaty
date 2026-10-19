@@ -19,6 +19,8 @@ use App\Models\Service;
 use App\Models\Setting;
 use App\Models\Vendor;
 use App\Observers\ContentCacheObserver;
+use App\Payments\CashOnDelivery;
+use App\Payments\PaymentManager;
 use App\Support\Seo;
 use Illuminate\Support\ServiceProvider;
 
@@ -31,6 +33,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // خدمة SEO: singleton واحد لكل ريكوست، بتتظبط من الـ Controllers.
         $this->app->singleton(Seo::class, fn () => new Seo());
+
+        // سجلّ طرق الدفع (6C: الدفع عند الاستلام فقط؛ الأونلاين يتضاف في 6E).
+        $this->app->singleton(PaymentManager::class, function () {
+            return (new PaymentManager())->register(new CashOnDelivery(), default: true);
+        });
     }
 
     /**

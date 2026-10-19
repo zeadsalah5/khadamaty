@@ -62,6 +62,19 @@ class AreaResource extends Resource
                         ->addActionLabel('إضافة سؤال')->columnSpanFull(),
                 ]),
 
+            Forms\Components\Section::make('التوصيل (المتجر)')
+                ->description('يتحكم في إتاحة المنطقة في صفحة الدفع ورسوم التوصيل عليها.')
+                ->schema([
+                    Forms\Components\Toggle::make('delivers')->label('التوصيل متاح لهذه المنطقة')
+                        ->helperText('لو مقفول، المنطقة متظهرش في الـ checkout.'),
+                    Forms\Components\TextInput::make('delivery_fee')->label('رسوم التوصيل (ج.م)')
+                        ->numeric()->minValue(0)->default(0)
+                        ->helperText('0 = توصيل مجاني.'),
+                    Forms\Components\TextInput::make('delivery_note')->label('ملاحظة التوصيل (اختياري)')
+                        ->maxLength(255)->columnSpanFull()
+                        ->helperText('مثال: التوصيل خلال ٢٤ ساعة.'),
+                ])->columns(2),
+
             Forms\Components\Section::make('SEO (اختياري)')->collapsed()->schema([
                 Forms\Components\TextInput::make('seo_title')->label('عنوان SEO')->maxLength(70),
                 Forms\Components\Textarea::make('seo_description')->label('وصف SEO')->rows(2)->maxLength(170),
@@ -89,6 +102,7 @@ class AreaResource extends Resource
                     ->state(fn (Area $record) => empty($record->missingContent())
                         ? 'كامل' : 'ناقص: ' . implode('، ', $record->missingContent()))
                     ->badge()->color(fn (Area $record) => empty($record->missingContent()) ? 'success' : 'warning'),
+                Tables\Columns\IconColumn::make('delivers')->label('توصيل')->boolean()->toggleable(),
                 Tables\Columns\TextColumn::make('slug')->label('Slug')->color('gray')->toggleable(),
             ])
             ->defaultSort('name_ar')

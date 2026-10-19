@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Content\ApplianceController;
 use App\Http\Controllers\Content\AreaController;
 use App\Http\Controllers\Content\BlogController;
@@ -43,6 +46,25 @@ Route::get('/', function () {
 Route::post('/booking', [BookingController::class, 'store'])
     ->middleware('throttle:6,1') // حماية من السبام: 6 محاولات في الدقيقة
     ->name('booking.store');
+
+/*
+|--------------------------------------------------------------------------
+| المتجر: السلة + الدفع عند الاستلام + التتبّع (المرحلة 6C)
+|--------------------------------------------------------------------------
+| صفحات معاملات فيها فورم/session => من غير SetCacheHeaders (مفيش cache كامل)
+| وكلها noindex. throttle على الإضافة والـ checkout والتتبّع.
+*/
+Route::get('/cart', [CartController::class, 'show'])->name('cart.show');
+Route::post('/cart/add', [CartController::class, 'add'])->middleware('throttle:30,1')->name('cart.add');
+Route::post('/cart/update', [CartController::class, 'update'])->middleware('throttle:30,1')->name('cart.update');
+Route::post('/cart/remove', [CartController::class, 'remove'])->middleware('throttle:30,1')->name('cart.remove');
+
+Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
+Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:10,1')->name('checkout.store');
+
+Route::get('/order/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
+Route::get('/track', [OrderController::class, 'trackForm'])->name('order.track');
+Route::post('/track', [OrderController::class, 'track'])->middleware('throttle:15,1')->name('order.track.post');
 
 /*
 |--------------------------------------------------------------------------

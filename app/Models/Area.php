@@ -12,6 +12,7 @@ class Area extends Model
     protected $fillable = [
         'slug', 'name_ar', 'excerpt', 'intro',
         'common_problems', 'neighborhoods', 'top_services', 'eta_note', 'faqs',
+        'delivers', 'delivery_fee', 'delivery_note',
         'seo_title', 'seo_description',
         'is_published', 'published_at',
     ];
@@ -23,7 +24,15 @@ class Area extends Model
         'neighborhoods'   => 'array',
         'top_services'    => 'array',
         'faqs'            => 'array',
+        'delivers'        => 'boolean',
+        'delivery_fee'    => 'decimal:2',
     ];
+
+    /** المنطقة داخل نطاق التوصيل؟ (بيتحكم في إتاحتها في الـ checkout). */
+    public function isDeliverable(): bool
+    {
+        return (bool) $this->delivers;
+    }
 
     /**
      * محتوى المنطقة كامل كفاية إنها تتنشر؟
