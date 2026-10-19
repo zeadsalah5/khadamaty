@@ -34,8 +34,9 @@ class ImageUploads
 
             return $name;
         } catch (\Throwable $e) {
-            // fallback: خزّن الأصل بامتداده الأصلي.
-            $ext = $file->getClientOriginalExtension() ?: 'jpg';
+            // fallback: خزّن الأصل، بس باقصر الامتداد على صور معروفة (دفاع في العمق — M1).
+            $ext = strtolower((string) $file->getClientOriginalExtension());
+            $ext = in_array($ext, ['jpg', 'jpeg', 'png', 'webp'], true) ? $ext : 'jpg';
             $name = Str::random(24) . '.' . $ext;
             Storage::disk($disk)->putFileAs('', $file, $name);
 

@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 
 /**
  * حساب عميل (المرحلة 6D) — منفصل تماماً عن User (الأدمن).
@@ -51,34 +50,10 @@ class Customer extends Authenticatable
 
     // ───────────────────────── مساعدات ─────────────────────────
 
-    /** تطبيع رقم موبايل: شيل أي مسافات/رموز غير أرقام (بيحافظ على + في الأول). */
+    /** تطبيع رقم موبايل — مصدر موحّد (M6): App\Support\PhoneNumber::normalize. */
     public static function normalizePhone(?string $phone): ?string
     {
-        if (blank($phone)) {
-            return null;
-        }
-
-        $phone = trim($phone);
-        $plus = str_starts_with($phone, '+') ? '+' : '';
-        $digits = preg_replace('/\D+/', '', $phone);
-
-        return $digits === '' ? null : $plus . $digits;
-    }
-
-    /**
-     * ربط الطلبات القديمة (كضيف) اللي موبايلها يطابق موبايل الحساب — مرة واحدة.
-     * بتتنادى عند التسجيل والدخول. بترجّع عدد الطلبات اللي اتربطت.
-     */
-    public function linkGuestOrders(): int
-    {
-        if (blank($this->phone)) {
-            return 0;
-        }
-
-        return DB::table('orders')
-            ->whereNull('customer_id')
-            ->where('customer_phone', $this->phone)
-            ->update(['customer_id' => $this->id, 'updated_at' => now()]);
+        return \App\Support\PhoneNumber::normalize($phone);
     }
 
     /**

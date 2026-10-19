@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Support\PhoneNumber;
 use App\Support\Seo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,7 +60,7 @@ class OrderController extends Controller
             'phone.required'        => 'اكتب رقم الموبايل اللي طلبت بيه.',
         ]);
 
-        $phone = preg_replace('/\s+/', '', $data['phone']);
+        $phone = PhoneNumber::normalize($data['phone']);
 
         $order = Order::with('items')
             ->where('order_number', trim($data['order_number']))

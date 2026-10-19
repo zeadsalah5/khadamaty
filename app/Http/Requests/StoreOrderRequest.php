@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\PhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,7 +22,7 @@ class StoreOrderRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'phone' => preg_replace('/\s+/', '', (string) $this->input('phone')),
+            'phone' => PhoneNumber::normalize((string) $this->input('phone')),
         ]);
     }
 

@@ -121,10 +121,12 @@ class Product extends Model
         return $this->price !== null && (float) $this->price > 0;
     }
 
-    /** السعر المعروض: سعر العرض لو موجود، وإلا السعر الأساسي. */
+    /** السعر المعروض: سعر العرض لو عرض فعلي (أقل من الأساسي)، وإلا السعر الأساسي. */
     public function displayPrice(): ?string
     {
-        if ($this->sale_price !== null && (float) $this->sale_price > 0) {
+        // M2: نستخدم سعر العرض بس لو أقل من السعر الأساسي (نفس شرط hasSale)
+        // عشان لو الأدمن كتب sale_price > price بالغلط ميتحسبش في السلة والطلب.
+        if ($this->hasSale()) {
             return $this->sale_price;
         }
 

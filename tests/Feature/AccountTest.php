@@ -122,9 +122,9 @@ class AccountTest extends TestCase
         $this->assertAuthenticated('customer');
     }
 
-    public function test_guest_orders_are_linked_on_login_by_phone(): void
+    public function test_guest_orders_are_not_auto_linked_by_phone(): void
     {
-        // طلب كضيف بنفس الموبايل قبل التسجيل.
+        // I3: طلب كضيف بنفس رقم موبايل حساب جديد — مينفعش يتربط تلقائياً (منع اختطاف).
         $order = Order::create([
             'order_number'  => 'KH-GUEST-1',
             'status'        => 'new',
@@ -135,10 +135,24 @@ class AccountTest extends TestCase
             'subtotal'      => 500, 'delivery_fee' => 0, 'total' => 500,
         ]);
 
-        $customer = $this->customer(['phone' => '01012345678']);
-        $customer->linkGuestOrders();
+        // التسجيل والدخول برقم الضحية مايربطش الطلب بالحساب الجديد.
+        $this->post(route('register.post'), [
+            'name'                  => 'محتال',
+            'phone'                 => '01012345678',
+            'password'              => 'password123',
+            'password_confirmation' => 'password123',
+        ])->assertRedirect(route('account.orders'));
 
-        $this->assertEquals($customer->id, $order->fresh()->customer_id);
+        $attacker = Customer::where('phone', '01012345678')->firstOrFail();
+
+        // الطلب لسه ضيف (مش مربوط).
+        $this->assertNull($order->fresh()->customer_id);
+
+        // وصفحة «طلباتي» بتاعته مفيهاش طلب الضيف ده.
+        $this->actingAs($attacker, 'customer')
+            ->get(route('account.orders'))
+            ->assertOk()
+            ->assertDontSee('KH-GUEST-1');
     }
 
     // ───────────────────────── صلاحيات صفحات الحساب ─────────────────────────

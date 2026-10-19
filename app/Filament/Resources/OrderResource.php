@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Concerns\AdminOnly;
 use App\Filament\Resources\OrderResource\Pages;
 use App\Models\Order;
 use App\Support\Store\OrderNotifier;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -21,6 +23,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class OrderResource extends Resource
 {
+    // I4: الطلبات فيها بيانات عملاء شخصية => أدمن-أونلي (المحرّر ممنوع).
+    use AdminOnly;
+
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
@@ -151,6 +156,7 @@ class OrderResource extends Resource
                     ->color(fn ($state) => match ($state) {
                         'paid' => 'success',
                         'failed' => 'danger',
+                        'amount_mismatch', 'paid_after_cancel' => 'danger', // محتاج مراجعة
                         'refunded' => 'gray',
                         'pending_payment' => 'warning',
                         default => 'info',
@@ -180,6 +186,35 @@ class OrderResource extends Resource
                     ->url(fn (Order $record) => OrderNotifier::ownerWhatsappLink($record))
                     ->openUrlInNewTab()
                     ->visible(fn (Order $record) => OrderNotifier::ownerWhatsappLink($record) !== null),
+                Tables\Actions\Action::make('reactivate')
+                    ->label('إعادة تفعيل الطلب')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('إعادة تفعيل طلب مدفوع بعد الإلغاء')
+                    ->modalDescription('ده بيفحص المخزون، ولو متاح بيعيد حجزه ويحوّل الطلب لـ«مؤكّد/مدفوع». لو المخزون اتباع هتظهر رسالة إنه لازم استرداد.')
+                    // I2: بس للطلبات اللي وصلها دفع بعد الإلغاء ومستنّية قرار.
+                    ->visible(fn (Order $record) => $record->payment_status === 'paid_after_cancel')
+                    ->action(function (Order $record) {
+                        // الفحص وإعادة الحجز تحت القفل في الموديل (reactivateAfterLatePayment).
+                        $shortage = $record->reactivateAfterLatePayment();
+
+                        if ($shortage !== []) {
+                            Notification::make()->danger()
+                                ->title('المخزون مش متاح')
+                                ->body('مش ممكن إعادة التفعيل، دول خلصوا: ' . implode('، ', $shortage)
+                                    . '. لازم استرداد الفلوس للعميل من لوحة البوابة ثم تعليم الطلب «مُسترجَع».')
+                                ->persistent()
+                                ->send();
+
+                            return;
+                        }
+
+                        Notification::make()->success()
+                            ->title('تم إعادة تفعيل الطلب')
+                            ->body('اتحجز المخزون والطلب بقى مؤكّد ومدفوع.')
+                            ->send();
+                    }),
                 Tables\Actions\Action::make('refund')
                     ->label('تعليم كمُسترجَع')
                     ->icon('heroicon-o-arrow-uturn-left')

@@ -19,6 +19,8 @@ class GatewayResult
         public readonly string $status,
         /** المبلغ اللي اتعامل عليه (بالجنيه) — للتأكيد والمطابقة. */
         public readonly ?float $amount = null,
+        /** عملة المعاملة زي ما رجعت من البوابة (مثلاً EGP) — للمطابقة. */
+        public readonly ?string $currency = null,
     ) {
     }
 

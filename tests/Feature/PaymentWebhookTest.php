@@ -174,6 +174,114 @@ class PaymentWebhookTest extends TestCase
         $this->assertSame($stockAfterOrder, (int) Product::find($productId)->stock_qty);
     }
 
+    // ───────────────────────── I1: مطابقة المبلغ والعملة ─────────────────────────
+
+    public function test_webhook_with_lower_amount_is_not_marked_paid(): void
+    {
+        $order = $this->onlineOrder(); // total = 2*1000 + 50 = 2050
+
+        $obj = $this->txnObj($order, ['amount_cents' => 100000, 'id' => 900010]); // 1000 ج بس
+        $this->sendWebhook($obj)->assertOk();
+
+        $order->refresh();
+        $this->assertSame('amount_mismatch', $order->payment_status);
+        $this->assertSame('new', $order->status); // ما اتأكّدش
+    }
+
+    public function test_webhook_with_higher_amount_is_not_marked_paid(): void
+    {
+        $order = $this->onlineOrder();
+
+        $obj = $this->txnObj($order, ['amount_cents' => 999999, 'id' => 900011]); // أكتر من الإجمالي
+        $this->sendWebhook($obj)->assertOk();
+
+        $order->refresh();
+        $this->assertSame('amount_mismatch', $order->payment_status);
+    }
+
+    public function test_webhook_with_wrong_currency_is_not_marked_paid(): void
+    {
+        $order = $this->onlineOrder();
+
+        // المبلغ مطابق بس العملة غلط.
+        $obj = $this->txnObj($order, ['currency' => 'USD', 'id' => 900012]);
+        $this->sendWebhook($obj)->assertOk();
+
+        $order->refresh();
+        $this->assertSame('amount_mismatch', $order->payment_status);
+    }
+
+    public function test_webhook_with_matching_amount_and_currency_is_paid(): void
+    {
+        $order = $this->onlineOrder();
+
+        $this->sendWebhook($this->txnObj($order, ['id' => 900013]))->assertOk();
+
+        $order->refresh();
+        $this->assertSame('paid', $order->payment_status);
+    }
+
+    // ───────────────────────── I2: دفع متأخّر بعد الإلغاء ─────────────────────────
+
+    public function test_late_paid_webhook_on_cancelled_order_flags_for_review(): void
+    {
+        $order = $this->onlineOrder(qty: 2);
+        $productId = $order->items->first()->product_id;
+
+        // محاكاة المهلة: الطلب اتلغى والمخزون رجع (10 تاني).
+        $order->changeStatus('cancelled');
+        $this->assertSame(10, (int) Product::find($productId)->stock_qty);
+
+        // دفع متأخّر ناجح وموقّع صح وصل بعد الإلغاء.
+        $this->sendWebhook($this->txnObj($order, ['id' => 900020]))->assertOk();
+
+        $order->refresh();
+        $this->assertSame('paid_after_cancel', $order->payment_status); // مش paid
+        $this->assertSame('cancelled', $order->status);                 // الحالة ما رجعتش
+        // المخزون ما اتحجزش تاني تلقائياً.
+        $this->assertSame(10, (int) Product::find($productId)->stock_qty);
+    }
+
+    public function test_reactivate_succeeds_when_stock_available(): void
+    {
+        $order = $this->onlineOrder(qty: 2);
+        $productId = $order->items->first()->product_id;
+
+        $order->changeStatus('cancelled');
+        $this->sendWebhook($this->txnObj($order, ['id' => 900021]))->assertOk();
+        $order->refresh();
+        $this->assertSame('paid_after_cancel', $order->payment_status);
+
+        // المخزون متاح (10) => إعادة التفعيل تنجح وتعيد الحجز.
+        $shortage = $order->reactivateAfterLatePayment();
+
+        $this->assertSame([], $shortage);
+        $order->refresh();
+        $this->assertSame('paid', $order->payment_status);
+        $this->assertSame('confirmed', $order->status);
+        $this->assertSame(8, (int) Product::find($productId)->stock_qty); // 10 - 2
+    }
+
+    public function test_reactivate_fails_when_stock_sold_out(): void
+    {
+        $order = $this->onlineOrder(qty: 2);
+        $productId = $order->items->first()->product_id;
+
+        $order->changeStatus('cancelled');
+        $this->sendWebhook($this->txnObj($order, ['id' => 900022]))->assertOk();
+
+        // المخزون اتباع لحد تاني (خلص).
+        Product::find($productId)->forceFill(['stock_qty' => 0])->save();
+
+        $shortage = $order->fresh()->reactivateAfterLatePayment();
+
+        $this->assertNotEmpty($shortage); // لازم استرداد
+        $order->refresh();
+        $this->assertSame('paid_after_cancel', $order->payment_status); // ما اتغيّرش
+        $this->assertSame('cancelled', $order->status);
+        $this->assertSame(0, (int) Product::find($productId)->stock_qty); // ما اتحجزش
+    }
+
     // ───────────────────────── نوع مش مهم ─────────────────────────
 
     public function test_non_transaction_type_is_ignored(): void

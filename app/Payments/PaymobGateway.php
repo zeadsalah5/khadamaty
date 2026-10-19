@@ -154,7 +154,9 @@ class PaymobGateway implements OnlineGateway
             orderNumber: $orderNumber,
             transactionId: $transactionId,
             status: $status,
+            // amount_cents بالقروش (قرش = 1/100 جنيه) => نحوّلها لجنيه للمطابقة بإجمالي الطلب.
             amount: ((float) data_get($obj, 'amount_cents', 0)) / 100,
+            currency: ($cur = data_get($obj, 'currency')) !== null ? strtoupper((string) $cur) : null,
         );
     }
 

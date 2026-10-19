@@ -30,8 +30,13 @@ class ArticleContent
             return new self('', [], 1);
         }
 
-        // html_input=escape (الافتراضي) => أي HTML خام في المصدر بيتهرّب، فمفيش حقن.
-        $html = Str::markdown($markdown);
+        // الافتراضي في league/commonmark هو html_input=allow + allow_unsafe_links=true،
+        // يعني الـ HTML الخام (<script>، <img onerror>...) وروابط javascript: بتتعرض زي ما هي.
+        // بنمرّر options صريحة عشان الـ HTML الخام يتشال والروابط الخطرة تتمنع — المصدر Markdown بس.
+        $html = Str::markdown($markdown, [
+            'html_input'         => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
 
         [$html, $toc] = self::injectHeadingIds($html);
 

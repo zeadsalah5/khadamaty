@@ -39,8 +39,18 @@ class AdminAccessTest extends TestCase
         $this->actingAs($editor)->get('/admin/redirects')->assertStatus(403);
         $this->actingAs($editor)->get('/admin/menu-items')->assertStatus(403);
 
+        // I4: الطلبات فيها بيانات عملاء => المحرّر ممنوع منها.
+        $this->actingAs($editor)->get('/admin/orders')->assertStatus(403);
+
         // لكن يقدر يوصل للمحتوى.
         $this->actingAs($editor)->get('/admin/services')->assertStatus(200);
+    }
+
+    public function test_admin_can_reach_orders(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->get('/admin/orders')->assertStatus(200);
     }
 
     public function test_booking_form_creates_a_record(): void

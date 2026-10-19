@@ -96,6 +96,41 @@ class PaymentWebhookController extends Controller
             ]);
 
             if ($result->isPaid() && ! $order->isPaid()) {
+                // I2: الطلب اتلغى/اترجع (غالباً بمهلة الدفع والمخزون رجع) ووصل دفع متأخّر.
+                // متعلّمهوش paid ولا ترجّع الحالة — علّمه للمراجعة اليدوية وسيب الأدمن يعيد تفعيله لو المخزون متاح.
+                if (in_array($order->status, Order::STOCK_RETURNING, true)) {
+                    $order->payment_status = 'paid_after_cancel';
+                    $order->save();
+
+                    Log::warning('Payment webhook: paid callback on cancelled/returned order', [
+                        'order'  => $order->order_number,
+                        'status' => $order->status,
+                    ]);
+
+                    return;
+                }
+
+                // I1: لازم المبلغ يطابق إجمالي الطلب والعملة تكون EGP قبل ما نعلّمه مدفوع.
+                $amountMatches = $result->amount !== null
+                    && abs((float) $result->amount - (float) $order->total) <= 0.01;
+                $currencyMatches = strtoupper((string) $result->currency) === 'EGP';
+
+                if (! $amountMatches || ! $currencyMatches) {
+                    $order->payment_status = 'amount_mismatch';
+                    $order->save();
+
+                    Log::warning('Payment webhook: amount/currency mismatch', [
+                        'order'           => $order->order_number,
+                        'order_total'     => (float) $order->total,
+                        'paid_amount'     => $result->amount,
+                        'currency'        => $result->currency,
+                        'amount_matches'  => $amountMatches,
+                        'currency_matches' => $currencyMatches,
+                    ]);
+
+                    return;
+                }
+
                 $order->payment_status = 'paid';
                 $order->payment_due_at = null;
                 if ($order->status === 'new') {

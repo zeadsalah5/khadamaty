@@ -99,10 +99,16 @@ class CustomerAuthController extends Controller
         return redirect()->route('shop.index')->with('account_success', 'تم تسجيل الخروج.');
     }
 
-    /** خطوات مشتركة بعد الدخول/التسجيل: ربط الطلبات + دمج المفضلة. */
+    /**
+     * خطوات مشتركة بعد الدخول/التسجيل: دمج المفضلة بس.
+     *
+     * ملاحظة أمان (I3): مفيش ربط تلقائي لطلبات الضيف بالموبايل — ده كان بيسمح
+     * باختطاف طلبات الغير بالتسجيل برقم موبايلهم من غير تحقق ملكية (OTP).
+     * حساب العميل بيشوف الطلبات اللي اتعملت وهو مسجّل دخول بس، والتتبّع
+     * (رقم الطلب + الموبايل) بيفضل متاح للكل زي ما هو.
+     */
     protected function afterAuth(Customer $customer): void
     {
-        $customer->linkGuestOrders();
         Wishlist::mergeSessionIntoCustomer($customer);
     }
 }

@@ -50,6 +50,8 @@ class Order extends Model
         'paid'            => 'مدفوع',
         'failed'          => 'فشل الدفع',
         'refunded'        => 'مُسترجَع',
+        'amount_mismatch' => 'مبلغ غير مطابق (مراجعة)',   // I1 — المبلغ/العملة مش مطابقين
+        'paid_after_cancel' => 'دفع متأخّر بعد الإلغاء (مراجعة)', // I2 — دفع وصل بعد إلغاء المهلة
     ];
 
     // ───────────────────────── العلاقات ─────────────────────────
@@ -160,6 +162,46 @@ class Order extends Model
 
             $this->status = $new;
             $this->save();
+        });
+    }
+
+    /**
+     * I2: إعادة تفعيل طلب وصله دفع بعد الإلغاء (payment_status=paid_after_cancel).
+     * بيفحص توفّر المخزون تحت قفل الصف لكل بند، ولو كله متاح بيعيد الحجز
+     * ويحوّل الطلب لـ«مؤكّد/مدفوع». بيرجّع أسماء البنود اللي مخزونها مش متاح
+     * (قايمة فاضية = نجح؛ غير كده لازم استرداد للعميل).
+     *
+     * @return list<string>
+     */
+    public function reactivateAfterLatePayment(): array
+    {
+        return DB::transaction(function () {
+            $this->loadMissing('items');
+            $missing = [];
+
+            foreach ($this->items as $item) {
+                $product = Product::whereKey($item->product_id)->lockForUpdate()->first();
+
+                $enough = $product && ($item->condition === 'used'
+                    ? (! $product->isSold() && (int) $product->stock_qty >= 1)
+                    : (int) $product->stock_qty >= (int) $item->qty);
+
+                if (! $enough) {
+                    $missing[] = $item->name;
+                }
+            }
+
+            if ($missing !== []) {
+                return $missing; // مفيش أي كتابة — التفعيل بيتلغي
+            }
+
+            // متاح => أعد الحجز (cancelled→confirmed بيعيد الحجز) وعلّمه مدفوع.
+            $this->changeStatus('confirmed');
+            $this->payment_status = 'paid';
+            $this->payment_due_at = null;
+            $this->save();
+
+            return [];
         });
     }
 }
