@@ -9,14 +9,14 @@
 @section('content')
     <x-page-hero
         title="مين إحنا"
-        subtitle="«{{ config('site.name') }}» فريق فنيين متخصصين في صيانة وتركيب وإصلاح التكييفات والأجهزة في {{ config('site.areas_label') }} — شغل نضيف، مواعيد محترمة، والدفع بعد ما تتأكد إن كل حاجة تمام."
+        subtitle="«{{ site('name') }}» فريق فنيين متخصصين في صيانة وتركيب وإصلاح التكييفات والأجهزة في {{ site('areas_label') }} — شغل نضيف، مواعيد محترمة، والدفع بعد ما تتأكد إن كل حاجة تمام."
         :breadcrumbs="$breadcrumbs" />
 
     {{-- قصتنا / فكرتنا --}}
     <section class="mx-auto max-w-3xl px-4 pb-4">
         <div class="space-y-4 text-ink/90 leading-loose">
             <p>
-                بدأنا «{{ config('site.name') }}» بفكرة بسيطة: صيانة التكييف المفروض تكون سهلة ومريحة،
+                بدأنا «{{ site('name') }}» بفكرة بسيطة: صيانة التكييف المفروض تكون سهلة ومريحة،
                 مش مشوار ورا فني متأخر ولا أسعار بتتغير في آخر لحظة. عشان كده بنشتغل بنظام واضح —
                 تحجز، الفني يوصلك في المعاد، يعاين ويقولك السعر قبل ما يبدأ، وتدفع بعد ما تتأكد.
             </p>
@@ -56,7 +56,7 @@
             <div>
                 <h2 class="text-2xl md:text-3xl font-extrabold mb-4">بنعمل إيه بالظبط</h2>
                 <ul class="space-y-3">
-                    @foreach (config('site.booking_services') as $srv)
+                    @foreach (site('booking_services') as $srv)
                         <li class="flex items-center gap-3">
                             <span class="w-2 h-2 rounded-full bg-brand shrink-0" aria-hidden="true"></span>
                             <span class="font-medium">{{ $srv }}</span>
@@ -71,9 +71,9 @@
             </div>
             <div>
                 <h2 class="text-2xl md:text-3xl font-extrabold mb-4">بنغطي فين</h2>
-                <p class="text-muted mb-4 leading-relaxed">بنخدم {{ config('site.areas_label') }} والمناطق المحيطة. مش لاقي منطقتك؟ كلّمنا ونشوف.</p>
+                <p class="text-muted mb-4 leading-relaxed">بنخدم {{ site('areas_label') }} والمناطق المحيطة. مش لاقي منطقتك؟ كلّمنا ونشوف.</p>
                 <ul class="flex flex-wrap gap-2.5">
-                    @foreach (config('site.areas') as $area)
+                    @foreach (site('areas') as $area)
                         <li class="bg-white border border-line rounded-full px-4 py-2 text-sm font-medium">{{ $area }}</li>
                     @endforeach
                 </ul>
@@ -93,7 +93,7 @@
                    class="inline-flex items-center px-7 py-3.5 rounded-full bg-brand hover:bg-brand-600 font-bold transition-colors">
                     احجز فني دلوقتي
                 </a>
-                <a href="tel:{{ config('site.phone_tel') }}"
+                <a href="tel:{{ site('phone_tel') }}"
                    class="inline-flex items-center px-7 py-3.5 rounded-full border border-white/25 hover:border-white font-bold transition-colors">
                     اتصل بينا
                 </a>

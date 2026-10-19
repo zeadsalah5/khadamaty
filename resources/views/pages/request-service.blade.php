@@ -43,11 +43,11 @@
         <div class="rounded-2xl border border-line bg-surface p-6 text-center">
             <p class="text-muted mb-4">تفضّل تكلّمنا على طول؟</p>
             <div class="flex flex-wrap justify-center gap-3">
-                <a href="tel:{{ config('site.phone_tel') }}"
+                <a href="tel:{{ site('phone_tel') }}"
                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
-                    اتصل: {{ config('site.phone') }}
+                    اتصل: {{ site('phone') }}
                 </a>
-                <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+                <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-accent hover:bg-accent-600 text-white font-bold transition-colors">
                     واتساب
                 </a>

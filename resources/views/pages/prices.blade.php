@@ -46,7 +46,7 @@
     <section class="mx-auto max-w-6xl px-4 py-10 md:py-14">
         <h2 class="text-2xl md:text-3xl font-extrabold mb-6">باقات الصيانة والتركيب</h2>
         <div class="grid gap-6 md:grid-cols-3 items-stretch">
-            @foreach (config('site.packages') as $pkg)
+            @foreach (\App\Support\Catalog::packages() as $pkg)
                 <div class="relative rounded-2xl border p-7 flex flex-col
                             {{ $pkg['featured'] ? 'border-brand shadow-xl shadow-brand/10' : 'border-line' }}">
                     @if ($pkg['featured'])
@@ -124,7 +124,7 @@
                    class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                     احجز معاينة
                 </a>
-                <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+                <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                    class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                     اسأل على واتساب
                 </a>

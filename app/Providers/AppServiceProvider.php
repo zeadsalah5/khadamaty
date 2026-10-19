@@ -2,6 +2,22 @@
 
 namespace App\Providers;
 
+use App\Models\Appliance;
+use App\Models\Area;
+use App\Models\Brand;
+use App\Models\Faq;
+use App\Models\MenuItem;
+use App\Models\Package;
+use App\Models\Page;
+use App\Models\Post;
+use App\Models\PostCategory;
+use App\Models\Product;
+use App\Models\Redirect;
+use App\Models\Review;
+use App\Models\Service;
+use App\Models\Setting;
+use App\Models\Vendor;
+use App\Observers\ContentCacheObserver;
 use App\Support\Seo;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +37,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // مسح كاش المحتوى/الإعدادات تلقائياً عند أي تعديل من الداشبورد.
+        $observed = [
+            Setting::class, Service::class, Area::class, Brand::class,
+            Appliance::class, Product::class, Vendor::class,
+            Post::class, PostCategory::class, Review::class,
+            Package::class, Faq::class, Page::class, MenuItem::class, Redirect::class,
+        ];
+
+        foreach ($observed as $model) {
+            $model::observe(ContentCacheObserver::class);
+        }
     }
 }

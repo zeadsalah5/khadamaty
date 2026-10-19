@@ -32,7 +32,7 @@ class SiteController extends Controller
     {
         $this->seo()
             ->title('مين إحنا — خدمة وصيانة تكييفات وأجهزة')
-            ->description('خدماتي فريق فنيين متخصصين في صيانة وتركيب وإصلاح التكييفات والأجهزة في ' . config('site.areas_label') . '. اعرف طريقتنا في الشغل وليه تختارنا.')
+            ->description('خدماتي فريق فنيين متخصصين في صيانة وتركيب وإصلاح التكييفات والأجهزة في ' . site('areas_label') . '. اعرف طريقتنا في الشغل وليه تختارنا.')
             ->canonical('/about')
             ->robots('index,follow');
 
@@ -63,7 +63,7 @@ class SiteController extends Controller
             ->robots('index,follow');
 
         return view('pages.faq', [
-            'faqs'        => (array) config('site.faqs', []),
+            'faqs'        => \App\Support\Catalog::faqs(),
             'breadcrumbs' => $this->crumbs('الأسئلة الشائعة', '/faq'),
         ]);
     }
@@ -72,7 +72,7 @@ class SiteController extends Controller
     {
         $this->seo()
             ->title('اتصل بينا — احجز أو اسأل عن خدمتك')
-            ->description('كلّمنا على ' . config('site.phone') . ' أو على واتساب، أو ابعتلنا طلب خدمة. بنخدم ' . config('site.areas_label') . ' والدفع بعد الشغل.')
+            ->description('كلّمنا على ' . site('phone') . ' أو على واتساب، أو ابعتلنا طلب خدمة. بنخدم ' . site('areas_label') . ' والدفع بعد الشغل.')
             ->canonical('/contact')
             ->robots('index,follow');
 
@@ -85,7 +85,7 @@ class SiteController extends Controller
     {
         // اختيار الخدمة مبدئياً لو جت في الكويري (?service=...) ومطابقة للقايمة.
         $preselect = $request->query('service');
-        if (! in_array($preselect, (array) config('site.booking_services', []), true)) {
+        if (! in_array($preselect, (array) site('booking_services', []), true)) {
             $preselect = null;
         }
 

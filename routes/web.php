@@ -22,8 +22,8 @@ use Illuminate\Support\Facades\Route;
 | بتتسجّل كـ routes صريحة قبل باقي الراوتس عشان المسارات اللي بتتعارض مع
 | راوت ديناميكي (زي /services/{service}) تعمل redirect بدل ما ترجّع 404.
 */
-foreach ((array) config('redirects', []) as $from => $to) {
-    Route::redirect('/' . ltrim($from, '/'), $to, 301);
+foreach (\App\Support\Redirects::all() as $from => $redirect) {
+    Route::redirect('/' . $from, $redirect['to'], $redirect['status']);
 }
 
 /*
@@ -101,6 +101,9 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
 
     Route::get('/vendors', [VendorController::class, 'index'])->name('vendors.index');
     Route::get('/vendors/{vendor}', [VendorController::class, 'show'])->name('vendors.show');
+
+    // صفحات ثابتة (سياسات/تعريفية) — غير المنشورة بترجّع 404.
+    Route::get('/pages/{page}', [\App\Http\Controllers\Content\StaticPageController::class, 'show'])->name('pages.show');
 });
 
 /*
@@ -110,10 +113,10 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
 */
 Route::fallback(function (Request $request) {
     $path = trim($request->path(), '/'); // بدون / في الأول/الآخر
-    $map = (array) config('redirects', []);
+    $map = \App\Support\Redirects::all();
 
     if (isset($map[$path])) {
-        return redirect($map[$path], 301);
+        return redirect($map[$path]['to'], $map[$path]['status']);
     }
 
     abort(404); // بيرجّع status 404 فعلي + صفحة errors/404

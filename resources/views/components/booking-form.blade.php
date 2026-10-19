@@ -59,7 +59,7 @@
             <select id="area" name="area" required
                     class="w-full rounded-xl border border-line px-4 py-3 bg-white focus:border-brand focus:ring-0 @error('area') border-brand @enderror">
                 <option value="">اختر المنطقة</option>
-                @foreach (config('site.areas') as $areaOption)
+                @foreach (site('areas') as $areaOption)
                     <option value="{{ $areaOption }}" @selected($areaVal === $areaOption)>{{ $areaOption }}</option>
                 @endforeach
             </select>
@@ -71,7 +71,7 @@
             <select id="service" name="service" required
                     class="w-full rounded-xl border border-line px-4 py-3 bg-white focus:border-brand focus:ring-0 @error('service') border-brand @enderror">
                 <option value="">اختر الخدمة</option>
-                @foreach (config('site.booking_services') as $s)
+                @foreach (site('booking_services') as $s)
                     <option value="{{ $s }}" @selected($svc === $s)>{{ $s }}</option>
                 @endforeach
             </select>
@@ -84,7 +84,7 @@
                 <select id="appliance" name="appliance"
                         class="w-full rounded-xl border border-line px-4 py-3 bg-white focus:border-brand focus:ring-0 @error('appliance') border-brand @enderror">
                     <option value="">اختر الجهاز (اختياري)</option>
-                    @foreach (config('site.booking_appliances', []) as $ap)
+                    @foreach (site('booking_appliances', []) as $ap)
                         <option value="{{ $ap }}" @selected(old('appliance') === $ap)>{{ $ap }}</option>
                     @endforeach
                 </select>

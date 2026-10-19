@@ -18,7 +18,7 @@
            class="px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-semibold transition-colors">الخدمات</a>
         <a href="{{ url('/') }}#booking"
            class="px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-semibold transition-colors">احجز فني</a>
-        <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+        <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
            class="px-6 py-3 rounded-full bg-accent hover:bg-accent-600 text-white font-bold transition-colors">واتساب</a>
     </div>
 

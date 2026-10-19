@@ -7,7 +7,7 @@
 @endphp
 
 <a href="{{ url('/') }}" {{ $attributes->merge(['class' => 'inline-flex items-center gap-2.5 group']) }}
-   aria-label="{{ config('site.name') }} — الصفحة الرئيسية">
+   aria-label="{{ site('name') }} — الصفحة الرئيسية">
     {{-- الرمز: وحدة تكييف مبسطة مع موجات هواء بارد (SVG) --}}
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"
          class="shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5" aria-hidden="true">
@@ -22,10 +22,10 @@
     {{-- الاسم كنص --}}
     <span class="leading-none">
         <span class="block text-lg font-extrabold tracking-tight" style="color: {{ $text }}">
-            {{ config('site.name') }}
+            {{ site('name') }}
         </span>
         <span class="block text-[11px] font-medium mt-0.5" style="color: {{ $sub }}">
-            {{ config('site.tagline') }}
+            {{ site('tagline') }}
         </span>
     </span>
 </a>

@@ -17,19 +17,28 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         /*
-        | مستخدم الأدمن للدخول على لوحة الإدارة (/admin — Filament).
-        | البيانات بتتقرا من env لو موجودة، وإلا بيانات افتراضية للتطوير المحلي.
-        | TODO (مهم للإنتاج): غيّر الإيميل والباسورد — حطّ ADMIN_EMAIL و
-        |       ADMIN_PASSWORD في ملف .env، أو عدّل اليوزر من tinker بعد النشر.
+        | مستخدم أدمن افتراضي للتطوير المحلي فقط.
+        | في الإنتاج: متزرعش باسورد في الكود — استخدم الأمر التفاعلي:
+        |       php artisan khadamaty:make-admin
+        | (بيدخل الباسورد مخفي ومبيتطبعش). الـ seeder بيتجاهل الإنشاء في الإنتاج.
         */
-        User::updateOrCreate(
-            ['email' => env('ADMIN_EMAIL', 'admin@khadamaty.test')],
-            [
-                'name' => 'مدير الموقع',
-                'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
-            ]
-        );
+        if (! app()->isProduction()) {
+            User::updateOrCreate(
+                ['email' => env('ADMIN_EMAIL', 'admin@khadamaty.test')],
+                [
+                    'name' => 'مدير الموقع',
+                    'role' => 'admin',
+                    'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
+                ]
+            );
+        }
 
         $this->call(ContentSeeder::class);
+        $this->call(SettingsSeeder::class);
+        $this->call(PackagesSeeder::class);
+        $this->call(FaqsSeeder::class);
+        $this->call(MenuSeeder::class);
+        $this->call(RedirectsSeeder::class);
+        $this->call(PagesSeeder::class);
     }
 }

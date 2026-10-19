@@ -41,12 +41,12 @@
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                 احجز الخدمة
             </a>
-            <a href="tel:{{ config('site.phone_tel') }}"
+            <a href="tel:{{ site('phone_tel') }}"
                class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
-                اتصل: {{ config('site.phone') }}
+                اتصل: {{ site('phone') }}
             </a>
-            <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+            <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-accent hover:text-accent font-bold transition-colors">
                 اسأل على واتساب
             </a>
@@ -169,7 +169,7 @@
                         <a href="{{ '/services/' . $rel->slug }}"
                            class="group flex flex-col rounded-2xl border border-line bg-white p-6 hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
                             <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
-                                <x-service-icon :name="$relatedIcons[$rel->slug] ?? 'maintenance'" />
+                                <x-service-icon :name="$rel->icon ?: ($relatedIcons[$rel->slug] ?? 'maintenance')" />
                             </div>
                             <h3 class="text-lg font-bold mb-2">{{ $rel->name_ar }}</h3>
                             @if ($rel->excerpt)
@@ -192,7 +192,7 @@
             @if (! empty($areas))
                 <div>
                     <h2 class="text-xl md:text-2xl font-extrabold mb-2">بنغطي منطقتك؟</h2>
-                    <p class="text-muted leading-relaxed mb-4">بنخدم {{ config('site.areas_label') }} والمناطق المحيطة. مش لاقي منطقتك؟ كلّمنا ونشوفها.</p>
+                    <p class="text-muted leading-relaxed mb-4">بنخدم {{ site('areas_label') }} والمناطق المحيطة. مش لاقي منطقتك؟ كلّمنا ونشوفها.</p>
                     @php $areaLinks = \App\Models\Area::query()->published()->pluck('slug', 'name_ar'); @endphp
                     <ul class="flex flex-wrap gap-2.5">
                         @foreach ($areas as $area)

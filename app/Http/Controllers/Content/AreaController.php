@@ -19,7 +19,7 @@ class AreaController extends PageController
 
     public function __construct()
     {
-        $this->indexSubtitle = 'بنغطّي ' . config('site.areas_label')
+        $this->indexSubtitle = 'بنغطّي ' . site('areas_label')
             . ' والمناطق المحيطة — اختر منطقتك واعرف الخدمات الأكثر طلباً فيها.';
     }
 

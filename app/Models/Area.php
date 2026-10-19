@@ -32,10 +32,22 @@ class Area extends Model
      */
     public function hasCompleteContent(): bool
     {
-        return filled($this->intro)
-            && filled($this->common_problems)
-            && filled($this->neighborhoods)
-            && filled($this->top_services)
-            && filled($this->faqs);
+        return empty($this->missingContent());
+    }
+
+    /** الحقول الناقصة اللازمة للنشر (كـ labels عربية) — تظهر في الداشبورد. */
+    public function missingContent(): array
+    {
+        $required = [
+            'intro' => 'المقدمة',
+            'common_problems' => 'المشاكل الشائعة',
+            'neighborhoods' => 'الأحياء',
+            'top_services' => 'الخدمات الأكثر طلباً',
+            'faqs' => 'الأسئلة الشائعة',
+        ];
+
+        return array_values(array_filter(
+            array_map(fn ($field, $label) => filled($this->{$field}) ? null : $label, array_keys($required), $required)
+        ));
     }
 }

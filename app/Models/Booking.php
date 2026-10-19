@@ -16,6 +16,7 @@ class Booking extends Model
         'preferred_time',
         'notes',
         'status',
+        'admin_notes',
         'ip',
     ];
 }

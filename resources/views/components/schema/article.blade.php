@@ -19,11 +19,11 @@
         'inLanguage'    => 'ar-EG',
         'author'        => [
             '@type' => 'Organization',
-            'name'  => config('site.name'),
+            'name'  => site('name'),
         ],
         'publisher'     => [
             '@type' => 'Organization',
-            'name'  => config('site.name'),
+            'name'  => site('name'),
         ],
     ];
 @endphp

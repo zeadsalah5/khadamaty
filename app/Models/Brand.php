@@ -32,11 +32,23 @@ class Brand extends Model
      */
     public function hasCompleteContent(): bool
     {
-        return filled($this->intro)
-            && filled($this->common_faults)
-            && filled($this->maintenance_tips)
-            && filled($this->device_types)
-            && filled($this->suitable_services)
-            && filled($this->faqs);
+        return empty($this->missingContent());
+    }
+
+    /** الحقول الناقصة اللازمة للنشر (كـ labels عربية) — تظهر في الداشبورد. */
+    public function missingContent(): array
+    {
+        $required = [
+            'intro' => 'النبذة',
+            'common_faults' => 'الأعطال الشائعة',
+            'maintenance_tips' => 'نصايح الصيانة',
+            'device_types' => 'أنواع الأجهزة',
+            'suitable_services' => 'الخدمات المناسبة',
+            'faqs' => 'الأسئلة الشائعة',
+        ];
+
+        return array_values(array_filter(
+            array_map(fn ($field, $label) => filled($this->{$field}) ? null : $label, array_keys($required), $required)
+        ));
     }
 }

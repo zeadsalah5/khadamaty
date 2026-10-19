@@ -53,14 +53,14 @@
             <div class="rounded-2xl bg-surface border border-line p-7 md:p-9 flex flex-col md:flex-row md:items-center justify-between gap-5">
                 <div>
                     <h2 class="text-xl md:text-2xl font-extrabold mb-1">مش لاقي منطقتك؟</h2>
-                    <p class="text-muted leading-relaxed">بنغطّي {{ config('site.areas_label') }} والمناطق المحيطة. كلّمنا بعنوانك ونشوف أقرب معاد نوصلك فيه.</p>
+                    <p class="text-muted leading-relaxed">بنغطّي {{ site('areas_label') }} والمناطق المحيطة. كلّمنا بعنوانك ونشوف أقرب معاد نوصلك فيه.</p>
                 </div>
                 <div class="flex flex-wrap gap-3 shrink-0">
                     <a href="{{ route('request-service') }}"
                        class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                         اطلب خدمة
                     </a>
-                    <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+                    <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                        class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                         اسأل على واتساب
                     </a>

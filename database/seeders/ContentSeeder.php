@@ -47,6 +47,29 @@ class ContentSeeder extends Seeder
         ])->delete();
 
         /*
+        | أيقونة الخدمة ونوع خدمة الحجز (المرحلة C2) — بتتعدّل من الداشبورد.
+        | بنملا الناقص بس (null) عشان ما نكتبش فوق تعديلات لوحة التحكم.
+        */
+        $icons = [
+            'ac-maintenance' => 'maintenance', 'ac-repair' => 'repair', 'ac-cleaning' => 'cleaning',
+            'ac-installation' => 'install', 'ac-gas-refill' => 'freon', 'ac-leak-repair' => 'diagnose',
+            'split-ac-maintenance' => 'maintenance', 'central-ac-maintenance' => 'contract',
+            'ac-piping-installation' => 'pipes',
+        ];
+        $bookingMap = [
+            'ac-maintenance' => 'صيانة دورية', 'ac-repair' => 'إصلاح عطل', 'ac-cleaning' => 'غسيل وتنظيف',
+            'ac-installation' => 'تركيب تكييف', 'ac-gas-refill' => 'شحن فريون', 'ac-leak-repair' => 'إصلاح عطل',
+            'split-ac-maintenance' => 'صيانة دورية', 'central-ac-maintenance' => 'صيانة دورية',
+            'ac-piping-installation' => 'تركيب تكييف',
+        ];
+        foreach ($icons as $slug => $icon) {
+            Service::where('slug', $slug)->whereNull('icon')->update([
+                'icon' => $icon,
+                'booking_service' => $bookingMap[$slug] ?? null,
+            ]);
+        }
+
+        /*
         | المناطق (المرحلة 3) — من database/seeders/data/areas.php.
         | نفس منطق الخدمات: المنطقة اللي محتواها كامل بتتنشر تلقائياً،
         | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
