@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class Order extends Model
 {
     protected $fillable = [
-        'order_number', 'status',
+        'order_number', 'status', 'customer_id',
         'customer_name', 'customer_phone', 'address', 'area_id', 'area_name', 'notes',
         'subtotal', 'delivery_fee', 'total',
         'payment_method', 'payment_status', 'admin_notes', 'ip',
@@ -52,6 +52,17 @@ class Order extends Model
     public function area(): BelongsTo
     {
         return $this->belongsTo(Area::class);
+    }
+
+    /** الحساب المربوط (لو العميل كان مسجّل أو اتربط لاحقاً بالموبايل). */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function isDelivered(): bool
+    {
+        return $this->status === 'delivered';
     }
 
     // ───────────────────────── مساعدات ─────────────────────────

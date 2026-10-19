@@ -100,7 +100,8 @@ class OrderResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('order_number')->label('رقم الطلب')->searchable()->weight('bold')->copyable(),
                 Tables\Columns\TextColumn::make('created_at')->label('التاريخ')->dateTime('Y-m-d H:i')->sortable(),
-                Tables\Columns\TextColumn::make('customer_name')->label('العميل')->searchable(),
+                Tables\Columns\TextColumn::make('customer_name')->label('العميل')->searchable()
+                    ->description(fn (Order $record) => $record->customer_id ? 'حساب مسجّل' : 'طلب كضيف'),
                 Tables\Columns\TextColumn::make('customer_phone')->label('الموبايل')->searchable()->copyable(),
                 Tables\Columns\TextColumn::make('area_name')->label('المنطقة')->searchable(),
                 Tables\Columns\TextColumn::make('total')->label('الإجمالي')->money('EGP')->sortable(),

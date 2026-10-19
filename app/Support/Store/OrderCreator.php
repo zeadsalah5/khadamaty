@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 class OrderCreator
 {
     /**
-     * @param  array{name:string, phone:string, address:string, notes?:?string, ip?:?string}  $customer
+     * @param  array{name:string, phone:string, address:string, notes?:?string, ip?:?string, customer_id?:?int}  $customer
      *
      * @throws CartException لو السلة فاضية أو منتج نفد مخزونه.
      */
@@ -92,6 +92,7 @@ class OrderCreator
             $order = Order::create([
                 'order_number'   => static::generateNumber(),
                 'status'         => 'new',
+                'customer_id'    => $customer['customer_id'] ?? null,
                 'customer_name'  => $customer['name'],
                 'customer_phone' => $customer['phone'],
                 'address'        => $customer['address'],

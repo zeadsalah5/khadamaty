@@ -41,14 +41,14 @@
                     <div class="mt-5 grid gap-4 sm:grid-cols-2">
                         <div class="sm:col-span-2">
                             <label for="name" class="mb-1.5 block text-sm font-semibold">الاسم بالكامل <span class="text-red-600">*</span></label>
-                            <input id="name" type="text" name="name" value="{{ old('name') }}" required autocomplete="name"
+                            <input id="name" type="text" name="name" value="{{ old('name', ($customer ?? null)?->name) }}" required autocomplete="name"
                                    class="w-full rounded-xl border border-line px-4 py-2.5 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 @error('name') border-red-400 @enderror">
                             @error('name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                         </div>
 
                         <div>
                             <label for="phone" class="mb-1.5 block text-sm font-semibold">رقم الموبايل <span class="text-red-600">*</span></label>
-                            <input id="phone" type="tel" name="phone" value="{{ old('phone') }}" required
+                            <input id="phone" type="tel" name="phone" value="{{ old('phone', ($customer ?? null)?->phone) }}" required
                                    inputmode="numeric" autocomplete="tel" placeholder="01xxxxxxxxx" dir="ltr"
                                    class="w-full rounded-xl border border-line px-4 py-2.5 text-right focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 @error('phone') border-red-400 @enderror">
                             @error('phone')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror

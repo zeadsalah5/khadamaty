@@ -154,7 +154,7 @@ class ShopController extends Controller
     {
         $product = Product::query()->published()
             ->where('slug', $productSlug)
-            ->with(['category.attributes', 'category.parent', 'brand', 'images', 'usedDetails'])
+            ->with(['category.attributes', 'category.parent', 'brand', 'images', 'usedDetails', 'approvedReviews.customer'])
             ->first();
 
         // منتج منشور من غير قسم (حالة نادرة) => مفيش مسار كانوني => 404.
@@ -193,14 +193,24 @@ class ShopController extends Controller
         $breadcrumbs[] = ['label' => $product->category->name_ar, 'url' => $product->category->path()];
         $breadcrumbs[] = ['label' => $product->name_ar, 'url' => $path];
 
+        // التقييمات (المرحلة 6D): أهلية العميل الحالي + تقييمه السابق لو موجود.
+        $customer = \Illuminate\Support\Facades\Auth::guard('customer')->user();
+        $existingReview = $customer ? $customer->productReviews()->where('product_id', $product->id)->first() : null;
+        $canReview = $customer !== null
+            && $customer->deliveredOrderItemFor($product->id) !== null
+            && $existingReview === null;
+
         return view('shop.product', [
-            'product'     => $product,
-            'title'       => $product->name_ar,
-            'subtitle'    => $product->excerpt,
-            'canonical'   => $this->seo()->getCanonical(),
-            'related'     => $related,
-            'areas'       => $areas,
-            'breadcrumbs' => $breadcrumbs,
+            'product'        => $product,
+            'title'          => $product->name_ar,
+            'subtitle'       => $product->excerpt,
+            'canonical'      => $this->seo()->getCanonical(),
+            'related'        => $related,
+            'areas'          => $areas,
+            'reviews'        => $product->approvedReviews,
+            'canReview'      => $canReview,
+            'existingReview' => $existingReview,
+            'breadcrumbs'    => $breadcrumbs,
         ]);
     }
 

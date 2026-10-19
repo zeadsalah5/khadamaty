@@ -44,9 +44,15 @@
         </div>
 
         @if ($sold)
-            <span class="absolute top-3 end-3 rounded-full bg-navy px-2.5 py-0.5 text-xs font-bold text-white">تم البيع</span>
+            <span class="absolute bottom-3 end-3 rounded-full bg-navy px-2.5 py-0.5 text-xs font-bold text-white">تم البيع</span>
         @endif
     </a>
+
+    {{-- أزرار المفضلة والمقارنة (خارج الـ anchor عشان تبقى تفاعلية) --}}
+    <div class="absolute top-3 end-3 z-10 flex flex-col gap-2">
+        <x-shop.wishlist-button :product="$product" />
+        <x-shop.compare-button :product="$product" />
+    </div>
 
     {{-- التفاصيل --}}
     <div class="flex flex-1 flex-col p-4">

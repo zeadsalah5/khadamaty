@@ -68,11 +68,49 @@ class Product extends Model
         return $this->belongsToMany(Brand::class, 'product_brand');
     }
 
+    /** كل تقييمات المنتج (المرحلة 6D). */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+    /** التقييمات المعتمدة بس (اللي تظهر وتدخل الـ schema). */
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class)->where('status', 'approved')->latest();
+    }
+
     // ───────────────────────── مساعدات ─────────────────────────
 
     public function isUsed(): bool
     {
         return $this->condition === 'used';
+    }
+
+    // ───────────────────────── التقييمات (المرحلة 6D) ─────────────────────────
+
+    /** عدد التقييمات المعتمدة. */
+    public function ratingCount(): int
+    {
+        return (int) ($this->relationLoaded('approvedReviews')
+            ? $this->approvedReviews->count()
+            : $this->approvedReviews()->count());
+    }
+
+    /** متوسط التقييم المعتمد (مقرّب لرقم عشري واحد) أو null لو مفيش تقييمات. */
+    public function ratingAverage(): ?float
+    {
+        $avg = $this->relationLoaded('approvedReviews')
+            ? ($this->approvedReviews->isEmpty() ? null : $this->approvedReviews->avg('rating'))
+            : $this->approvedReviews()->avg('rating');
+
+        return $avg === null ? null : round((float) $avg, 1);
+    }
+
+    /** فيه تقييم معتمد واحد على الأقل؟ (شرط ظهور schema الـ rating). */
+    public function hasApprovedReviews(): bool
+    {
+        return $this->ratingCount() > 0;
     }
 
     /**

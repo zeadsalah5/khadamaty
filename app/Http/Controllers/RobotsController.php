@@ -20,6 +20,12 @@ class RobotsController extends Controller
             $lines[] = 'Disallow: /checkout';
             $lines[] = 'Disallow: /order/';
             $lines[] = 'Disallow: /track';
+            // حسابات العملاء والمفضلة والمقارنة والدخول (المرحلة 6D) — كلها noindex.
+            $lines[] = 'Disallow: /account';
+            $lines[] = 'Disallow: /wishlist';
+            $lines[] = 'Disallow: /compare';
+            $lines[] = 'Disallow: /login';
+            $lines[] = 'Disallow: /register';
             $lines[] = '';
             $lines[] = 'Sitemap: ' . $base . '/sitemap.xml';
         } else {

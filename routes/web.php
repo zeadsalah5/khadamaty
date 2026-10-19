@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\Account\OrdersController as AccountOrdersController;
+use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Shop\CompareController;
+use App\Http\Controllers\Shop\ProductReviewController;
+use App\Http\Controllers\Shop\WishlistController;
 use App\Http\Controllers\Content\ApplianceController;
 use App\Http\Controllers\Content\AreaController;
 use App\Http\Controllers\Content\BlogController;
@@ -65,6 +70,44 @@ Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('thro
 Route::get('/order/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
 Route::get('/track', [OrderController::class, 'trackForm'])->name('order.track');
 Route::post('/track', [OrderController::class, 'track'])->middleware('throttle:15,1')->name('order.track.post');
+
+/*
+|--------------------------------------------------------------------------
+| حسابات العملاء + المفضلة + المقارنة + تقييمات المنتجات (المرحلة 6D)
+|--------------------------------------------------------------------------
+| كلها صفحات معاملات/حساب => من غير SetCacheHeaders وكلها noindex (من الكونترولرز).
+| guard «customer» منفصل تماماً عن الأدمن.
+*/
+
+// دخول/تسجيل/خروج — للضيوف بس (المسجّل بيتحوّل لطلباته).
+Route::middleware('guest:customer')->group(function () {
+    Route::get('/login', [CustomerAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [CustomerAuthController::class, 'login'])->middleware('throttle:10,1')->name('login.post');
+    Route::get('/register', [CustomerAuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [CustomerAuthController::class, 'register'])->middleware('throttle:6,1')->name('register.post');
+});
+Route::post('/logout', [CustomerAuthController::class, 'logout'])->name('logout');
+
+// حسابي (طلباتي) — للمسجّلين بس.
+Route::middleware('auth:customer')->prefix('account')->name('account.')->group(function () {
+    Route::get('/orders', [AccountOrdersController::class, 'index'])->name('orders');
+    Route::get('/orders/{order}', [AccountOrdersController::class, 'show'])->name('orders.show');
+});
+
+// المفضلة — تشتغل للضيف والمسجّل.
+Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.show');
+Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->middleware('throttle:30,1')->name('wishlist.toggle');
+Route::post('/wishlist/remove', [WishlistController::class, 'remove'])->middleware('throttle:30,1')->name('wishlist.remove');
+
+// المقارنة — session، لحد 3 من نفس القسم.
+Route::get('/compare', [CompareController::class, 'index'])->name('compare.show');
+Route::post('/compare/add', [CompareController::class, 'add'])->middleware('throttle:30,1')->name('compare.add');
+Route::post('/compare/remove', [CompareController::class, 'remove'])->middleware('throttle:30,1')->name('compare.remove');
+Route::post('/compare/clear', [CompareController::class, 'clear'])->middleware('throttle:30,1')->name('compare.clear');
+
+// تقييم منتج — للمسجّلين المؤهّلين بس.
+Route::post('/products/{product}/reviews', [ProductReviewController::class, 'store'])
+    ->middleware('auth:customer', 'throttle:10,1')->name('product.review.store');
 
 /*
 |--------------------------------------------------------------------------

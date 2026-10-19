@@ -43,6 +43,7 @@ class CheckoutController extends Controller
             'lines'       => $lines,
             'subtotal'    => Cart::subtotal(),
             'areas'       => $areas,
+            'customer'    => auth('customer')->user(),
             'payments'    => app(PaymentManager::class)->available(),
             'breadcrumbs' => [
                 ['label' => 'الرئيسية', 'url' => '/'],
@@ -65,11 +66,13 @@ class CheckoutController extends Controller
 
         try {
             $order = OrderCreator::create([
-                'name'    => $request->string('name')->trim()->value(),
-                'phone'   => $request->string('phone')->value(),
-                'address' => $request->string('address')->trim()->value(),
-                'notes'   => $request->string('notes')->trim()->value() ?: null,
-                'ip'      => $request->ip(),
+                'name'        => $request->string('name')->trim()->value(),
+                'phone'       => $request->string('phone')->value(),
+                'address'     => $request->string('address')->trim()->value(),
+                'notes'       => $request->string('notes')->trim()->value() ?: null,
+                'ip'          => $request->ip(),
+                // ربط الطلب بالحساب لو العميل داخل (الضيف بيفضل null).
+                'customer_id' => auth('customer')->id(),
             ], $area, $payment);
         } catch (CartException $e) {
             return redirect()->route('cart.show')->with('cart_error', $e->getMessage());

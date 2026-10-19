@@ -43,7 +43,8 @@
         :brand="$product->brand?->name_ar"
         :price="$product->displayPrice()"
         :condition="$product->schemaCondition()"
-        :availability="$product->schemaAvailability()" />
+        :availability="$product->schemaAvailability()"
+        :reviews="$reviews" />
 @endpush
 
 @section('content')
@@ -94,6 +95,15 @@
                 </div>
 
                 <h1 class="mt-3 text-2xl font-extrabold md:text-3xl">{{ $product->name_ar }}</h1>
+
+                @if ($reviews->isNotEmpty())
+                    <a href="#reviews" class="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-ink hover:text-brand">
+                        <x-shop.stars :value="$product->ratingAverage()" />
+                        <span>{{ number_format($product->ratingAverage(), 1) }}</span>
+                        <span class="text-muted">({{ $reviews->count() }} تقييم)</span>
+                    </a>
+                @endif
+
                 @if ($product->excerpt)
                     <p class="mt-2 leading-relaxed text-muted">{{ $product->excerpt }}</p>
                 @endif
@@ -151,11 +161,19 @@
                         </form>
                     @endif
                     <div class="mt-3 flex flex-wrap gap-3">
+                        <x-shop.wishlist-button :product="$product" variant="full" />
+                        <x-shop.compare-button :product="$product" variant="full" />
                         <a href="https://wa.me/{{ site('whatsapp') }}?text={{ $waText }}" target="_blank" rel="noopener"
                            class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-accent hover:text-accent">اسأل على واتساب</a>
                         <a href="tel:{{ site('phone_tel') }}"
                            class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-brand hover:text-brand">اتصل</a>
                     </div>
+
+                    @if (session('wishlist_success') || session('compare_success') || session('compare_error'))
+                        <p class="mt-3 text-sm font-semibold {{ session('compare_error') ? 'text-amber-700' : 'text-emerald-600' }}">
+                            {{ session('wishlist_success') ?: (session('compare_success') ?: session('compare_error')) }}
+                        </p>
+                    @endif
                 </div>
 
                 {{-- بيانات سريعة --}}
@@ -265,6 +283,103 @@
                     @endforeach
                 </ul>
             @endif
+        </div>
+
+        {{-- ============ تقييمات المنتج (المرحلة 6D) ============ --}}
+        <div id="reviews" class="mt-14 scroll-mt-24">
+            <h2 class="mb-5 text-2xl font-extrabold">تقييمات العملاء</h2>
+
+            @if (session('review_success'))
+                <div class="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">{{ session('review_success') }}</div>
+            @endif
+
+            @if ($reviews->isNotEmpty())
+                <div class="mb-6 flex items-center gap-4 rounded-2xl border border-line bg-surface px-5 py-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-extrabold text-ink">{{ number_format($product->ratingAverage(), 1) }}</div>
+                        <x-shop.stars :value="$product->ratingAverage()" />
+                    </div>
+                    <p class="text-sm text-muted">من {{ $reviews->count() }} تقييم لعملاء اشتروا المنتج.</p>
+                </div>
+
+                <ul class="space-y-4">
+                    @foreach ($reviews as $review)
+                        <li class="rounded-2xl border border-line bg-white p-5">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold">{{ $review->authorName() }}</span>
+                                    @if ($review->isVerified())
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                                            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                                            شراء موثّق
+                                        </span>
+                                    @endif
+                                </div>
+                                <x-shop.stars :value="$review->rating" />
+                            </div>
+                            @if ($review->title)
+                                <p class="mt-2 font-semibold">{{ $review->title }}</p>
+                            @endif
+                            <p class="mt-1 leading-relaxed text-ink/90">{{ $review->body }}</p>
+                            @if ($review->created_at)
+                                <p class="mt-2 text-xs text-muted">{{ $review->created_at->translatedFormat('j F Y') }}</p>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <p class="text-muted">لسه مفيش تقييمات للمنتج ده. لو اشتريته واستلمته، شاركنا رأيك.</p>
+            @endif
+
+            {{-- فورم التقييم: للمؤهّلين بس (اشترى واتسلّم ومقيّمش قبل كده) --}}
+            @auth('customer')
+                @if ($canReview)
+                    <div class="mt-8 rounded-2xl border border-line bg-surface p-5 md:p-6">
+                        <h3 class="mb-4 text-lg font-bold">قيّم المنتج</h3>
+                        @if ($errors->any())
+                            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700">
+                                {{ $errors->first() }}
+                            </div>
+                        @endif
+                        <form method="POST" action="{{ route('product.review.store', $product) }}" class="space-y-4" x-rating>
+                            @csrf
+                            <fieldset>
+                                <legend class="mb-2 text-sm font-semibold">تقييمك</legend>
+                                <div class="flex flex-row-reverse items-center justify-end gap-1" role="radiogroup" aria-label="التقييم بالنجوم">
+                                    @for ($i = 5; $i >= 1; $i--)
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="rating" value="{{ $i }}" class="peer sr-only" @checked(old('rating') == $i) required>
+                                            <svg viewBox="0 0 24 24" class="h-8 w-8 text-line transition-colors peer-checked:text-amber-400 hover:text-amber-300" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.3 6.6.6-5 4.4 1.5 6.5L12 17.8 6 20.3l1.5-6.5-5-4.4 6.6-.6L12 2z"/></svg>
+                                            <span class="sr-only">{{ $i }} نجوم</span>
+                                        </label>
+                                    @endfor
+                                </div>
+                            </fieldset>
+                            <div>
+                                <label for="review-title" class="mb-1 block text-sm font-semibold">عنوان (اختياري)</label>
+                                <input id="review-title" type="text" name="title" value="{{ old('title') }}" maxlength="120"
+                                       class="w-full rounded-xl border border-line px-4 py-2.5 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30">
+                            </div>
+                            <div>
+                                <label for="review-body" class="mb-1 block text-sm font-semibold">رأيك في المنتج</label>
+                                <textarea id="review-body" name="body" rows="4" required minlength="10" maxlength="2000"
+                                          class="w-full rounded-xl border border-line px-4 py-2.5 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30">{{ old('body') }}</textarea>
+                            </div>
+                            <p class="text-xs text-muted">تقييمك هيظهر بعد المراجعة.</p>
+                            <button type="submit" class="inline-flex items-center rounded-full bg-brand px-7 py-3 font-bold text-white transition-colors hover:bg-brand-600">أرسل التقييم</button>
+                        </form>
+                    </div>
+                @elseif ($existingReview)
+                    <p class="mt-6 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">
+                        قيّمت المنتج ده قبل كده.
+                        @if ($existingReview->status === 'pending') تقييمك تحت المراجعة. @endif
+                    </p>
+                @endif
+            @else
+                <p class="mt-6 text-sm text-muted">
+                    عايز تقيّم؟ <a href="{{ route('login') }}" class="font-semibold text-brand hover:underline">سجّل دخول</a> — التقييم متاح للعملاء اللي اشتروا المنتج واستلموه.
+                </p>
+            @endauth
         </div>
 
         {{-- ============ منتجات مشابهة ============ --}}
