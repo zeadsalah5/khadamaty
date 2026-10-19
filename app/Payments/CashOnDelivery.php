@@ -36,4 +36,10 @@ class CashOnDelivery implements PaymentMethod
         // مفيش تحصيل مسبق — الفلوس بتتحصّل عند التسليم.
         return 'pending';
     }
+
+    public function begin(Order $order): ?string
+    {
+        // طريقة أوفلاين — مفيش تحويل لبوابة.
+        return null;
+    }
 }

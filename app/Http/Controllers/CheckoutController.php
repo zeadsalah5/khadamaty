@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Area;
+use App\Models\Order;
+use App\Payments\PaymentException;
 use App\Payments\PaymentManager;
 use App\Support\Seo;
 use App\Support\Store\Cart;
 use App\Support\Store\CartException;
 use App\Support\Store\OrderCreator;
 use App\Support\Store\OrderNotifier;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 /**
@@ -78,12 +82,60 @@ class CheckoutController extends Controller
             return redirect()->route('cart.show')->with('cart_error', $e->getMessage());
         }
 
-        // إشعار صاحب الموقع (إيميل best-effort؛ الواتساب في لوحة الإدارة).
-        OrderNotifier::notify($order);
-
-        // صلاحية عرض صفحة التأكيد: الطلب اللي اتعمل دلوقتي بس (عبر الـ session).
+        // صلاحية عرض صفحة التأكيد/الرجوع: الطلب اللي اتعمل دلوقتي بس (عبر الـ session).
         session(['last_order_id' => $order->id]);
 
+        // الدفع الأونلاين: تحويل لبوابة الدفع. (الإشعار بيتبعت لما الدفع يتأكّد من الـ webhook.)
+        if ($payment->isOnline()) {
+            try {
+                $url = $payment->begin($order);
+            } catch (PaymentException $e) {
+                Log::warning('Online payment could not start', ['order' => $order->order_number, 'error' => $e->getMessage()]);
+
+                return redirect()->route('order.confirmation')->with('payment_error', $e->getMessage());
+            }
+
+            if ($url) {
+                return redirect()->away($url);
+            }
+        }
+
+        // الدفع عند الاستلام: إشعار صاحب الموقع فوراً (إيميل best-effort؛ الواتساب في اللوحة).
+        OrderNotifier::notify($order);
+
         return redirect()->route('order.confirmation');
+    }
+
+    /**
+     * إعادة محاولة الدفع الأونلاين لطلب مستنّي/فشل — للطلب اللي في السيشن بس،
+     * وقبل انتهاء المهلة. بيعمل جلسة دفع جديدة ويحوّل للبوابة.
+     */
+    public function retry(Request $request, Order $order): RedirectResponse
+    {
+        // نفس صلاحية صفحة التأكيد: الطلب اللي اتعمل في الجلسة دي بس.
+        if ((int) $request->session()->get('last_order_id') !== $order->id) {
+            return redirect()->route('order.track');
+        }
+
+        $retryable = in_array($order->payment_status, ['pending_payment', 'failed'], true)
+            && ! ($order->payment_due_at && $order->payment_due_at->isPast());
+
+        if (! $retryable) {
+            return redirect()->route('order.confirmation');
+        }
+
+        $method = app(PaymentManager::class)->get($order->payment_method);
+
+        if (! $method || ! $method->isOnline()) {
+            return redirect()->route('order.confirmation');
+        }
+
+        try {
+            $url = $method->begin($order);
+        } catch (PaymentException $e) {
+            return redirect()->route('order.confirmation')->with('payment_error', $e->getMessage());
+        }
+
+        return $url ? redirect()->away($url) : redirect()->route('order.confirmation');
     }
 }

@@ -21,6 +21,7 @@ use App\Models\Vendor;
 use App\Observers\ContentCacheObserver;
 use App\Payments\CashOnDelivery;
 use App\Payments\PaymentManager;
+use App\Payments\PaymobGateway;
 use App\Support\Seo;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,9 +35,16 @@ class AppServiceProvider extends ServiceProvider
         // خدمة SEO: singleton واحد لكل ريكوست، بتتظبط من الـ Controllers.
         $this->app->singleton(Seo::class, fn () => new Seo());
 
-        // سجلّ طرق الدفع (6C: الدفع عند الاستلام فقط؛ الأونلاين يتضاف في 6E).
+        // سجلّ طرق الدفع — COD دايماً (افتراضي). الدفع الأونلاين (Paymob) بيتسجّل
+        // بس لو مفاتيحه متظبطة في .env، فالموقع بيشتغل عادي من غير مفاتيح.
         $this->app->singleton(PaymentManager::class, function () {
-            return (new PaymentManager())->register(new CashOnDelivery(), default: true);
+            $manager = (new PaymentManager())->register(new CashOnDelivery(), default: true);
+
+            if (config('services.paymob.secret_key') && config('services.paymob.hmac_secret')) {
+                $manager->register(new PaymobGateway());
+            }
+
+            return $manager;
         });
     }
 

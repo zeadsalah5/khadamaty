@@ -64,6 +64,10 @@
 
     <p class="mt-4 flex items-center gap-1.5 text-xs text-muted">
         <svg viewBox="0 0 24 24" class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4"/><path d="M12 3 4 6v6c0 5 3.5 7.5 8 9 4.5-1.5 8-4 8-9V6z"/></svg>
-        الدفع عند الاستلام
+        @if ($order->payment_method === 'cod')
+            الدفع عند الاستلام
+        @else
+            {{ $order->paymentStatusLabel() }} — دفع أونلاين
+        @endif
     </p>
 </div>

@@ -114,8 +114,12 @@ class OrderCreator
                 $products->get($productId)->reserve($qty);
             }
 
-            // تحضير الدفع (COD: pending).
-            $order->payment_status = $payment->prepare($order);
+            // تحضير الدفع. للأونلاين: مهلة لإتمام الدفع قبل ما الطلب يتلغي ويرجع المخزون.
+            if ($payment->isOnline()) {
+                $order->payment_due_at = now()->addMinutes((int) config('services.payment.pending_timeout', 30));
+            }
+
+            $order->payment_status = $payment->prepare($order); // COD: pending | أونلاين: pending_payment
             $order->save();
 
             Cart::clear();

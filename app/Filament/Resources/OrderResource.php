@@ -51,7 +51,9 @@ class OrderResource extends Resource
                 Forms\Components\TextInput::make('customer_phone')->label('الموبايل')->disabled(),
                 Forms\Components\TextInput::make('area_name')->label('المنطقة')->disabled(),
                 Forms\Components\TextInput::make('payment_method')->label('طريقة الدفع')->disabled()
-                    ->formatStateUsing(fn ($state) => $state === 'cod' ? 'الدفع عند الاستلام' : $state),
+                    ->formatStateUsing(fn ($state) => static::paymentMethodLabel($state)),
+                Forms\Components\TextInput::make('payment_status')->label('حالة الدفع')->disabled()
+                    ->formatStateUsing(fn ($state) => Order::PAYMENT_STATUSES[$state] ?? $state),
                 Forms\Components\Textarea::make('address')->label('العنوان')->disabled()->rows(2)->columnSpanFull(),
                 Forms\Components\Textarea::make('notes')->label('ملاحظات العميل')->disabled()->rows(2)->columnSpanFull(),
             ])->columns(2),
@@ -61,6 +63,14 @@ class OrderResource extends Resource
                     ->content(fn (?Order $record) => $record ? static::itemsHtml($record) : '')
                     ->columnSpanFull(),
             ]),
+
+            Forms\Components\Section::make('سجلّ محاولات الدفع')
+                ->visible(fn (?Order $record) => $record && $record->paymentAttempts()->exists())
+                ->schema([
+                    Forms\Components\Placeholder::make('attempts_list')->hiddenLabel()
+                        ->content(fn (?Order $record) => $record ? static::attemptsHtml($record) : '')
+                        ->columnSpanFull(),
+                ]),
 
             Forms\Components\Section::make('الحالة والإدارة')->schema([
                 Forms\Components\Select::make('status')->label('حالة الطلب')
@@ -94,6 +104,37 @@ class OrderResource extends Resource
         return new HtmlString('<table style="width:100%;border-collapse:collapse;font-size:14px;">' . $rows . $totals . '</table>');
     }
 
+    /** اسم طريقة الدفع للعرض. */
+    protected static function paymentMethodLabel(?string $key): string
+    {
+        return match ($key) {
+            'cod'    => 'الدفع عند الاستلام',
+            'paymob' => 'أونلاين (Paymob)',
+            default  => (string) $key,
+        };
+    }
+
+    /** جدول محاولات الدفع كـ HTML للعرض في الفورم. */
+    protected static function attemptsHtml(Order $record): HtmlString
+    {
+        $rows = $record->paymentAttempts->map(function ($a) {
+            $sig = $a->hmac_valid ? '✔' : '✖ توقيع غلط';
+            $txn = $a->gateway_txn_id ? e($a->gateway_txn_id) : '—';
+
+            return '<tr>'
+                . '<td style="padding:6px 8px;">' . optional($a->created_at)->format('Y-m-d H:i') . '</td>'
+                . '<td style="padding:6px 8px;">' . e($a->statusLabel()) . '</td>'
+                . '<td style="padding:6px 8px;">' . ($a->amount !== null ? number_format((float) $a->amount) . ' ج.م' : '—') . '</td>'
+                . '<td style="padding:6px 8px;direction:ltr;text-align:left;">' . $txn . '</td>'
+                . '<td style="padding:6px 8px;">' . $sig . '</td>'
+                . '</tr>';
+        })->implode('');
+
+        $head = '<tr style="color:#888;"><th style="padding:6px 8px;text-align:right;">التاريخ</th><th style="padding:6px 8px;text-align:right;">الحالة</th><th style="padding:6px 8px;text-align:right;">المبلغ</th><th style="padding:6px 8px;text-align:right;">معرّف المعاملة</th><th style="padding:6px 8px;text-align:right;">التوقيع</th></tr>';
+
+        return new HtmlString('<table style="width:100%;border-collapse:collapse;font-size:13px;">' . $head . $rows . '</table>');
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -105,6 +146,15 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('customer_phone')->label('الموبايل')->searchable()->copyable(),
                 Tables\Columns\TextColumn::make('area_name')->label('المنطقة')->searchable(),
                 Tables\Columns\TextColumn::make('total')->label('الإجمالي')->money('EGP')->sortable(),
+                Tables\Columns\TextColumn::make('payment_status')->label('الدفع')->badge()
+                    ->formatStateUsing(fn ($state) => Order::PAYMENT_STATUSES[$state] ?? $state)
+                    ->color(fn ($state) => match ($state) {
+                        'paid' => 'success',
+                        'failed' => 'danger',
+                        'refunded' => 'gray',
+                        'pending_payment' => 'warning',
+                        default => 'info',
+                    }),
                 Tables\Columns\SelectColumn::make('status')->label('الحالة')
                     ->options(Order::STATUSES)->selectablePlaceholder(false)
                     ->updateStateUsing(fn (Order $record, $state) => $record->changeStatus($state)),
@@ -112,6 +162,7 @@ class OrderResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')->label('الحالة')->options(Order::STATUSES),
+                Tables\Filters\SelectFilter::make('payment_status')->label('حالة الدفع')->options(Order::PAYMENT_STATUSES),
                 Tables\Filters\SelectFilter::make('area_name')->label('المنطقة')
                     ->options(fn () => Order::query()->distinct()->pluck('area_name', 'area_name')->filter()->all()),
             ])
@@ -129,6 +180,26 @@ class OrderResource extends Resource
                     ->url(fn (Order $record) => OrderNotifier::ownerWhatsappLink($record))
                     ->openUrlInNewTab()
                     ->visible(fn (Order $record) => OrderNotifier::ownerWhatsappLink($record) !== null),
+                Tables\Actions\Action::make('refund')
+                    ->label('تعليم كمُسترجَع')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('تعليم الطلب كمُسترجَع')
+                    ->modalDescription('ده بيعلّم حالة الدفع «مُسترجَع» ويسجّل العملية. الاسترجاع الفعلي للفلوس بيتعمل من لوحة البوابة. لإرجاع المخزون غيّر حالة الطلب لـ«مرتجع».')
+                    ->visible(fn (Order $record) => $record->payment_status === 'paid')
+                    ->action(function (Order $record) {
+                        $record->payment_status = 'refunded';
+                        $record->save();
+                        $record->paymentAttempts()->create([
+                            'gateway'        => $record->payment_method,
+                            'gateway_txn_id' => null,
+                            'status'         => 'refunded',
+                            'amount'         => $record->total,
+                            'hmac_valid'     => true, // إجراء يدوي من الأدمن
+                            'payload'        => ['manual' => true, 'by' => auth()->id()],
+                        ]);
+                    }),
                 Tables\Actions\EditAction::make()->label('عرض/تعديل')
                     ->using(function (Order $record, array $data): Order {
                         $newStatus = $data['status'] ?? $record->status;
@@ -147,7 +218,7 @@ class OrderResource extends Resource
     /** تصدير الطلبات كـ CSV (بـ BOM عشان Excel يقرا العربي صح). */
     protected static function exportCsv(): StreamedResponse
     {
-        $headers = ['رقم الطلب', 'التاريخ', 'العميل', 'الموبايل', 'المنطقة', 'العنوان', 'المنتجات', 'التوصيل', 'الإجمالي', 'الحالة', 'طريقة الدفع'];
+        $headers = ['رقم الطلب', 'التاريخ', 'العميل', 'الموبايل', 'المنطقة', 'العنوان', 'المنتجات', 'التوصيل', 'الإجمالي', 'الحالة', 'طريقة الدفع', 'حالة الدفع'];
 
         return response()->streamDownload(function () use ($headers) {
             $out = fopen('php://output', 'w');
@@ -165,7 +236,8 @@ class OrderResource extends Resource
                         $items,
                         (float) $order->delivery_fee, (float) $order->total,
                         Order::STATUSES[$order->status] ?? $order->status,
-                        $order->payment_method === 'cod' ? 'الدفع عند الاستلام' : $order->payment_method,
+                        static::paymentMethodLabel($order->payment_method),
+                        Order::PAYMENT_STATUSES[$order->payment_status] ?? $order->payment_status,
                     ]);
                 }
             });

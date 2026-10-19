@@ -20,13 +20,14 @@ class Order extends Model
         'order_number', 'status', 'customer_id',
         'customer_name', 'customer_phone', 'address', 'area_id', 'area_name', 'notes',
         'subtotal', 'delivery_fee', 'total',
-        'payment_method', 'payment_status', 'admin_notes', 'ip',
+        'payment_method', 'payment_status', 'payment_due_at', 'admin_notes', 'ip',
     ];
 
     protected $casts = [
-        'subtotal'     => 'decimal:2',
-        'delivery_fee' => 'decimal:2',
-        'total'        => 'decimal:2',
+        'subtotal'       => 'decimal:2',
+        'delivery_fee'   => 'decimal:2',
+        'total'          => 'decimal:2',
+        'payment_due_at' => 'datetime',
     ];
 
     /** حالات الطلب (labels عربية). */
@@ -42,11 +43,25 @@ class Order extends Model
     /** الحالات اللي بترجّع المخزون (الطلب مابيحجزش مخزون فيها). */
     public const STOCK_RETURNING = ['cancelled', 'returned'];
 
+    /** حالات الدفع (labels عربية) — المرحلة 6E. */
+    public const PAYMENT_STATUSES = [
+        'pending'         => 'عند الاستلام',   // COD — بيتحصّل كاش عند التسليم
+        'pending_payment' => 'بانتظار الدفع',  // أونلاين — مستنيين تأكيد البوابة
+        'paid'            => 'مدفوع',
+        'failed'          => 'فشل الدفع',
+        'refunded'        => 'مُسترجَع',
+    ];
+
     // ───────────────────────── العلاقات ─────────────────────────
 
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function paymentAttempts(): HasMany
+    {
+        return $this->hasMany(PaymentAttempt::class)->latest();
     }
 
     public function area(): BelongsTo
@@ -70,6 +85,22 @@ class Order extends Model
     public function statusLabel(): string
     {
         return self::STATUSES[$this->status] ?? $this->status;
+    }
+
+    public function paymentStatusLabel(): string
+    {
+        return self::PAYMENT_STATUSES[$this->payment_status] ?? $this->payment_status;
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->payment_status === 'paid';
+    }
+
+    /** الطلب لسه مستنّي دفع أونلاين. */
+    public function awaitingPayment(): bool
+    {
+        return $this->payment_status === 'pending_payment';
     }
 
     public function itemsCount(): int

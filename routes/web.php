@@ -6,6 +6,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\Shop\CompareController;
 use App\Http\Controllers\Shop\ProductReviewController;
 use App\Http\Controllers\Shop\WishlistController;
@@ -68,6 +69,14 @@ Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.sho
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:10,1')->name('checkout.store');
 
 Route::get('/order/confirmation', [OrderController::class, 'confirmation'])->name('order.confirmation');
+
+// الدفع الأونلاين (المرحلة 6E)
+// - webhook: server-to-server، مستثنى من CSRF (bootstrap/app.php)، التأكيد الوحيد للدفع.
+// - return: رجوع العميل من البوابة (مجرد تحويل لصفحة التأكيد — مش دليل دفع).
+// - retry: إعادة محاولة الدفع للطلب اللي في السيشن.
+Route::post('/payments/{gateway}/webhook', [PaymentWebhookController::class, 'webhook'])->name('payment.webhook');
+Route::get('/payments/return', [PaymentWebhookController::class, 'return'])->name('payment.return');
+Route::get('/payments/retry/{order}', [CheckoutController::class, 'retry'])->middleware('throttle:10,1')->name('payment.retry');
 Route::get('/track', [OrderController::class, 'trackForm'])->name('order.track');
 Route::post('/track', [OrderController::class, 'track'])->middleware('throttle:15,1')->name('order.track.post');
 

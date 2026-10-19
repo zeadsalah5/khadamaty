@@ -27,6 +27,15 @@ interface PaymentMethod
     /**
      * تحضير الطلب للدفع بعد إنشائه، وإرجاع قيمة payment_status الابتدائية.
      * للدفع عند الاستلام: 'pending' (بيتحصّل كاش عند التسليم).
+     * للأونلاين: 'pending_payment' (لسه مستنيين تأكيد الدفع من البوابة).
      */
     public function prepare(Order $order): string;
+
+    /**
+     * بدء الدفع وإرجاع رابط hosted checkout للتحويل للبوابة.
+     * بيرجّع null للطرق الأوفلاين (COD) — الـ checkout بيكمّل لصفحة التأكيد عادي.
+     *
+     * @throws \App\Payments\PaymentException لو تعذّر بدء الدفع عند البوابة.
+     */
+    public function begin(Order $order): ?string;
 }

@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\ForceCanonicalDomain::class,
         ]);
+
+        // webhook الدفع server-to-server — مستثنى من CSRF (محمي بالتحقق من HMAC بدلاً منه).
+        $middleware->validateCsrfTokens(except: [
+            'payments/*/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
