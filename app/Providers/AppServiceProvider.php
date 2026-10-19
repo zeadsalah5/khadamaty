@@ -12,6 +12,7 @@ use App\Models\Page;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Redirect;
 use App\Models\Review;
 use App\Models\Service;
@@ -40,7 +41,7 @@ class AppServiceProvider extends ServiceProvider
         // مسح كاش المحتوى/الإعدادات تلقائياً عند أي تعديل من الداشبورد.
         $observed = [
             Setting::class, Service::class, Area::class, Brand::class,
-            Appliance::class, Product::class, Vendor::class,
+            Appliance::class, Product::class, ProductCategory::class, Vendor::class,
             Post::class, PostCategory::class, Review::class,
             Package::class, Faq::class, Page::class, MenuItem::class, Redirect::class,
         ];

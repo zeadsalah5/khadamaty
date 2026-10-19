@@ -7,7 +7,6 @@ use App\Models\Area;
 use App\Models\Brand;
 use App\Models\Post;
 use App\Models\PostCategory;
-use App\Models\Product;
 use App\Models\Service;
 use App\Models\Vendor;
 use Illuminate\Database\Seeder;
@@ -157,12 +156,7 @@ class ContentSeeder extends Seeder
             ])->save();
         }
 
-        Product::updateOrCreate(['slug' => 'product-placeholder-1'], [
-            'name_ar' => 'منتج تجريبي (TODO)',
-            'excerpt' => 'وصف المنتج هيتكتب هنا.',
-            'price' => null, // لا سعر => مفيش offers في الـ schema
-            'is_published' => false,
-        ]);
+        // المنتجات التجريبية بقت في StoreSeeder (المرحلة 6A) مع الأقسام والمواصفات.
 
         Vendor::updateOrCreate(['slug' => 'vendor-placeholder-1'], [
             'name_ar' => 'تاجر تجريبي (TODO)',

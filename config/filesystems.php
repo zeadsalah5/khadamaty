@@ -68,6 +68,16 @@ return [
             'report' => false,
         ],
 
+        // صور المتجر (منتجات + أقسام) — public/images/products (نفس نمط قرص الماركات).
+        'products' => [
+            'driver' => 'local',
+            'root' => public_path('images/products'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/products',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         // مكتبة الميديا العامة — public/images/media.
         'media' => [
             'driver' => 'local',
