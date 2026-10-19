@@ -29,7 +29,7 @@
         $data = [
             '@context'        => 'https://schema.org',
             '@type'           => 'HVACBusiness',
-            'name'            => config('site.name'),
+            'name'            => site('name'),
             'url'             => $url ?: $base . '/',
             'aggregateRating' => [
                 '@type'       => 'AggregateRating',

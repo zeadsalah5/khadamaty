@@ -58,6 +58,46 @@ return [
             'report' => false,
         ],
 
+        // قرص لوجوهات الماركات — public/images/brands (نفس نمط قرص المدونة).
+        'brands' => [
+            'driver' => 'local',
+            'root' => public_path('images/brands'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/brands',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // صور المتجر (منتجات + أقسام) — public/images/products (نفس نمط قرص الماركات).
+        'products' => [
+            'driver' => 'local',
+            'root' => public_path('images/products'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/products',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // مكتبة الميديا العامة — public/images/media.
+        'media' => [
+            'driver' => 'local',
+            'root' => public_path('images/media'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // صور فنيي سلايدر الهيرو — public/images/technicians.
+        'technicians' => [
+            'driver' => 'local',
+            'root' => public_path('images/technicians'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/technicians',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

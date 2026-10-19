@@ -1,16 +1,52 @@
 @php
-    // روابط تشتغل من أي صفحة (مش anchors داخلية بس).
-    $nav = [
-        'الخدمات'         => route('services.index'),
-        'المناطق'         => route('areas.index'),
-        'الماركات'        => route('brands.index'),
-        'المدونة'         => route('blog.index'),
-        'الأسعار'         => route('prices'),
-        'مين إحنا'        => route('about'),
-        'الأسئلة الشائعة'  => route('faq'),
-        'اتصل بينا'       => route('contact'),
-    ];
+    // قائمة الهيدر من الداشبورد (جدول menu_items)، وإلا القايمة الافتراضية.
+    $nav = \App\Support\Catalog::menu('header');
+    if (empty($nav)) {
+        $nav = [
+            ['label' => 'الخدمات', 'url' => route('services.index')],
+            ['label' => 'المناطق', 'url' => route('areas.index')],
+            ['label' => 'الماركات', 'url' => route('brands.index')],
+            ['label' => 'المدونة', 'url' => route('blog.index')],
+            ['label' => 'الأسعار', 'url' => route('prices')],
+            ['label' => 'مين إحنا', 'url' => route('about')],
+            ['label' => 'الأسئلة الشائعة', 'url' => route('faq')],
+            ['label' => 'اتصل بينا', 'url' => route('contact')],
+        ];
+    }
+    // رابط «المتجر» يظهر بس لو فيه منتج منشور؛ ومبيظهرش لو المتجر فاضي (حتى لو مضاف في القايمة).
+    $hasShop = \App\Support\Store\Storefront::hasPublished();
+    $isShopLink = fn ($url) => \Illuminate\Support\Str::contains($url, '/shop');
+    $navHasShop = collect($nav)->contains(fn ($i) => $isShopLink($i['url'] ?? ''));
+
+    if ($hasShop && ! $navHasShop) {
+        // ندخّل «المتجر» بعد الماركات لو موجودة، وإلا في الآخر.
+        $pos = collect($nav)->search(fn ($i) => \Illuminate\Support\Str::contains($i['url'] ?? '', '/brands'));
+        $shopItem = ['label' => 'المتجر', 'url' => route('shop.index')];
+        if ($pos !== false) {
+            array_splice($nav, $pos + 1, 0, [$shopItem]);
+        } else {
+            $nav[] = $shopItem;
+        }
+    } elseif (! $hasShop && $navHasShop) {
+        $nav = array_values(array_filter($nav, fn ($i) => ! $isShopLink($i['url'] ?? '')));
+    }
+
+    // الروابط النسبية (/services) تتحوّل لمطلقة؛ الروابط الكاملة والأنكور تفضل زيّها.
+    $nav = array_map(function ($i) {
+        $i['url'] = \Illuminate\Support\Str::startsWith($i['url'], ['http://', 'https://', '#', 'mailto:', 'tel:', '//'])
+            ? $i['url'] : url($i['url']);
+        return $i;
+    }, $nav);
     $bookUrl = url('/') . '#booking';
+
+    // عداد السلة (من الـ session) — يظهر بس لو المتجر فيه منتجات منشورة.
+    $cartCount = $hasShop ? \App\Support\Store\Cart::count() : 0;
+
+    // حساب العميل والمفضلة (المرحلة 6D) — يظهروا بس لو فيه متجر.
+    $customer = auth('customer')->user();
+    $wishlistCount = $hasShop ? \App\Support\Store\Wishlist::count() : 0;
+    $accountUrl = $customer ? route('account.orders') : route('login');
+    $accountLabel = $customer ? 'حسابي وطلباتي' : 'تسجيل الدخول';
 @endphp
 
 <header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-line">
@@ -19,14 +55,36 @@
 
         {{-- روابط القايمة — ديسكتوب --}}
         <ul class="hidden lg:flex items-center gap-5 xl:gap-6 text-sm font-semibold text-ink">
-            @foreach ($nav as $label => $href)
-                <li><a href="{{ $href }}" class="hover:text-brand transition-colors">{{ $label }}</a></li>
+            @foreach ($nav as $item)
+                <li><a href="{{ $item['url'] }}" class="hover:text-brand transition-colors">{{ $item['label'] }}</a></li>
             @endforeach
         </ul>
 
         {{-- أزرار — ديسكتوب --}}
         <div class="hidden lg:flex items-center gap-3">
-            <a href="tel:{{ config('site.phone_tel') }}"
+            @if ($hasShop)
+                {{-- المفضلة --}}
+                <a href="{{ route('wishlist.show') }}" aria-label="المفضلة{{ $wishlistCount ? ' (' . $wishlistCount . ')' : '' }}"
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+                    @if ($wishlistCount)
+                        <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $wishlistCount }}</span>
+                    @endif
+                </a>
+                {{-- حساب العميل --}}
+                <a href="{{ $accountUrl }}" aria-label="{{ $accountLabel }}"
+                   class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                </a>
+                <a href="{{ route('cart.show') }}" aria-label="سلة المشتريات{{ $cartCount ? ' (' . $cartCount . ' منتج)' : '' }}"
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+                    @if ($cartCount)
+                        <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $cartCount }}</span>
+                    @endif
+                </a>
+            @endif
+            <a href="tel:{{ site('phone_tel') }}"
                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-line text-ink font-semibold text-sm hover:border-brand hover:text-brand transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
                 اتصل بينا
@@ -37,20 +95,56 @@
             </a>
         </div>
 
-        {{-- زر قايمة الموبايل --}}
-        <button type="button" id="menu-toggle"
-                class="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-line text-ink"
-                aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobile-menu">
-            <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
+        {{-- أيقونات السلة/المفضلة + زر القايمة — موبايل --}}
+        <div class="flex items-center gap-2 lg:hidden">
+            @if ($hasShop)
+                <a href="{{ route('wishlist.show') }}" aria-label="المفضلة{{ $wishlistCount ? ' (' . $wishlistCount . ')' : '' }}"
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+                    @if ($wishlistCount)
+                        <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $wishlistCount }}</span>
+                    @endif
+                </a>
+                <a href="{{ route('cart.show') }}" aria-label="سلة المشتريات{{ $cartCount ? ' (' . $cartCount . ' منتج)' : '' }}"
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+                    @if ($cartCount)
+                        <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $cartCount }}</span>
+                    @endif
+                </a>
+            @endif
+
+            {{-- زر قايمة الموبايل --}}
+            <button type="button" id="menu-toggle"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-line text-ink"
+                    aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobile-menu">
+                <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+        </div>
     </nav>
 
     {{-- قايمة الموبايل --}}
     <div id="mobile-menu" class="lg:hidden hidden border-t border-line bg-white">
         <ul class="px-4 py-3 space-y-1 text-sm font-semibold">
-            @foreach ($nav as $label => $href)
-                <li><a href="{{ $href }}" class="block py-2.5 text-ink hover:text-brand" data-close-menu>{{ $label }}</a></li>
+            @foreach ($nav as $item)
+                <li><a href="{{ $item['url'] }}" class="block py-2.5 text-ink hover:text-brand" data-close-menu>{{ $item['label'] }}</a></li>
             @endforeach
+            @if ($hasShop)
+                <li class="border-t border-line pt-2 mt-1">
+                    <a href="{{ $accountUrl }}" data-close-menu class="flex items-center gap-2 py-2.5 text-ink hover:text-brand">
+                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                        {{ $accountLabel }}
+                    </a>
+                </li>
+                @if ($customer)
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full py-2.5 text-start text-muted hover:text-brand">تسجيل الخروج</button>
+                        </form>
+                    </li>
+                @endif
+            @endif
             <li class="pt-2">
                 <a href="{{ $bookUrl }}" data-close-menu
                    class="block text-center py-2.5 rounded-full bg-brand text-white font-bold">احجز فني دلوقتي</a>

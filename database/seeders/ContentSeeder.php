@@ -7,7 +7,6 @@ use App\Models\Area;
 use App\Models\Brand;
 use App\Models\Post;
 use App\Models\PostCategory;
-use App\Models\Product;
 use App\Models\Service;
 use App\Models\Vendor;
 use Illuminate\Database\Seeder;
@@ -47,6 +46,29 @@ class ContentSeeder extends Seeder
         ])->delete();
 
         /*
+        | أيقونة الخدمة ونوع خدمة الحجز (المرحلة C2) — بتتعدّل من الداشبورد.
+        | بنملا الناقص بس (null) عشان ما نكتبش فوق تعديلات لوحة التحكم.
+        */
+        $icons = [
+            'ac-maintenance' => 'maintenance', 'ac-repair' => 'repair', 'ac-cleaning' => 'cleaning',
+            'ac-installation' => 'install', 'ac-gas-refill' => 'freon', 'ac-leak-repair' => 'diagnose',
+            'split-ac-maintenance' => 'maintenance', 'central-ac-maintenance' => 'contract',
+            'ac-piping-installation' => 'pipes',
+        ];
+        $bookingMap = [
+            'ac-maintenance' => 'صيانة دورية', 'ac-repair' => 'إصلاح عطل', 'ac-cleaning' => 'غسيل وتنظيف',
+            'ac-installation' => 'تركيب تكييف', 'ac-gas-refill' => 'شحن فريون', 'ac-leak-repair' => 'إصلاح عطل',
+            'split-ac-maintenance' => 'صيانة دورية', 'central-ac-maintenance' => 'صيانة دورية',
+            'ac-piping-installation' => 'تركيب تكييف',
+        ];
+        foreach ($icons as $slug => $icon) {
+            Service::where('slug', $slug)->whereNull('icon')->update([
+                'icon' => $icon,
+                'booking_service' => $bookingMap[$slug] ?? null,
+            ]);
+        }
+
+        /*
         | المناطق (المرحلة 3) — من database/seeders/data/areas.php.
         | نفس منطق الخدمات: المنطقة اللي محتواها كامل بتتنشر تلقائياً،
         | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
@@ -56,10 +78,20 @@ class ContentSeeder extends Seeder
             $area = Area::updateOrCreate(['slug' => $slug], $fields);
 
             $complete = $area->hasCompleteContent();
-            $area->forceFill([
+
+            $fill = [
                 'is_published' => $complete,
                 'published_at' => $complete ? ($area->published_at ?? $now) : null,
-            ])->save();
+            ];
+
+            // توصيل المتجر (المرحلة 6C): نفعّله على المناطق المنشورة كـ placeholder
+            // برسوم 0 وملاحظة TODO — صاحب الموقع يضبط الرسوم من الداشبورد.
+            if ($complete && $area->delivery_note === null && (float) $area->delivery_fee === 0.0) {
+                $fill['delivers'] = true;
+                $fill['delivery_note'] = 'TODO: صاحب الموقع يحدد رسوم التوصيل لهذه المنطقة.';
+            }
+
+            $area->forceFill($fill)->save();
         }
 
         /*
@@ -134,12 +166,7 @@ class ContentSeeder extends Seeder
             ])->save();
         }
 
-        Product::updateOrCreate(['slug' => 'product-placeholder-1'], [
-            'name_ar' => 'منتج تجريبي (TODO)',
-            'excerpt' => 'وصف المنتج هيتكتب هنا.',
-            'price' => null, // لا سعر => مفيش offers في الـ schema
-            'is_published' => false,
-        ]);
+        // المنتجات التجريبية بقت في StoreSeeder (المرحلة 6A) مع الأقسام والمواصفات.
 
         Vendor::updateOrCreate(['slug' => 'vendor-placeholder-1'], [
             'name_ar' => 'تاجر تجريبي (TODO)',

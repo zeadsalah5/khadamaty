@@ -1,6 +1,6 @@
 @php
-    $slides = config('site.hero_slides');
-    $area   = config('site.areas_label');
+    $slides = site('hero_slides');
+    $area   = site('areas_label');
 @endphp
 
 <section class="relative bg-brand text-white overflow-hidden" data-slider aria-roledescription="سلايدر" aria-label="عروض الخدمات">
@@ -35,7 +35,7 @@
                                    class="inline-flex items-center px-7 py-3.5 rounded-full bg-white text-brand font-extrabold text-lg shadow-lg shadow-black/10 hover:-translate-y-0.5 transition-transform">
                                     {{ $slide['cta_label'] }}
                                 </a>
-                                <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+                                <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                                    class="inline-flex items-center gap-2 px-6 py-3.5 rounded-full border border-white/40 text-white font-bold text-lg hover:bg-white/10 transition-colors">
                                     كلّمنا واتساب
                                 </a>
@@ -61,7 +61,7 @@
                                 {{-- أبعاد ثابتة لتفادي القفز (CLS) --}}
                                 <img src="{{ asset($imgRel) }}" width="440" height="360"
                                      loading="{{ $loop->first ? 'eager' : 'lazy' }}" decoding="async"
-                                     alt="فني {{ config('site.name') }} أثناء العمل"
+                                     alt="فني {{ site('name') }} أثناء العمل"
                                      class="w-full max-w-sm rounded-3xl object-cover shadow-2xl aspect-[11/9] bg-white/10">
                             @else
                                 {{-- TODO: ضع صورة الفني في public/images/technicians/{{ $slide['image'] }} وهتظهر تلقائياً --}}

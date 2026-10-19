@@ -1,12 +1,12 @@
 @inject('seo', 'App\Support\Seo')
 @php
-    $company   = config('site.name');
+    $company   = site('name');
     $pageTitle = $seo->getPageTitle();
     $pageDesc  = $seo->getDescription();
     $canonical = $seo->getCanonical();
     $robots    = $seo->getRobots();
     $ogImage   = $seo->getOgImage();
-    $twitter   = trim((string) config('site.twitter_handle'));
+    $twitter   = trim((string) site('twitter_handle'));
 @endphp
 <title>{{ $pageTitle }}</title>
 <meta name="description" content="{{ $pageDesc }}">

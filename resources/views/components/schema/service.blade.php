@@ -6,10 +6,10 @@
         'name'        => $name,
         'description' => $description,
         'url'         => $url,
-        'areaServed'  => $areaServed ?: config('site.areas_label'),
+        'areaServed'  => $areaServed ?: site('areas_label'),
         'provider'    => [
             '@type' => 'HVACBusiness',
-            'name'  => config('site.name'),
+            'name'  => site('name'),
         ],
     ];
 @endphp

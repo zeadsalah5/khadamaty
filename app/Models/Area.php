@@ -12,6 +12,7 @@ class Area extends Model
     protected $fillable = [
         'slug', 'name_ar', 'excerpt', 'intro',
         'common_problems', 'neighborhoods', 'top_services', 'eta_note', 'faqs',
+        'delivers', 'delivery_fee', 'delivery_note',
         'seo_title', 'seo_description',
         'is_published', 'published_at',
     ];
@@ -23,7 +24,15 @@ class Area extends Model
         'neighborhoods'   => 'array',
         'top_services'    => 'array',
         'faqs'            => 'array',
+        'delivers'        => 'boolean',
+        'delivery_fee'    => 'decimal:2',
     ];
+
+    /** المنطقة داخل نطاق التوصيل؟ (بيتحكم في إتاحتها في الـ checkout). */
+    public function isDeliverable(): bool
+    {
+        return (bool) $this->delivers;
+    }
 
     /**
      * محتوى المنطقة كامل كفاية إنها تتنشر؟
@@ -32,10 +41,22 @@ class Area extends Model
      */
     public function hasCompleteContent(): bool
     {
-        return filled($this->intro)
-            && filled($this->common_problems)
-            && filled($this->neighborhoods)
-            && filled($this->top_services)
-            && filled($this->faqs);
+        return empty($this->missingContent());
+    }
+
+    /** الحقول الناقصة اللازمة للنشر (كـ labels عربية) — تظهر في الداشبورد. */
+    public function missingContent(): array
+    {
+        $required = [
+            'intro' => 'المقدمة',
+            'common_problems' => 'المشاكل الشائعة',
+            'neighborhoods' => 'الأحياء',
+            'top_services' => 'الخدمات الأكثر طلباً',
+            'faqs' => 'الأسئلة الشائعة',
+        ];
+
+        return array_values(array_filter(
+            array_map(fn ($field, $label) => filled($this->{$field}) ? null : $label, array_keys($required), $required)
+        ));
     }
 }

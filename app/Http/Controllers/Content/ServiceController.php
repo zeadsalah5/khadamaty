@@ -96,15 +96,15 @@ class ServiceController extends PageController
                 : Service::query()->published()->whereIn('slug', $slugs->all())->get());
 
         // المناطق المنشورة للروابط الداخلية + areaServed في الـ schema.
-        $areas = (array) config('site.areas', []);
+        $areas = (array) site('areas', []);
 
         return view('pages.service', [
             'service'        => $service,
             'title'          => $service->name_ar,
             'subtitle'       => $service->excerpt,
             'canonical'      => $this->seo()->getCanonical(),
-            'icon'           => $this->icons[$service->slug] ?? 'maintenance',
-            'bookingService' => $this->bookingMap[$service->slug] ?? null,
+            'icon'           => $service->icon ?: ($this->icons[$service->slug] ?? 'maintenance'),
+            'bookingService' => $service->booking_service ?: ($this->bookingMap[$service->slug] ?? null),
             'related'        => $related,
             'relatedIcons'   => $this->icons,
             'areas'          => $areas,

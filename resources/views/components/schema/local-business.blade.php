@@ -8,11 +8,11 @@
     $data = [
         '@context'    => 'https://schema.org',
         '@type'       => 'HVACBusiness',
-        'name'        => config('site.name'),
-        'description' => config('site.name') . ' — ' . config('site.tagline')
-                         . ' في ' . config('site.areas_label') . '.',
+        'name'        => site('name'),
+        'description' => site('name') . ' — ' . site('tagline')
+                         . ' في ' . site('areas_label') . '.',
         'url'         => $base . '/',
-        'areaServed'  => config('site.areas_label'),
+        'areaServed'  => site('areas_label'),
         'telephone'   => Site::phoneTel(),   // null لو placeholder => بيتشال
         'email'       => Site::email(),       // null لو فاضي => بيتشال
     ];

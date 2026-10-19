@@ -10,7 +10,7 @@ class Service extends Model
     use Publishable;
 
     protected $fillable = [
-        'slug', 'name_ar', 'excerpt', 'body',
+        'slug', 'name_ar', 'icon', 'booking_service', 'excerpt', 'body',
         'symptoms', 'steps', 'includes', 'faqs', 'related_services',
         'price_note', 'duration_note', 'seo_title', 'seo_description',
         'is_published', 'published_at',
@@ -32,10 +32,22 @@ class Service extends Model
      */
     public function hasCompleteContent(): bool
     {
-        return filled($this->body)
-            && filled($this->includes)
-            && filled($this->symptoms)
-            && filled($this->steps)
-            && filled($this->faqs);
+        return empty($this->missingContent());
+    }
+
+    /** الحقول الناقصة اللازمة للنشر (كـ labels عربية) — تظهر في الداشبورد. */
+    public function missingContent(): array
+    {
+        $required = [
+            'body' => 'المقدمة',
+            'includes' => 'الخدمة بتشمل',
+            'symptoms' => 'الأعراض',
+            'steps' => 'خطوات الشغل',
+            'faqs' => 'الأسئلة الشائعة',
+        ];
+
+        return array_values(array_filter(
+            array_map(fn ($field, $label) => filled($this->{$field}) ? null : $label, array_keys($required), $required)
+        ));
     }
 }

@@ -11,7 +11,7 @@ class Site
     /** رقم الاتصال الدولي لو حقيقي، وإلا null. */
     public static function phoneTel(): ?string
     {
-        $value = (string) config('site.phone_tel');
+        $value = (string) site('phone_tel');
 
         return self::looksReal($value) ? $value : null;
     }
@@ -19,7 +19,7 @@ class Site
     /** الإيميل لو متحدد، وإلا null. */
     public static function email(): ?string
     {
-        $value = trim((string) config('site.email'));
+        $value = trim((string) site('email'));
 
         return $value !== '' ? $value : null;
     }

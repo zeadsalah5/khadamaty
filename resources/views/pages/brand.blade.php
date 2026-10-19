@@ -53,12 +53,12 @@
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                 احجز فني
             </a>
-            <a href="tel:{{ config('site.phone_tel') }}"
+            <a href="tel:{{ site('phone_tel') }}"
                class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
-                اتصل: {{ config('site.phone') }}
+                اتصل: {{ site('phone') }}
             </a>
-            <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+            <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-accent hover:text-accent font-bold transition-colors">
                 اسأل على واتساب
             </a>
@@ -152,12 +152,29 @@
         </section>
     @endif
 
+    {{-- ============ منتجات الماركة في المتجر ============ --}}
+    @if ($products->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <div class="mb-6 flex items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold md:text-3xl">منتجات {{ $title }} في المتجر</h2>
+                    <p class="mt-2 leading-relaxed text-muted">تكييفات وقطع غيار {{ $title }} المتاحة عندنا دلوقتي.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+                @foreach ($products as $product)
+                    <x-product-card :product="$product" />
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     {{-- ============ مناطق الخدمة ============ --}}
     @if ($areas->isNotEmpty())
         <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
             <div class="max-w-2xl mb-6">
                 <h2 class="text-2xl md:text-3xl font-extrabold mb-2">بنصلّح {{ $title }} في منطقتك</h2>
-                <p class="text-muted leading-relaxed">بنغطّي {{ config('site.areas_label') }} والمناطق المحيطة. اختر منطقتك واعرف التفاصيل.</p>
+                <p class="text-muted leading-relaxed">بنغطّي {{ site('areas_label') }} والمناطق المحيطة. اختر منطقتك واعرف التفاصيل.</p>
             </div>
             <ul class="flex flex-wrap gap-2.5 mb-5">
                 @foreach ($areas as $area)
