@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Content;
 use App\Http\Controllers\Content\Concerns\LinksServices;
 use App\Models\Area;
 use App\Models\Brand;
+use App\Models\BrandServicePage;
 use Illuminate\View\View;
 
 class BrandController extends PageController
@@ -61,6 +62,14 @@ class BrandController extends PageController
         $services = $this->publishedServices($brand->suitable_services ?? []);
         $areas = Area::query()->published()->orderBy('name_ar')->get();
 
+        // slugs الخدمات اللي ليها صفحة (ماركة × خدمة) منشورة — عشان الكارت يوصّل للصفحة المخصّصة.
+        $brandServiceSlugs = BrandServicePage::query()->published()
+            ->where('brand_id', $brand->id)
+            ->with('service:id,slug')
+            ->get()
+            ->map(fn (BrandServicePage $p) => $p->service?->slug)
+            ->filter()->values()->all();
+
         // منتجات المتجر التابعة للماركة (المنشورة) — قسم «منتجات {الماركة}».
         $products = $brand->products()->published()
             ->with(['primaryImage', 'category', 'brand'])
@@ -73,6 +82,7 @@ class BrandController extends PageController
             'canonical'    => $this->seo()->getCanonical(),
             'services'     => $services,
             'serviceIcons' => $this->serviceIcons(),
+            'brandServiceSlugs' => $brandServiceSlugs,
             'areas'        => $areas,
             'products'     => $products,
             'breadcrumbs'  => [

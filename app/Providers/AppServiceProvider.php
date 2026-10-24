@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Appliance;
 use App\Models\Area;
 use App\Models\Brand;
+use App\Models\BrandServicePage;
 use App\Models\Faq;
 use App\Models\MenuItem;
 use App\Models\Package;
@@ -55,7 +56,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // مسح كاش المحتوى/الإعدادات تلقائياً عند أي تعديل من الداشبورد.
         $observed = [
-            Setting::class, Service::class, Area::class, Brand::class,
+            Setting::class, Service::class, Area::class, Brand::class, BrandServicePage::class,
             Appliance::class, Product::class, ProductCategory::class, Vendor::class,
             Post::class, PostCategory::class, Review::class,
             Package::class, Faq::class, Page::class, MenuItem::class, Redirect::class,

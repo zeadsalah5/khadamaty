@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Content;
 
+use App\Models\BrandServicePage;
 use App\Models\Service;
 use Illuminate\View\View;
 
@@ -98,6 +99,17 @@ class ServiceController extends PageController
         // المناطق المنشورة للروابط الداخلية + areaServed في الـ schema.
         $areas = (array) site('areas', []);
 
+        // صفحات (ماركة × خدمة) المنشورة لنفس الخدمة — قسم «حسب الماركة» (روابط داخلية).
+        $brandPages = BrandServicePage::query()->published()
+            ->where('service_id', $service->id)
+            ->with('brand:id,slug,name_ar')
+            ->get()
+            ->filter(fn (BrandServicePage $p) => $p->brand !== null)
+            ->map(fn (BrandServicePage $p) => [
+                'name' => $p->brand->name_ar,
+                'url'  => '/brands/' . $p->brand->slug . '/' . $service->slug,
+            ])->values();
+
         return view('pages.service', [
             'service'        => $service,
             'title'          => $service->name_ar,
@@ -108,6 +120,7 @@ class ServiceController extends PageController
             'related'        => $related,
             'relatedIcons'   => $this->icons,
             'areas'          => $areas,
+            'brandPages'     => $brandPages,
             'breadcrumbs'    => [
                 ['label' => 'الرئيسية', 'url' => '/'],
                 ['label' => $this->indexTitle, 'url' => $this->basePath],

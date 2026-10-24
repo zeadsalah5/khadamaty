@@ -132,12 +132,19 @@
                 <h2 class="text-2xl md:text-3xl font-extrabold mb-6">خدمات بنقدّمها لتكييفات {{ $title }}</h2>
                 <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($services as $svc)
-                        <a href="{{ '/services/' . $svc->slug }}"
+                        @php
+                            // لو فيه صفحة (ماركة × خدمة) منشورة، نوصّل ليها بدل صفحة الخدمة العامة.
+                            $hasBrandPage = in_array($svc->slug, $brandServiceSlugs ?? [], true);
+                            $svcUrl = $hasBrandPage
+                                ? '/brands/' . $brand->slug . '/' . $svc->slug
+                                : '/services/' . $svc->slug;
+                        @endphp
+                        <a href="{{ $svcUrl }}"
                            class="group flex flex-col rounded-2xl border border-line bg-white p-6 hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
                             <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
                                 <x-service-icon :name="$serviceIcons[$svc->slug] ?? 'maintenance'" />
                             </div>
-                            <h3 class="text-lg font-bold mb-2">{{ $svc->name_ar }}</h3>
+                            <h3 class="text-lg font-bold mb-2">{{ $hasBrandPage ? $svc->name_ar . ' ' . $brand->name_ar : $svc->name_ar }}</h3>
                             @if ($svc->excerpt)
                                 <p class="text-muted text-sm leading-relaxed flex-1">{{ $svc->excerpt }}</p>
                             @endif

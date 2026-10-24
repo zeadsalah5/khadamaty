@@ -186,6 +186,26 @@
         </section>
     @endif
 
+    {{-- ============ الخدمة حسب الماركة (صفحات ماركة × خدمة) ============ --}}
+    @if (! empty($brandPages) && $brandPages->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <div class="max-w-2xl mb-6">
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2">{{ $title }} حسب الماركة</h2>
+                <p class="text-muted leading-relaxed">صفحات بتفاصيل أكتر عن الخدمة دي لكل ماركة — أعطالها الشائعة وطريقة شغلنا معاها.</p>
+            </div>
+            <ul class="flex flex-wrap gap-2.5">
+                @foreach ($brandPages as $bp)
+                    <li>
+                        <a href="{{ $bp['url'] }}"
+                           class="inline-block bg-surface border border-line rounded-full px-4 py-2 text-sm font-medium hover:border-brand hover:text-brand transition-colors">
+                            {{ $title }} {{ $bp['name'] }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     {{-- ============ مناطق الخدمة + الماركات ============ --}}
     <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div class="grid gap-8 lg:grid-cols-2">

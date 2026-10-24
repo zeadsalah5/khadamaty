@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appliance;
 use App\Models\Area;
 use App\Models\Brand;
+use App\Models\BrandServicePage;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\Service;
@@ -68,6 +69,15 @@ class SitemapController extends Controller
             $sitemaps[] = [
                 'loc'     => $base . "/sitemap-{$name}.xml",
                 'lastmod' => $this->iso($query->max('updated_at')),
+            ];
+        }
+
+        // صفحات (ماركة × خدمة): بتظهر بس لو فيه صفحة واحدة مكتملة ومنشورة على الأقل.
+        $brandServices = $this->indexableBrandServices();
+        if ($brandServices->isNotEmpty()) {
+            $sitemaps[] = [
+                'loc'     => $base . '/sitemap-brand-services.xml',
+                'lastmod' => $this->iso($brandServices->max('updated_at')),
             ];
         }
 
@@ -143,6 +153,17 @@ class SitemapController extends Controller
     /** ساب-سايت ماب لنوع واحد: روابط العناصر المنشورة مع lastmod من updated_at. */
     public function type(string $type): Response
     {
+        // صفحات (ماركة × خدمة): بنية URL مختلفة فمش ضمن types() العادية.
+        if ($type === 'brand-services') {
+            $xml = Cache::remember(
+                'sitemap:type:brand-services:' . md5($this->base()),
+                $this->ttl,
+                fn () => $this->buildBrandServices()
+            );
+
+            return $this->xml($xml);
+        }
+
         abort_unless(isset($this->types()[$type]), 404);
 
         $xml = Cache::remember(
@@ -218,6 +239,35 @@ class SitemapController extends Controller
                 'loc'     => $base . $c->path(),
                 'lastmod' => $this->iso($c->publishedProductsQuery()->max('updated_at')),
             ])->values()->all();
+    }
+
+    /**
+     * صفحات (ماركة × خدمة) القابلة للفهرسة: منشورة + محتواها كامل + الماركة والخدمة منشورتين.
+     * (نفس منطق المنتجات: فلترة الـ indexable في PHP بعد تحميل العلاقات.)
+     */
+    protected function indexableBrandServices(): \Illuminate\Support\Collection
+    {
+        return BrandServicePage::query()->published()
+            ->with(['brand', 'service'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->filter(fn (BrandServicePage $p) => $p->hasCompleteContent()
+                && $p->brand && $p->brand->is_published
+                && $p->service && $p->service->is_published);
+    }
+
+    /** ساب-سايت ماب لصفحات (ماركة × خدمة) القابلة للفهرسة. */
+    protected function buildBrandServices(): string
+    {
+        $base = $this->base();
+
+        $urls = $this->indexableBrandServices()
+            ->map(fn (BrandServicePage $p) => [
+                'loc'     => $base . '/brands/' . $p->brand->slug . '/' . $p->service->slug,
+                'lastmod' => $this->iso($p->updated_at),
+            ])->values()->all();
+
+        return $this->urlsetXml($urls);
     }
 
     protected function pagesLastmod(): ?string

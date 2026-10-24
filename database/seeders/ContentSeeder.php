@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Appliance;
 use App\Models\Area;
 use App\Models\Brand;
+use App\Models\BrandServicePage;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Service;
@@ -117,6 +118,30 @@ class ContentSeeder extends Seeder
 
         // تنظيف ماركات placeholder قديمة.
         Brand::whereIn('slug', ['brand-placeholder-1', 'brand-placeholder-2'])->delete();
+
+        /*
+        | صفحات (ماركة × خدمة) — المرحلة K1 (SEO عضوي).
+        | من database/seeders/data/brand_services.php، المفتاح 'brand|service'.
+        | **بتتزرع دايماً كمسوّدة (is_published=false)** — عكس باقي المحتوى — عشان
+        | تتراجع وتتنشر يدوياً من الداشبورد بعد ملء السعر/المدة (TODO صاحب الموقع).
+        | الصفحة الناقصة أو غير المنشورة => 404 + noindex + برّه السايت ماب.
+        */
+        $brandServicesData = require __DIR__.'/data/brand_services.php';
+        $brandIds = Brand::pluck('id', 'slug');
+        $serviceIds = Service::pluck('id', 'slug');
+        foreach ($brandServicesData as $key => $fields) {
+            [$brandSlug, $serviceSlug] = explode('|', $key);
+            $brandId = $brandIds[$brandSlug] ?? null;
+            $serviceId = $serviceIds[$serviceSlug] ?? null;
+            if (! $brandId || ! $serviceId) {
+                continue; // ماركة/خدمة مش موجودة => نتخطّى بأمان
+            }
+
+            BrandServicePage::updateOrCreate(
+                ['brand_id' => $brandId, 'service_id' => $serviceId],
+                $fields + ['is_published' => false, 'published_at' => null],
+            );
+        }
 
         /*
         | ما تحت ده كله placeholders غير منشورة (is_published=false):
