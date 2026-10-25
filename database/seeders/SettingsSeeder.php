@@ -20,6 +20,9 @@ class SettingsSeeder extends Seeder
                 'phone', 'phone_tel', 'whatsapp', 'email',
                 'working_hours', 'social_links',
             ],
+            'warranty' => [
+                'warranty_months', 'warranty_scope', 'warranty_exclusions',
+            ],
             'seo' => [
                 'default_og_image', 'twitter_handle',
                 'ga4_id', 'gtm_id', 'meta_pixel_id', 'custom_head',

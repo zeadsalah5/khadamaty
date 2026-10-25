@@ -35,6 +35,8 @@ class ExampleTest extends TestCase
     {
         $unique = 'عرض-اختبار-' . uniqid();
 
+        // شريط الإعلان متوقف افتراضياً دلوقتي — نفعّله عشان النص يظهر.
+        Settings::set('announcement_enabled', true, 'home');
         Settings::set('announcement_text', $unique, 'home');
 
         $this->get('/')

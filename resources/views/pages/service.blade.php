@@ -33,6 +33,13 @@
                 @if ($subtitle)
                     <p class="text-muted text-lg leading-relaxed max-w-2xl">{{ $subtitle }}</p>
                 @endif
+                @php $hasWarranty = filled(site('warranty_scope')) && filled(site('warranty_exclusions')); @endphp
+                @if ($hasWarranty)
+                    <span class="inline-flex items-center gap-1.5 mt-3 rounded-full bg-accent/10 text-accent-600 border border-accent/30 px-3 py-1 text-sm font-bold">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+                        ضمان {{ (int) site('warranty_months', 6) }} شهور على الخدمة
+                    </span>
+                @endif
             </div>
         </div>
 
@@ -170,6 +177,20 @@
                         <p class="text-xs text-muted mt-2">بتختلف حسب حالة الجهاز وعددها.</p>
                     </div>
                 @endif
+            </div>
+        </section>
+    @endif
+
+    {{-- ============ الضمان (يظهر بس لو النطاق والاستثناءات متملّيين) ============ --}}
+    @if (filled(site('warranty_scope')) && filled(site('warranty_exclusions')))
+        <section class="mx-auto max-w-6xl px-4 py-10 md:py-12">
+            <div class="max-w-3xl rounded-2xl border border-accent/30 bg-accent/5 p-6 md:p-7">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg viewBox="0 0 24 24" class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <h2 class="text-2xl font-extrabold">ضمان {{ (int) site('warranty_months', 6) }} شهور</h2>
+                </div>
+                <p class="text-ink leading-relaxed mb-2"><span class="font-bold">نطاق الضمان:</span> {{ site('warranty_scope') }}</p>
+                <p class="text-muted leading-relaxed"><span class="font-bold text-ink">الاستثناءات:</span> {{ site('warranty_exclusions') }}</p>
             </div>
         </section>
     @endif

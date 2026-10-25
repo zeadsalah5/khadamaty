@@ -114,6 +114,23 @@ class SiteController extends Controller
         ]);
     }
 
+    /**
+     * صفحة الضمان — مسودة noindex دايماً، محتواها من إعدادات الضمان.
+     * (من غير schema للضمان حسب القرار.)
+     */
+    public function warranty(): View
+    {
+        $this->seo()
+            ->title('الضمان على الخدمة')
+            ->description('تفاصيل الضمان على خدمات صيانة وتركيب التكييفات والأجهزة.')
+            ->canonical('/warranty')
+            ->noindex(); // مسودة — noindex لحد ما صاحب الموقع يراجعها
+
+        return view('pages.warranty', [
+            'breadcrumbs' => $this->crumbs('الضمان', '/warranty'),
+        ]);
+    }
+
     public function reviews(): View
     {
         $reviews = Review::query()->approved()->latest()->get();

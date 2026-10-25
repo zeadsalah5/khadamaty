@@ -21,6 +21,9 @@ return [
     'services/repair'        => '/services/ac-repair',
     // 'services/move-install' => '/services',  // مفيش بديل مباشر — بيروح 404 طبيعي
 
+    // تصحيح slug ماركة ميديا: media => midea (الإنجليزي الصحيح Midea) مع 301.
+    'brands/media' => '/brands/midea',
+
     // slugs مناطق قديمة اتشالت من القايمة (المرحلة 3) => هب المناطق (301).
     // مفيش بديل مباشر لكل منطقة، فبنوجّه للهب بدل 404.
     'areas/cairo'      => '/areas',

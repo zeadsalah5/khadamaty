@@ -41,6 +41,9 @@ class ManageSiteSettings extends Page implements HasForms
             'order_notify_whatsapp' => 'company',
             'working_hours' => 'company',
             'social_links' => 'company',
+            'warranty_months' => 'warranty',
+            'warranty_scope' => 'warranty',
+            'warranty_exclusions' => 'warranty',
             'default_og_image' => 'seo',
             'twitter_handle' => 'seo',
             'ga4_id' => 'seo',
@@ -115,6 +118,22 @@ class ManageSiteSettings extends Page implements HasForms
                         ->label('كود إضافي للـ <head> (اختياري)')->rows(4)
                         ->helperText('كود يتحقن داخل <head>. للأدمن الموثوق فقط.'),
                 ])->columns(2),
+
+                Forms\Components\Tabs\Tab::make('الضمان')->schema([
+                    Forms\Components\Placeholder::make('warranty_hint')
+                        ->label('')
+                        ->content('بادج وقسم الضمان بيظهروا في صفحات الخدمات و/warranty بس لو «نطاق الضمان» و«استثناءات الضمان» متملّيين.')
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('warranty_months')
+                        ->label('مدة الضمان (شهور)')->numeric()->minValue(0)->maxValue(120)
+                        ->helperText('بتظهر في البادج، مثال: ضمان 6 شهور.'),
+                    Forms\Components\Textarea::make('warranty_scope')
+                        ->label('نطاق الضمان')->rows(3)
+                        ->helperText('مثال: ضمان على الشغل والقطع اللي بنركّبها.'),
+                    Forms\Components\Textarea::make('warranty_exclusions')
+                        ->label('استثناءات الضمان')->rows(3)
+                        ->helperText('مثال: مبيشملش الأعطال الناتجة عن سوء الاستخدام أو عبث طرف تاني.'),
+                ])->columns(1),
             ])->columnSpanFull(),
         ];
     }

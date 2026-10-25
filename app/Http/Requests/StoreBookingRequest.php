@@ -22,6 +22,9 @@ class StoreBookingRequest extends FormRequest
             'devices_count'  => ['nullable', 'integer', 'min:1', 'max:50'],
             'preferred_time' => ['nullable', 'string', 'max:120'],
             'notes'          => ['nullable', 'string', 'max:1000'],
+            // حقول مخفية: الماركة (لو الحجز من صفحة ماركة) + رابط الصفحة المصدر
+            'brand'          => ['nullable', 'string', 'max:80'],
+            'source_url'     => ['nullable', 'string', 'max:2048'],
             // فخ السبام: لازم يفضل فاضي
             'website'        => ['prohibited'],
         ];

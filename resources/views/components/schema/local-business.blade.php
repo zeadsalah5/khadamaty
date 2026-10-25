@@ -8,6 +8,7 @@
     $data = [
         '@context'    => 'https://schema.org',
         '@type'       => 'HVACBusiness',
+        '@id'         => $base . '/#business',
         'name'        => site('name'),
         'description' => site('name') . ' — ' . site('tagline')
                          . ' في ' . site('areas_label') . '.',

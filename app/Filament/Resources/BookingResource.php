@@ -47,7 +47,9 @@ class BookingResource extends Resource
             Forms\Components\TextInput::make('phone')->label('التليفون')->disabled(),
             Forms\Components\TextInput::make('area')->label('المنطقة')->disabled(),
             Forms\Components\TextInput::make('service')->label('الخدمة')->disabled(),
+            Forms\Components\TextInput::make('brand')->label('الماركة')->disabled(),
             Forms\Components\TextInput::make('appliance')->label('الجهاز')->disabled(),
+            Forms\Components\TextInput::make('source_url')->label('صفحة المصدر')->disabled()->columnSpanFull(),
             Forms\Components\TextInput::make('devices_count')->label('عدد الأجهزة')->disabled(),
             Forms\Components\TextInput::make('preferred_time')->label('الوقت المفضّل')->disabled(),
             Forms\Components\Textarea::make('notes')->label('ملاحظات العميل')->disabled()->rows(2)->columnSpanFull(),
@@ -67,6 +69,7 @@ class BookingResource extends Resource
                 Tables\Columns\TextColumn::make('name')->label('الاسم')->searchable()->weight('bold'),
                 Tables\Columns\TextColumn::make('phone')->label('التليفون')->searchable()->copyable(),
                 Tables\Columns\TextColumn::make('service')->label('الخدمة')->searchable(),
+                Tables\Columns\TextColumn::make('brand')->label('الماركة')->searchable()->placeholder('—')->toggleable(),
                 Tables\Columns\TextColumn::make('area')->label('المنطقة')->searchable(),
                 Tables\Columns\TextColumn::make('devices_count')->label('عدد')->alignCenter(),
                 Tables\Columns\SelectColumn::make('status')->label('الحالة')
@@ -77,6 +80,8 @@ class BookingResource extends Resource
                 Tables\Filters\SelectFilter::make('status')->label('الحالة')->options(self::STATUSES),
                 Tables\Filters\SelectFilter::make('service')->label('الخدمة')
                     ->options(fn () => Booking::query()->distinct()->pluck('service', 'service')->filter()->all()),
+                Tables\Filters\SelectFilter::make('brand')->label('الماركة')
+                    ->options(fn () => Booking::query()->distinct()->pluck('brand', 'brand')->filter()->all()),
                 Tables\Filters\SelectFilter::make('area')->label('المنطقة')
                     ->options(fn () => Booking::query()->distinct()->pluck('area', 'area')->filter()->all()),
             ])
@@ -93,7 +98,7 @@ class BookingResource extends Resource
     /** تصدير الحجوزات كـ CSV (بـ BOM عشان Excel يقرا العربي صح). */
     protected static function exportCsv(): StreamedResponse
     {
-        $headers = ['التاريخ', 'الاسم', 'التليفون', 'المنطقة', 'الخدمة', 'الجهاز', 'عدد الأجهزة', 'الوقت المفضّل', 'الحالة', 'ملاحظات العميل', 'ملاحظات داخلية'];
+        $headers = ['التاريخ', 'الاسم', 'التليفون', 'المنطقة', 'الخدمة', 'الماركة', 'الجهاز', 'عدد الأجهزة', 'الوقت المفضّل', 'الحالة', 'صفحة المصدر', 'ملاحظات العميل', 'ملاحظات داخلية'];
 
         return response()->streamDownload(function () use ($headers) {
             $out = fopen('php://output', 'w');
@@ -104,10 +109,10 @@ class BookingResource extends Resource
                 foreach ($rows as $b) {
                     fputcsv($out, [
                         optional($b->created_at)->format('Y-m-d H:i'),
-                        $b->name, $b->phone, $b->area, $b->service, $b->appliance,
+                        $b->name, $b->phone, $b->area, $b->service, $b->brand, $b->appliance,
                         $b->devices_count, $b->preferred_time,
                         self::STATUSES[$b->status] ?? $b->status,
-                        $b->notes, $b->admin_notes,
+                        $b->source_url, $b->notes, $b->admin_notes,
                     ]);
                 }
             });
