@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Content;
 
 use App\Http\Controllers\Content\Concerns\LinksServices;
+use App\Http\Controllers\Content\Concerns\PreviewsDrafts;
 use App\Models\Area;
 use App\Models\Brand;
 use App\Models\BrandServicePage;
@@ -16,7 +17,7 @@ use Illuminate\View\View;
  */
 class BrandServiceController extends PageController
 {
-    use LinksServices;
+    use LinksServices, PreviewsDrafts;
 
     protected string $modelClass = BrandServicePage::class;
     protected string $basePath = '/brands';
@@ -25,11 +26,16 @@ class BrandServiceController extends PageController
 
     public function show(Brand $brand, string $service): View
     {
-        // الخدمة لازم تكون منشورة، وإلا 404.
-        $serviceModel = Service::query()->published()->where('slug', $service)->firstOrFail();
+        $preview = can_preview_drafts();
 
-        // صفحة التقاطع لازم تكون موجودة ومنشورة، وإلا 404.
-        $page = BrandServicePage::query()->published()
+        // الخدمة لازم تكون منشورة (أو معاينة أدمن)، وإلا 404.
+        $serviceModel = Service::query()
+            ->when(! $preview, fn ($q) => $q->published())
+            ->where('slug', $service)->firstOrFail();
+
+        // صفحة التقاطع لازم تكون موجودة (ومنشورة للزائر العادي)، وإلا 404.
+        $page = BrandServicePage::query()
+            ->when(! $preview, fn ($q) => $q->published())
             ->where('brand_id', $brand->id)
             ->where('service_id', $serviceModel->id)
             ->firstOrFail();
@@ -45,10 +51,18 @@ class BrandServiceController extends PageController
             ->ogType('website')
             ->robots($page->hasCompleteContent() ? 'index,follow' : 'noindex,follow');
 
+        // مسوّدة لو الصفحة أو الخدمة أو الماركة مش منشورة (معاينة أدمن).
+        $draft = ! $page->is_published || ! $serviceModel->is_published || ! $brand->is_published;
+        if ($draft) {
+            $this->seo()->noindex();
+            request()->attributes->set('draft_preview', true);
+        }
+
         // المناطق المنشورة: روابط داخلية + areaServed في الـ schema.
         $areas = Area::query()->published()->orderBy('name_ar')->get();
 
         return view('pages.brand-service', [
+            'draft'          => $draft,
             'page'           => $page,
             'brand'          => $brand,
             'service'        => $serviceModel,

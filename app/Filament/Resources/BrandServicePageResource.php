@@ -84,15 +84,7 @@ class BrandServicePageResource extends Resource
                 Forms\Components\Textarea::make('seo_description')->label('وصف SEO')->rows(2)->maxLength(170),
             ])->columns(1),
 
-            Forms\Components\Section::make('النشر')->schema([
-                Forms\Components\Placeholder::make('missing')->label('المحتوى الناقص للنشر')
-                    ->content(fn (?BrandServicePage $record) => $record && ! empty($record->missingContent())
-                        ? '⚠️ ناقص: ' . implode('، ', $record->missingContent())
-                        : '✅ المحتوى كامل — جاهز للنشر.')->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('published_at')->label('تاريخ النشر'),
-                Forms\Components\Toggle::make('is_published')->label('منشور')
-                    ->helperText('المحتوى الناقص بيفضل مسوّدة حتى لو فعّلت ده.'),
-            ])->columns(2),
+            \App\Filament\Support\ReviewFields::section(),
         ]);
     }
 
@@ -102,14 +94,20 @@ class BrandServicePageResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('brand.name_ar')->label('الماركة')->searchable()->weight('bold'),
                 Tables\Columns\TextColumn::make('service.name_ar')->label('الخدمة')->searchable(),
+                Tables\Columns\TextColumn::make('content_status')->label('المراجعة')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => BrandServicePage::reviewStatusLabels()[$state] ?? $state)
+                    ->color(fn (string $state) => match ($state) {
+                        BrandServicePage::STATUS_READY => 'success',
+                        BrandServicePage::STATUS_NEEDS_REVIEW => 'warning',
+                        default => 'gray',
+                    })->sortable(),
                 Tables\Columns\IconColumn::make('is_published')->label('منشور')->boolean()->sortable(),
-                Tables\Columns\TextColumn::make('missing')->label('الحالة')
-                    ->state(fn (BrandServicePage $record) => empty($record->missingContent())
-                        ? 'كامل' : 'ناقص: ' . implode('، ', $record->missingContent()))
-                    ->badge()->color(fn (BrandServicePage $record) => empty($record->missingContent()) ? 'success' : 'warning'),
             ])
             ->defaultSort('brand_id')
             ->filters([
+                Tables\Filters\SelectFilter::make('content_status')->label('حالة المراجعة')
+                    ->options(BrandServicePage::reviewStatusLabels()),
                 Tables\Filters\TernaryFilter::make('is_published')->label('حالة النشر')
                     ->placeholder('الكل')->trueLabel('منشور')->falseLabel('مسوّدة'),
             ])

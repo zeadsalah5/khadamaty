@@ -80,6 +80,14 @@ class ServiceResource extends Resource
                         ->label('الخدمة بتشمل')
                         ->helperText('كل بند عنصر.')->columnSpanFull(),
 
+                    Forms\Components\TagsInput::make('excludes')
+                        ->label('الخدمة ميشملش (اختياري)')
+                        ->helperText('بيظهر قسم «ميشملش» بس لو متملّي — مفيد لصفحات التركيب.')->columnSpanFull(),
+
+                    Forms\Components\TagsInput::make('cost_factors')
+                        ->label('اللي بيأثر على التكلفة (اختياري)')
+                        ->helperText('بيظهر قسم «إيه اللي بيأثر على التكلفة» بس لو متملّي.')->columnSpanFull(),
+
                     Forms\Components\Repeater::make('steps')
                         ->label('خطوات الشغل')
                         ->schema([
@@ -117,21 +125,7 @@ class ServiceResource extends Resource
                     Forms\Components\Textarea::make('seo_description')->label('وصف SEO')->rows(2)->maxLength(170),
                 ])->columns(2),
 
-            Forms\Components\Section::make('النشر')
-                ->schema([
-                    Forms\Components\Placeholder::make('missing')
-                        ->label('المحتوى الناقص للنشر')
-                        ->content(fn (?Service $record) => $record && ! empty($record->missingContent())
-                            ? '⚠️ ناقص: ' . implode('، ', $record->missingContent())
-                            : '✅ المحتوى كامل — جاهز للنشر.')
-                        ->columnSpanFull(),
-
-                    Forms\Components\DateTimePicker::make('published_at')->label('تاريخ النشر'),
-
-                    Forms\Components\Toggle::make('is_published')
-                        ->label('منشور')
-                        ->helperText('لو المحتوى ناقص هيفضل مسوّدة (noindex + بره السايت ماب) حتى لو فعّلت ده.'),
-                ])->columns(2),
+            \App\Filament\Support\ReviewFields::section(),
         ]);
     }
 
@@ -142,17 +136,20 @@ class ServiceResource extends Resource
                 Tables\Columns\TextColumn::make('name_ar')->label('الخدمة')->searchable()->weight('bold'),
                 Tables\Columns\TextColumn::make('icon')->label('الأيقونة')
                     ->formatStateUsing(fn (?string $state) => self::ICONS[$state] ?? $state)->badge(),
+                Tables\Columns\TextColumn::make('content_status')->label('المراجعة')->badge()
+                    ->formatStateUsing(fn (string $state) => Service::reviewStatusLabels()[$state] ?? $state)
+                    ->color(fn (string $state) => match ($state) {
+                        Service::STATUS_READY => 'success',
+                        Service::STATUS_NEEDS_REVIEW => 'warning',
+                        default => 'gray',
+                    })->sortable(),
                 Tables\Columns\IconColumn::make('is_published')->label('منشور')->boolean()->sortable(),
-                Tables\Columns\TextColumn::make('missing')->label('الحالة')
-                    ->state(fn (Service $record) => empty($record->missingContent())
-                        ? 'كامل'
-                        : 'ناقص: ' . implode('، ', $record->missingContent()))
-                    ->badge()
-                    ->color(fn (Service $record) => empty($record->missingContent()) ? 'success' : 'warning'),
                 Tables\Columns\TextColumn::make('slug')->label('Slug')->color('gray')->toggleable(),
             ])
             ->defaultSort('name_ar')
             ->filters([
+                Tables\Filters\SelectFilter::make('content_status')->label('حالة المراجعة')
+                    ->options(Service::reviewStatusLabels()),
                 Tables\Filters\TernaryFilter::make('is_published')
                     ->label('حالة النشر')->placeholder('الكل')->trueLabel('منشور')->falseLabel('مسوّدة'),
             ])

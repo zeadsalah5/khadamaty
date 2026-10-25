@@ -7,6 +7,9 @@
     <meta name="color-scheme" content="light">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- favicon — صاحب الموقع يرفع public/favicon.ico (وملف og في public/images/og-image.png) --}}
+    <link rel="icon" href="{{ url('/favicon.ico') }}" sizes="any">
+
     {{-- الميتا كلها (title / description / canonical / robots / OG / Twitter / hreflang) --}}
     @include('layouts.partials.meta')
 
@@ -32,6 +35,11 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen flex flex-col">
+
+    {{-- شريط «مسودة» — بيظهر للأدمن/المحرّر بس على الصفحات غير المنشورة (معاينة). --}}
+    @if (request()->attributes->get('draft_preview'))
+        <x-draft-bar />
+    @endif
 
     @php $gtmId = trim((string) site('gtm_id')); @endphp
     @if ($gtmId !== '')

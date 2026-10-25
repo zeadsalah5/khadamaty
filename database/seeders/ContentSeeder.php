@@ -9,6 +9,7 @@ use App\Models\BrandServicePage;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Service;
+use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Database\Seeder;
 
@@ -17,6 +18,11 @@ class ContentSeeder extends Seeder
     public function run(): void
     {
         $now = now();
+
+        // مراجِع البيانات الأولية = أول أدمن (موجود في التطوير — شوف DatabaseSeeder).
+        // المحتوى اللي بيتزرع منشور بيتسجّل متراجَع بواسطته عشان يفضل قابل للنشر
+        // تحت سير المراجعة الجديد (reviewed_by مطلوب). فاضي => بيفضل مسوّدة.
+        $reviewerId = User::where('role', 'admin')->value('id');
 
         /*
         | الخدمات (المرحلة 2) — 9 خدمات بـ slugs إنجليزي ثابتة ومحتوى عربي من
@@ -29,12 +35,8 @@ class ContentSeeder extends Seeder
         foreach ($servicesData as $slug => $fields) {
             $service = Service::updateOrCreate(['slug' => $slug], $fields);
 
-            // النشر بناءً على اكتمال المحتوى (مش بنلغي نشر حاجة اتنشرت يدوياً بمحتوى كامل).
-            $complete = $service->hasCompleteContent();
-            $service->forceFill([
-                'is_published' => $complete,
-                'published_at' => $complete ? ($service->published_at ?? $now) : null,
-            ])->save();
+            // النشر بناءً على اكتمال المحتوى + صفر TODO + مراجَع (سير المراجعة الموحّد).
+            $service->forceFill($this->reviewFill($service, $reviewerId, $now))->save();
         }
 
         /*
@@ -78,16 +80,12 @@ class ContentSeeder extends Seeder
         foreach ($areasData as $slug => $fields) {
             $area = Area::updateOrCreate(['slug' => $slug], $fields);
 
-            $complete = $area->hasCompleteContent();
-
-            $fill = [
-                'is_published' => $complete,
-                'published_at' => $complete ? ($area->published_at ?? $now) : null,
-            ];
+            $fill = $this->reviewFill($area, $reviewerId, $now);
 
             // توصيل المتجر (المرحلة 6C): نفعّله على المناطق المنشورة كـ placeholder
             // برسوم 0 وملاحظة TODO — صاحب الموقع يضبط الرسوم من الداشبورد.
-            if ($complete && $area->delivery_note === null && (float) $area->delivery_fee === 0.0) {
+            // (delivery_note حقل تشغيلي مش ضمن فحص TODO للنشر.)
+            if ($fill['is_published'] && $area->delivery_note === null && (float) $area->delivery_fee === 0.0) {
                 $fill['delivers'] = true;
                 $fill['delivery_note'] = 'TODO: صاحب الموقع يحدد رسوم التوصيل لهذه المنطقة.';
             }
@@ -109,11 +107,7 @@ class ContentSeeder extends Seeder
         foreach ($brandsData as $slug => $fields) {
             $brand = Brand::updateOrCreate(['slug' => $slug], $fields);
 
-            $complete = $brand->hasCompleteContent();
-            $brand->forceFill([
-                'is_published' => $complete,
-                'published_at' => $complete ? ($brand->published_at ?? $now) : null,
-            ])->save();
+            $brand->forceFill($this->reviewFill($brand, $reviewerId, $now))->save();
         }
 
         // تنظيف ماركات placeholder قديمة.
@@ -183,12 +177,8 @@ class ContentSeeder extends Seeder
 
             $post = Post::updateOrCreate(['slug' => $slug], $fields);
 
-            // المقال الكامل بيتنشر تلقائياً؛ المسوّدة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
-            $complete = $post->hasCompleteContent();
-            $post->forceFill([
-                'is_published' => $complete,
-                'published_at' => $complete ? ($post->published_at ?? $now) : null,
-            ])->save();
+            // المقال الكامل + صفر TODO + مراجَع بيتنشر؛ غير كده مسوّدة (404 + noindex + بره السايت ماب).
+            $post->forceFill($this->reviewFill($post, $reviewerId, $now))->save();
         }
 
         // المنتجات التجريبية بقت في StoreSeeder (المرحلة 6A) مع الأقسام والمواصفات.
@@ -198,5 +188,26 @@ class ContentSeeder extends Seeder
             'about' => 'نبذة عن التاجر هتتكتب هنا.',
             'is_published' => false,
         ]);
+    }
+
+    /**
+     * قيم النشر + سير المراجعة لعنصر محتوى:
+     * بيتنشر بس لو المحتوى مكتمل + صفر TODO (canPublish فعلياً)، ويتسجّل متراجَع
+     * بواسطة الأدمن. غير كده بيفضل مسوّدة (content_status=draft, غير منشور).
+     * مابيلغيش تاريخ/مراجعة سابقة لو كانت موجودة.
+     *
+     * @param  \App\Models\Concerns\HasReviewWorkflow  $model
+     */
+    private function reviewFill($model, ?int $reviewerId, $now): array
+    {
+        $publishable = $model->hasCompleteContent() && ! $model->hasTodo();
+
+        return [
+            'is_published'   => $publishable,
+            'published_at'   => $publishable ? ($model->published_at ?? $now) : null,
+            'content_status' => $publishable ? $model::STATUS_READY : $model::STATUS_DRAFT,
+            'reviewed_by'    => $publishable ? ($model->reviewed_by ?? $reviewerId) : null,
+            'reviewed_at'    => $publishable ? ($model->reviewed_at ?? $now) : null,
+        ];
     }
 }

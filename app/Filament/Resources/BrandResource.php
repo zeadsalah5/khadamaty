@@ -68,20 +68,34 @@ class BrandResource extends Resource
                         ->addActionLabel('إضافة سؤال')->columnSpanFull(),
                 ]),
 
+            Forms\Components\Section::make('أقسام إضافية (اختيارية — من صاحب الموقع)')
+                ->description('الأقسام دي بتتخفى في الصفحة لو فاضية. متتولّدش تلقائياً — تتكتب يدوياً.')
+                ->collapsed()
+                ->schema([
+                    Forms\Components\Textarea::make('warranty_agent_note')
+                        ->label('شروط ضمان الوكيل')->rows(3)->columnSpanFull()
+                        ->helperText('ملاحظة عامة عن ضمان الوكيل للماركة — بيظهر قسمها بس لو متملّي.'),
+
+                    Forms\Components\Repeater::make('error_codes')
+                        ->label('أكواد الأعطال')
+                        ->schema([
+                            Forms\Components\TextInput::make('code')->label('الكود')->required(),
+                            Forms\Components\TextInput::make('meaning')->label('المعنى (قد يختلف حسب الموديل)')->required(),
+                            Forms\Components\Textarea::make('safe_check')->label('اللي تقدر تتأكد منه بأمان')->rows(2),
+                            Forms\Components\Textarea::make('when_call')->label('امتى تكلّم فني')->rows(2),
+                        ])
+                        ->columns(2)->reorderable()->collapsible()
+                        ->itemLabel(fn (array $state): ?string => $state['code'] ?? null)
+                        ->addActionLabel('إضافة كود عطل')->columnSpanFull()
+                        ->helperText('المعاني تقديرية وقد تختلف حسب الموديل — بيتكتب تنويه بده في الصفحة.'),
+                ]),
+
             Forms\Components\Section::make('SEO (اختياري)')->collapsed()->schema([
                 Forms\Components\TextInput::make('seo_title')->label('عنوان SEO')->maxLength(70),
                 Forms\Components\Textarea::make('seo_description')->label('وصف SEO')->rows(2)->maxLength(170),
             ])->columns(1),
 
-            Forms\Components\Section::make('النشر')->schema([
-                Forms\Components\Placeholder::make('missing')->label('المحتوى الناقص للنشر')
-                    ->content(fn (?Brand $record) => $record && ! empty($record->missingContent())
-                        ? '⚠️ ناقص: ' . implode('، ', $record->missingContent())
-                        : '✅ المحتوى كامل — جاهز للنشر.')->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('published_at')->label('تاريخ النشر'),
-                Forms\Components\Toggle::make('is_published')->label('منشور')
-                    ->helperText('المحتوى الناقص بيفضل مسوّدة حتى لو فعّلت ده.'),
-            ])->columns(2),
+            \App\Filament\Support\ReviewFields::section(),
         ]);
     }
 
@@ -91,14 +105,19 @@ class BrandResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('logo')->label('اللوجو')->disk('brands')->square(),
                 Tables\Columns\TextColumn::make('name_ar')->label('الماركة')->searchable()->weight('bold'),
+                Tables\Columns\TextColumn::make('content_status')->label('المراجعة')->badge()
+                    ->formatStateUsing(fn (string $state) => Brand::reviewStatusLabels()[$state] ?? $state)
+                    ->color(fn (string $state) => match ($state) {
+                        Brand::STATUS_READY => 'success',
+                        Brand::STATUS_NEEDS_REVIEW => 'warning',
+                        default => 'gray',
+                    })->sortable(),
                 Tables\Columns\IconColumn::make('is_published')->label('منشور')->boolean()->sortable(),
-                Tables\Columns\TextColumn::make('missing')->label('الحالة')
-                    ->state(fn (Brand $record) => empty($record->missingContent())
-                        ? 'كامل' : 'ناقص: ' . implode('، ', $record->missingContent()))
-                    ->badge()->color(fn (Brand $record) => empty($record->missingContent()) ? 'success' : 'warning'),
             ])
             ->defaultSort('name_ar')
             ->filters([
+                Tables\Filters\SelectFilter::make('content_status')->label('حالة المراجعة')
+                    ->options(Brand::reviewStatusLabels()),
                 Tables\Filters\TernaryFilter::make('is_published')->label('حالة النشر')
                     ->placeholder('الكل')->trueLabel('منشور')->falseLabel('مسوّدة'),
             ])

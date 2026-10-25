@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Content;
 
+use App\Http\Controllers\Content\Concerns\PreviewsDrafts;
 use App\Models\BrandServicePage;
 use App\Models\Service;
 use Illuminate\View\View;
 
 class ServiceController extends PageController
 {
+    use PreviewsDrafts;
+
     protected string $modelClass = Service::class;
     protected string $basePath = '/services';
     protected string $indexTitle = 'خدماتنا';
@@ -89,6 +92,8 @@ class ServiceController extends PageController
             ->ogType('website')
             ->robots($service->hasCompleteContent() ? 'index,follow' : 'noindex,follow');
 
+        $draft = $this->previewDraft($service);
+
         // الخدمات المرتبطة (المنشورة بس).
         $related = collect($service->related_services ?? [])
             ->filter()
@@ -111,6 +116,7 @@ class ServiceController extends PageController
             ])->values();
 
         return view('pages.service', [
+            'draft'          => $draft,
             'service'        => $service,
             'title'          => $service->name_ar,
             'subtitle'       => $service->excerpt,

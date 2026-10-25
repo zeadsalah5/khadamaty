@@ -80,15 +80,7 @@ class AreaResource extends Resource
                 Forms\Components\Textarea::make('seo_description')->label('وصف SEO')->rows(2)->maxLength(170),
             ])->columns(1),
 
-            Forms\Components\Section::make('النشر')->schema([
-                Forms\Components\Placeholder::make('missing')->label('المحتوى الناقص للنشر')
-                    ->content(fn (?Area $record) => $record && ! empty($record->missingContent())
-                        ? '⚠️ ناقص: ' . implode('، ', $record->missingContent())
-                        : '✅ المحتوى كامل — جاهز للنشر.')->columnSpanFull(),
-                Forms\Components\DateTimePicker::make('published_at')->label('تاريخ النشر'),
-                Forms\Components\Toggle::make('is_published')->label('منشور')
-                    ->helperText('المحتوى الناقص بيفضل مسوّدة حتى لو فعّلت ده.'),
-            ])->columns(2),
+            \App\Filament\Support\ReviewFields::section(),
         ]);
     }
 
@@ -97,16 +89,21 @@ class AreaResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name_ar')->label('المنطقة')->searchable()->weight('bold'),
+                Tables\Columns\TextColumn::make('content_status')->label('المراجعة')->badge()
+                    ->formatStateUsing(fn (string $state) => Area::reviewStatusLabels()[$state] ?? $state)
+                    ->color(fn (string $state) => match ($state) {
+                        Area::STATUS_READY => 'success',
+                        Area::STATUS_NEEDS_REVIEW => 'warning',
+                        default => 'gray',
+                    })->sortable(),
                 Tables\Columns\IconColumn::make('is_published')->label('منشور')->boolean()->sortable(),
-                Tables\Columns\TextColumn::make('missing')->label('الحالة')
-                    ->state(fn (Area $record) => empty($record->missingContent())
-                        ? 'كامل' : 'ناقص: ' . implode('، ', $record->missingContent()))
-                    ->badge()->color(fn (Area $record) => empty($record->missingContent()) ? 'success' : 'warning'),
                 Tables\Columns\IconColumn::make('delivers')->label('توصيل')->boolean()->toggleable(),
                 Tables\Columns\TextColumn::make('slug')->label('Slug')->color('gray')->toggleable(),
             ])
             ->defaultSort('name_ar')
             ->filters([
+                Tables\Filters\SelectFilter::make('content_status')->label('حالة المراجعة')
+                    ->options(Area::reviewStatusLabels()),
                 Tables\Filters\TernaryFilter::make('is_published')->label('حالة النشر')
                     ->placeholder('الكل')->trueLabel('منشور')->falseLabel('مسوّدة'),
             ])

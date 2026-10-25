@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasReviewWorkflow;
 use App\Models\Concerns\Publishable;
 use Illuminate\Database\Eloquent\Model;
 
 class Area extends Model
 {
-    use Publishable;
+    use HasReviewWorkflow, Publishable;
 
     protected $fillable = [
         'slug', 'name_ar', 'excerpt', 'intro',
@@ -15,18 +16,37 @@ class Area extends Model
         'delivers', 'delivery_fee', 'delivery_note',
         'seo_title', 'seo_description',
         'is_published', 'published_at',
+        'content_status', 'reviewed_by', 'reviewed_at',
+        'similarity_ack_by', 'similarity_ack_at', 'similarity_pct',
     ];
 
     protected $casts = [
-        'is_published'    => 'boolean',
-        'published_at'    => 'datetime',
-        'common_problems' => 'array',
-        'neighborhoods'   => 'array',
-        'top_services'    => 'array',
-        'faqs'            => 'array',
-        'delivers'        => 'boolean',
-        'delivery_fee'    => 'decimal:2',
+        'is_published'      => 'boolean',
+        'published_at'      => 'datetime',
+        'reviewed_at'       => 'datetime',
+        'similarity_ack_at' => 'datetime',
+        'common_problems'   => 'array',
+        'neighborhoods'     => 'array',
+        'top_services'      => 'array',
+        'faqs'              => 'array',
+        'delivers'          => 'boolean',
+        'delivery_fee'      => 'decimal:2',
     ];
+
+    /**
+     * الحقول اللي بتتفحص للـ TODO وتدخل في حساب التشابه.
+     * eta_note مستثنى (معلومة تشغيلية محلية اختيارية — TODO فيها تذكير مش مانع).
+     */
+    public function reviewableTextFields(): array
+    {
+        return ['name_ar', 'excerpt', 'intro', 'common_problems', 'neighborhoods',
+            'top_services', 'faqs', 'seo_title', 'seo_description'];
+    }
+
+    public function reviewTypeLabel(): string
+    {
+        return 'منطقة';
+    }
 
     /** المنطقة داخل نطاق التوصيل؟ (بيتحكم في إتاحتها في الـ checkout). */
     public function isDeliverable(): bool

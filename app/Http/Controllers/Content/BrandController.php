@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Content;
 
 use App\Http\Controllers\Content\Concerns\LinksServices;
+use App\Http\Controllers\Content\Concerns\PreviewsDrafts;
 use App\Models\Area;
 use App\Models\Brand;
 use App\Models\BrandServicePage;
@@ -10,7 +11,7 @@ use Illuminate\View\View;
 
 class BrandController extends PageController
 {
-    use LinksServices;
+    use LinksServices, PreviewsDrafts;
 
     protected string $modelClass = Brand::class;
     protected string $basePath = '/brands';
@@ -58,6 +59,8 @@ class BrandController extends PageController
             ->ogType('website')
             ->robots($brand->hasCompleteContent() ? 'index,follow' : 'noindex,follow');
 
+        $draft = $this->previewDraft($brand);
+
         // الخدمات المناسبة للماركة (المنشورة بس) + المناطق المنشورة للروابط الداخلية.
         $services = $this->publishedServices($brand->suitable_services ?? []);
         $areas = Area::query()->published()->orderBy('name_ar')->get();
@@ -76,6 +79,7 @@ class BrandController extends PageController
             ->orderByDesc('updated_at')->take(8)->get();
 
         return view('pages.brand', [
+            'draft'        => $draft,
             'brand'        => $brand,
             'title'        => $brand->name_ar,
             'subtitle'     => $brand->excerpt,

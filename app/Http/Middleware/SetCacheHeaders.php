@@ -21,6 +21,14 @@ class SetCacheHeaders
     {
         $response = $next($request);
 
+        // معاينة مسوّدة (أدمن): noindex على مستوى الـ header + منع أي كاش عام.
+        if ($request->attributes->get('draft_preview')) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+            $response->headers->set('Cache-Control', 'private, no-store, max-age=0');
+
+            return $response;
+        }
+
         $isSafe = in_array($request->getMethod(), ['GET', 'HEAD'], true);
         $hasSetCookie = $response->headers->has('Set-Cookie');
 

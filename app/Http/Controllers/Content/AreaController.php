@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Content;
 
 use App\Http\Controllers\Content\Concerns\LinksServices;
+use App\Http\Controllers\Content\Concerns\PreviewsDrafts;
 use App\Models\Area;
 use App\Models\Brand;
 use Illuminate\View\View;
 
 class AreaController extends PageController
 {
-    use LinksServices;
+    use LinksServices, PreviewsDrafts;
 
     protected string $modelClass = Area::class;
     protected string $basePath = '/areas';
@@ -64,6 +65,8 @@ class AreaController extends PageController
             ->ogType('website')
             ->robots($area->hasCompleteContent() ? 'index,follow' : 'noindex,follow');
 
+        $draft = $this->previewDraft($area);
+
         // الخدمات الأكثر طلباً في المنطقة (المنشورة بس) — بترتيب ما اتكتبت.
         $services = $this->publishedServices($area->top_services ?? []);
 
@@ -71,6 +74,7 @@ class AreaController extends PageController
         $brands = Brand::query()->published()->orderBy('name_ar')->get();
 
         return view('pages.area', [
+            'draft'       => $draft,
             'area'        => $area,
             'title'       => $area->name_ar,
             'subtitle'    => $area->excerpt,
