@@ -38,6 +38,24 @@ class ListAreaServicePages extends ListRecords
                         ->options(fn () => Service::query()->orderBy('name_ar')->pluck('name_ar', 'id')),
                 ])
                 ->action(function (array $data) {
+                    // تحذير: خدمة الصيانة/الفني بتنافس صفحة المنطقة نفسها (اللي بتستهدف
+                    // «صيانة تكييف {المنطقة}» و«فني تكييف {المنطقة}»).
+                    $competing = Service::query()->whereIn('id', $data['services'])->get()
+                        ->filter(fn (Service $s) => \Illuminate\Support\Str::contains($s->slug, 'maintenance')
+                            || \Illuminate\Support\Str::contains((string) $s->name_ar, ['صيانة', 'فني']))
+                        ->pluck('name_ar');
+
+                    if ($competing->isNotEmpty()) {
+                        Notification::make()
+                            ->warning()
+                            ->title('تنبيه: تنافس مع صفحة المنطقة')
+                            ->body('الخدمات دي (' . $competing->implode('، ') . ') بتنافس صفحة المنطقة نفسها اللي '
+                                . 'بتستهدف «صيانة/فني تكييف {المنطقة}». يُفضّل تميّز محتوى صفحة (منطقة×خدمة) '
+                                . 'عن صفحة المنطقة أو ما تعملهاش للصيانة.')
+                            ->persistent()
+                            ->send();
+                    }
+
                     try {
                         $result = app(AreaServicePageGenerator::class)
                             ->generate($data['areas'], $data['services']);

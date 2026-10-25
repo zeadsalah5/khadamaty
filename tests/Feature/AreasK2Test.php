@@ -35,6 +35,11 @@ class AreasK2Test extends TestCase
     protected function makePage(bool $published): AreaServicePage
     {
         $area = Area::where('slug', 'nasr-city')->firstOrFail();
+        // المناطق بتتزرع «محتاجة مراجعة» وغير منشورة؛ ننشرها للاختبار عشان صفحة
+        // (منطقة×خدمة) تقدر تتعرض (الـ route binding بيتطلب المنطقة منشورة).
+        $area->forceFill(['is_published' => true, 'content_status' => 'ready', 'reviewed_by' => $this->admin()->id])->save();
+        Cache::flush();
+
         $service = Service::where('slug', 'ac-maintenance')->firstOrFail();
 
         return AreaServicePage::create([
@@ -93,9 +98,11 @@ class AreasK2Test extends TestCase
 
     public function test_generator_rejects_more_than_five_combinations(): void
     {
-        $areas = Area::query()->where('is_published', true)->limit(2)->pluck('id')->all();
+        $areas = Area::query()->limit(2)->pluck('id')->all();
         $services = Service::query()->where('is_published', true)->limit(3)->pluck('id')->all();
 
+        $this->assertCount(2, $areas);
+        $this->assertCount(3, $services);
         $this->expectException(\InvalidArgumentException::class);
         app(AreaServicePageGenerator::class)->generate($areas, $services); // 2×3 = 6 > 5
     }
@@ -126,6 +133,18 @@ class AreasK2Test extends TestCase
         $this->assertFalse($faisal->is_published, 'فيصل المفروض مسودة محتاجة تأكيد.');
 
         $this->get('/areas/faisal')->assertNotFound(); // مسودة => 404 للزائر
+    }
+
+    // ───────── المناطق محتاجة مراجعة ─────────
+
+    public function test_areas_seeded_as_needs_review_and_unpublished(): void
+    {
+        $area = Area::where('slug', 'nasr-city')->firstOrFail();
+        $this->assertFalse($area->is_published, 'المناطق المفروض غير منشورة لحد مراجعة الفني.');
+        $this->assertSame(Area::STATUS_NEEDS_REVIEW, $area->content_status);
+        $this->assertTrue($area->hasCompleteContent(), 'المحتوى محفوظ كمسودة.');
+
+        $this->get('/areas/nasr-city')->assertNotFound(); // غير منشورة => 404 للزائر
     }
 
     // ───────── رقم فاضي يخفي الأزرار ─────────

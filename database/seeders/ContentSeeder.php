@@ -72,20 +72,28 @@ class ContentSeeder extends Seeder
         }
 
         /*
-        | المناطق (المرحلة 3) — من database/seeders/data/areas.php.
-        | نفس منطق الخدمات: المنطقة اللي محتواها كامل بتتنشر تلقائياً،
-        | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
+        | المناطق (المرحلة 3 / K2) — من database/seeders/data/areas.php.
+        | **المعلومات المحلية (الأحياء ونوع المباني والمشاكل) اتكتبت من معرفة عامة**،
+        | فكل صفحات المناطق بتتزرع **«محتاجة مراجعة الفني» وغير منشورة** (المحتوى محفوظ
+        | كمسودة) — لازم الفني يراجعها قبل النشر. المنطقة الناقصة (زي فيصل) بتفضل draft.
         */
         $areasData = require __DIR__.'/data/areas.php';
         foreach ($areasData as $slug => $fields) {
             $area = Area::updateOrCreate(['slug' => $slug], $fields);
 
-            $fill = $this->reviewFill($area, $reviewerId, $now);
+            // محتوى مكتمل وصفر TODO => «محتاجة مراجعة»؛ غير كده مسودة. مفيش نشر تلقائي.
+            $complete = $area->hasCompleteContent() && ! $area->hasTodo();
 
-            // توصيل المتجر (المرحلة 6C): نفعّله على المناطق المنشورة كـ placeholder
-            // برسوم 0 وملاحظة TODO — صاحب الموقع يضبط الرسوم من الداشبورد.
-            // (delivery_note حقل تشغيلي مش ضمن فحص TODO للنشر.)
-            if ($fill['is_published'] && $area->delivery_note === null && (float) $area->delivery_fee === 0.0) {
+            $fill = [
+                'is_published'   => false,
+                'published_at'   => null,
+                'content_status' => $complete ? Area::STATUS_NEEDS_REVIEW : Area::STATUS_DRAFT,
+                'reviewed_by'    => null,
+                'reviewed_at'    => null,
+            ];
+
+            // توصيل المتجر: placeholder للمناطق المكتملة (مستقل عن نشر صفحة المنطقة).
+            if ($complete && $area->delivery_note === null && (float) $area->delivery_fee === 0.0) {
                 $fill['delivers'] = true;
                 $fill['delivery_note'] = 'TODO: صاحب الموقع يحدد رسوم التوصيل لهذه المنطقة.';
             }
