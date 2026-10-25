@@ -48,15 +48,19 @@
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                 احجز الخدمة
             </a>
-            <a href="tel:{{ site('phone_tel') }}"
+            @if (\App\Support\Site::hasPhone())
+            <a href="tel:{{ \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay() }}"
                class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
-                اتصل: {{ site('phone') }}
+                اتصل: {{ \App\Support\Site::phoneDisplay() }}
             </a>
-            <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
+            @endif
+            @if (\App\Support\Site::hasWhatsapp())
+            <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
                class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-accent hover:text-accent font-bold transition-colors">
                 اسأل على واتساب
             </a>
+            @endif
         </div>
     </header>
 

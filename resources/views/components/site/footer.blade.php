@@ -6,16 +6,22 @@
                 {{ site('tagline') }}. بنخدم {{ site('areas_label') }}
                 بفنيين متخصصين ومواعيد مرنة والدفع بعد الشغل.
             </p>
+            @if (\App\Support\Site::hasWhatsapp() || \App\Support\Site::hasPhone())
             <div class="mt-5 flex flex-wrap gap-3">
-                <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent hover:bg-accent-600 text-sm font-semibold transition-colors">
-                    واتساب
-                </a>
-                <a href="tel:{{ site('phone_tel') }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 hover:border-white text-sm font-semibold transition-colors">
-                    {{ site('phone') }}
-                </a>
+                @if (\App\Support\Site::hasWhatsapp())
+                    <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent hover:bg-accent-600 text-sm font-semibold transition-colors">
+                        واتساب
+                    </a>
+                @endif
+                @if (\App\Support\Site::hasPhone())
+                    <a href="tel:{{ \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay() }}"
+                       class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/25 hover:border-white text-sm font-semibold transition-colors">
+                        {{ \App\Support\Site::phoneDisplay() }}
+                    </a>
+                @endif
             </div>
+            @endif
 
             @if (filled(site('working_hours')))
                 <p class="mt-4 text-sm text-white/60">{{ site('working_hours') }}</p>

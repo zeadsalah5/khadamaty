@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Content;
 use App\Http\Controllers\Content\Concerns\LinksServices;
 use App\Http\Controllers\Content\Concerns\PreviewsDrafts;
 use App\Models\Area;
+use App\Models\AreaServicePage;
 use App\Models\Brand;
 use Illuminate\View\View;
 
@@ -59,7 +60,7 @@ class AreaController extends PageController
         $path = $this->basePath . '/' . $area->getRouteKey();
 
         $this->seo()
-            ->title($area->seo_title ?: $area->name_ar)
+            ->title($area->seo_title ?: ('صيانة تكييف ' . $area->name_ar . ' — فني تكييف قريب منك'))
             ->description($area->seo_description ?: $area->excerpt)
             ->canonical($path)
             ->ogType('website')
@@ -69,6 +70,14 @@ class AreaController extends PageController
 
         // الخدمات الأكثر طلباً في المنطقة (المنشورة بس) — بترتيب ما اتكتبت.
         $services = $this->publishedServices($area->top_services ?? []);
+
+        // slugs الخدمات اللي ليها صفحة (منطقة × خدمة) منشورة — الكارت يوصّل للصفحة المخصّصة.
+        $areaServiceSlugs = AreaServicePage::query()->published()
+            ->where('area_id', $area->id)
+            ->with('service:id,slug')
+            ->get()
+            ->map(fn (AreaServicePage $p) => $p->service?->slug)
+            ->filter()->values()->all();
 
         // الماركات المنشورة للروابط الداخلية (المنطقة => الماركات).
         $brands = Brand::query()->published()->orderBy('name_ar')->get();
@@ -81,6 +90,7 @@ class AreaController extends PageController
             'canonical'   => $this->seo()->getCanonical(),
             'services'    => $services,
             'serviceIcons' => $this->serviceIcons(),
+            'areaServiceSlugs' => $areaServiceSlugs,
             'brands'      => $brands,
             'breadcrumbs' => [
                 ['label' => 'الرئيسية', 'url' => '/'],

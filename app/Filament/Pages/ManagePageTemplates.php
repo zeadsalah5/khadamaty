@@ -34,6 +34,8 @@ class ManagePageTemplates extends Page implements HasForms
         return [
             'bsp_tpl_h1'    => 'templates',
             'bsp_tpl_intro' => 'templates',
+            'asp_tpl_h1'    => 'templates',
+            'asp_tpl_intro' => 'templates',
         ];
     }
 
@@ -53,6 +55,20 @@ class ManagePageTemplates extends Page implements HasForms
                         ->label('المقدمة (قالب)')
                         ->rows(6)
                         ->helperText('اكتب قالب المقدمة. سيب TODO للأجزاء اللي محتاجة محتوى فريد من الفني.'),
+                ]),
+
+            Forms\Components\Section::make('قالب صفحة (منطقة × خدمة)')
+                ->description('بيستخدمه زرّار «إنشاء صفحات (منطقة × خدمة)». المتغيّرات: {{area}} = المنطقة، {{service}} = الخدمة.')
+                ->schema([
+                    Forms\Components\TextInput::make('asp_tpl_h1')
+                        ->label('عنوان الصفحة (H1)')
+                        ->required()
+                        ->helperText('مثال: {{service}} تكييف في {{area}}'),
+
+                    Forms\Components\Textarea::make('asp_tpl_intro')
+                        ->label('المقدمة (قالب)')
+                        ->rows(6)
+                        ->helperText('سيب TODO للأجزاء اللي محتاجة محتوى محلي فريد من الفني.'),
                 ]),
         ];
     }

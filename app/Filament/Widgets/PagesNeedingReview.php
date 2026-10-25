@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Area;
+use App\Models\AreaServicePage;
 use App\Models\Brand;
 use App\Models\BrandServicePage;
 use App\Models\Concerns\HasReviewWorkflow;
@@ -27,6 +28,7 @@ class PagesNeedingReview extends BaseWidget
             'مناطق'      => Area::class,
             'مقالات'     => Post::class,
             'ماركة×خدمة' => BrandServicePage::class,
+            'منطقة×خدمة' => AreaServicePage::class,
         ];
 
         $stats = [];

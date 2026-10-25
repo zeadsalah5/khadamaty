@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appliance;
 use App\Models\Area;
+use App\Models\AreaServicePage;
 use App\Models\Brand;
 use App\Models\BrandServicePage;
 use App\Models\Post;
@@ -78,6 +79,15 @@ class SitemapController extends Controller
             $sitemaps[] = [
                 'loc'     => $base . '/sitemap-brand-services.xml',
                 'lastmod' => $this->iso($brandServices->max('updated_at')),
+            ];
+        }
+
+        // صفحات (منطقة × خدمة): نفس المنطق.
+        $areaServices = $this->indexableAreaServices();
+        if ($areaServices->isNotEmpty()) {
+            $sitemaps[] = [
+                'loc'     => $base . '/sitemap-area-services.xml',
+                'lastmod' => $this->iso($areaServices->max('updated_at')),
             ];
         }
 
@@ -159,6 +169,17 @@ class SitemapController extends Controller
                 'sitemap:type:brand-services:' . md5($this->base()),
                 $this->ttl,
                 fn () => $this->buildBrandServices()
+            );
+
+            return $this->xml($xml);
+        }
+
+        // صفحات (منطقة × خدمة).
+        if ($type === 'area-services') {
+            $xml = Cache::remember(
+                'sitemap:type:area-services:' . md5($this->base()),
+                $this->ttl,
+                fn () => $this->buildAreaServices()
             );
 
             return $this->xml($xml);
@@ -264,6 +285,34 @@ class SitemapController extends Controller
         $urls = $this->indexableBrandServices()
             ->map(fn (BrandServicePage $p) => [
                 'loc'     => $base . '/brands/' . $p->brand->slug . '/' . $p->service->slug,
+                'lastmod' => $this->iso($p->updated_at),
+            ])->values()->all();
+
+        return $this->urlsetXml($urls);
+    }
+
+    /**
+     * صفحات (منطقة × خدمة) القابلة للفهرسة: منشورة + مكتملة + المنطقة والخدمة منشورتين.
+     */
+    protected function indexableAreaServices(): \Illuminate\Support\Collection
+    {
+        return AreaServicePage::query()->published()
+            ->with(['area', 'service'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->filter(fn (AreaServicePage $p) => $p->hasCompleteContent()
+                && $p->area && $p->area->is_published
+                && $p->service && $p->service->is_published);
+    }
+
+    /** ساب-سايت ماب لصفحات (منطقة × خدمة) القابلة للفهرسة. */
+    protected function buildAreaServices(): string
+    {
+        $base = $this->base();
+
+        $urls = $this->indexableAreaServices()
+            ->map(fn (AreaServicePage $p) => [
+                'loc'     => $base . '/areas/' . $p->area->slug . '/' . $p->service->slug,
                 'lastmod' => $this->iso($p->updated_at),
             ])->values()->all();
 

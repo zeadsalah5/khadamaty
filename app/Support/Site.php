@@ -16,6 +16,38 @@ class Site
         return self::looksReal($value) ? $value : null;
     }
 
+    /** رقم الاتصال الظاهر لو حقيقي، وإلا null (fallback لرقم الاتصال الدولي). */
+    public static function phoneDisplay(): ?string
+    {
+        $value = trim((string) site('phone'));
+
+        if (self::looksReal($value)) {
+            return $value;
+        }
+
+        return self::phoneTel();
+    }
+
+    /** فيه رقم تليفون حقيقي نعرض زرار اتصال؟ (فاضي/placeholder => لأ). */
+    public static function hasPhone(): bool
+    {
+        return self::phoneTel() !== null || self::phoneDisplay() !== null;
+    }
+
+    /** رقم الواتساب (دولي بدون +) لو حقيقي، وإلا null. */
+    public static function whatsappNumber(): ?string
+    {
+        $value = trim((string) site('whatsapp'));
+
+        return self::looksReal($value) ? $value : null;
+    }
+
+    /** فيه رقم واتساب حقيقي نعرض زراره؟ */
+    public static function hasWhatsapp(): bool
+    {
+        return self::whatsappNumber() !== null;
+    }
+
     /** الإيميل لو متحدد، وإلا null. */
     public static function email(): ?string
     {

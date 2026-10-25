@@ -30,11 +30,11 @@
                 <svg viewBox="0 0 24 24" class="w-8 h-8 md:w-9 md:h-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10Z"/><circle cx="12" cy="11" r="2.2"/></svg>
             </div>
             <div class="min-w-0">
-                <p class="text-muted font-semibold mb-1">خدمات التكييف في</p>
-                <h1 class="text-3xl md:text-4xl font-extrabold mb-3">{{ $title }}</h1>
-                @if ($subtitle)
-                    <p class="text-muted text-lg leading-relaxed max-w-2xl">{{ $subtitle }}</p>
-                @endif
+                <p class="text-muted font-semibold mb-1">فني تكييف في {{ $title }}</p>
+                <h1 class="text-3xl md:text-4xl font-extrabold mb-3">صيانة تكييف {{ $title }}</h1>
+                <p class="text-muted text-lg leading-relaxed max-w-2xl">
+                    {{ $subtitle ?: ('فني تكييف قريب منك في ' . $title . ' — صيانة وغسيل وشحن وتركيب وإصلاح أعطال، والدفع بعد الشغل.') }}
+                </p>
             </div>
         </div>
 
@@ -43,15 +43,19 @@
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                 احجز فني في {{ $title }}
             </a>
-            <a href="tel:{{ site('phone_tel') }}"
+            @if (\App\Support\Site::hasPhone())
+            <a href="tel:{{ \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay() }}"
                class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
-                اتصل: {{ site('phone') }}
+                اتصل: {{ \App\Support\Site::phoneDisplay() }}
             </a>
-            <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
+            @endif
+            @if (\App\Support\Site::hasWhatsapp())
+            <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
                class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-accent hover:text-accent font-bold transition-colors">
                 اسأل على واتساب
             </a>
+            @endif
         </div>
     </header>
 
@@ -94,12 +98,17 @@
             <h2 class="text-2xl md:text-3xl font-extrabold mb-6">الخدمات الأكثر طلباً في {{ $title }}</h2>
             <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($services as $svc)
-                    <a href="{{ '/services/' . $svc->slug }}"
+                    @php
+                        // لو فيه صفحة (منطقة × خدمة) منشورة، نوصّل ليها بدل صفحة الخدمة العامة.
+                        $hasAreaPage = in_array($svc->slug, $areaServiceSlugs ?? [], true);
+                        $svcUrl = $hasAreaPage ? '/areas/' . $area->slug . '/' . $svc->slug : '/services/' . $svc->slug;
+                    @endphp
+                    <a href="{{ $svcUrl }}"
                        class="group flex flex-col rounded-2xl border border-line bg-white p-6 hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
                         <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
                             <x-service-icon :name="$serviceIcons[$svc->slug] ?? 'maintenance'" />
                         </div>
-                        <h3 class="text-lg font-bold mb-2">{{ $svc->name_ar }}</h3>
+                        <h3 class="text-lg font-bold mb-2">{{ $hasAreaPage ? $svc->name_ar . ' في ' . $title : $svc->name_ar }}</h3>
                         @if ($svc->excerpt)
                             <p class="text-muted text-sm leading-relaxed flex-1">{{ $svc->excerpt }}</p>
                         @endif
@@ -118,10 +127,15 @@
         <div class="grid gap-8 lg:grid-cols-2">
             @if (! empty($area->neighborhoods))
                 <div>
-                    <h2 class="text-xl md:text-2xl font-extrabold mb-3">أحياء بنغطيها في {{ $title }}</h2>
+                    <h2 class="text-xl md:text-2xl font-extrabold mb-3">أحياء وكمبوندات بنغطيها في {{ $title }}</h2>
                     <ul class="flex flex-wrap gap-2.5">
                         @foreach ($area->neighborhoods as $hood)
-                            <li class="bg-surface border border-line rounded-full px-4 py-2 text-sm font-medium">{{ $hood }}</li>
+                            @php $hoodName = is_array($hood) ? ($hood['name'] ?? '') : $hood; $hoodType = is_array($hood) ? ($hood['type'] ?? null) : null; @endphp
+                            @if (filled($hoodName))
+                                <li class="bg-surface border border-line rounded-full px-4 py-2 text-sm font-medium">
+                                    {{ $hoodName }}@if ($hoodType === 'كمبوند')<span class="text-xs text-muted"> · كمبوند</span>@endif
+                                </li>
+                            @endif
                         @endforeach
                     </ul>
                     <p class="text-muted text-sm leading-relaxed mt-4">مش لاقي حيّك في القايمة؟ كلّمنا ونشوف أقرب معاد ممكن نوصلك فيه.</p>
@@ -169,7 +183,7 @@
     @if (! empty($area->faqs))
         <section class="bg-surface scroll-mt-20">
             <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
-                <h2 class="text-2xl md:text-3xl font-extrabold mb-6">أسئلة شائعة عن خدماتنا في {{ $title }}</h2>
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-6">أسئلة من عملاء {{ $title }}</h2>
                 <div class="max-w-3xl space-y-3">
                     @foreach ($area->faqs as $faq)
                         <details class="group rounded-xl border border-line bg-white p-5">

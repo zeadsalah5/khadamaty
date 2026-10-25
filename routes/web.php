@@ -12,6 +12,7 @@ use App\Http\Controllers\Shop\ProductReviewController;
 use App\Http\Controllers\Shop\WishlistController;
 use App\Http\Controllers\Content\ApplianceController;
 use App\Http\Controllers\Content\AreaController;
+use App\Http\Controllers\Content\AreaServiceController;
 use App\Http\Controllers\Content\BlogController;
 use App\Http\Controllers\Content\BrandController;
 use App\Http\Controllers\Content\BrandServiceController;
@@ -144,7 +145,7 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
     Route::get('/sitemap.xml', [SitemapController::class, 'index']);
     Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages']);
     Route::get('/sitemap-{type}.xml', [SitemapController::class, 'type'])
-        ->where('type', 'services|appliances|areas|brands|brand-services|blog|products|vendors');
+        ->where('type', 'services|appliances|areas|brands|brand-services|area-services|blog|products|vendors');
     Route::get('/robots.txt', RobotsController::class);
 });
 
@@ -164,6 +165,8 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
 
     Route::get('/areas', [AreaController::class, 'index'])->name('areas.index');
     Route::get('/areas/{area}', [AreaController::class, 'show'])->name('areas.show');
+    // صفحة (منطقة × خدمة) — K2. سيجمنتين فمفيش تعارض مع /areas/{area}.
+    Route::get('/areas/{area}/{service}', [AreaServiceController::class, 'show'])->name('area-service.show');
 
     Route::get('/brands', [BrandController::class, 'index'])->name('brands.index');
     Route::get('/brands/{brand}', [BrandController::class, 'show'])->name('brands.show');

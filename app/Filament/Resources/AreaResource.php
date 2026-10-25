@@ -46,8 +46,21 @@ class AreaResource extends Resource
 
             Forms\Components\Section::make('المحتوى المنظّم')
                 ->schema([
-                    Forms\Components\TagsInput::make('common_problems')->label('المشاكل الشائعة في المنطقة')->columnSpanFull(),
-                    Forms\Components\TagsInput::make('neighborhoods')->label('أشهر الأحياء')->columnSpanFull(),
+                    Forms\Components\TagsInput::make('common_problems')->label('مشاكل التكييف الشائعة في المنطقة')->columnSpanFull()
+                        ->helperText('كل مشكلة عنصر — بتتخفى لو فاضية.'),
+                    Forms\Components\Repeater::make('neighborhoods')->label('الأحياء والكمبوندات')
+                        // توافق مع الشكل القديم (قايمة نصوص) => بنحوّلها لـ {name, type} عند التحميل.
+                        ->formatStateUsing(fn ($state) => collect($state ?? [])
+                            ->map(fn ($v) => is_array($v) ? $v : ['name' => $v, 'type' => 'حي'])->all())
+                        ->schema([
+                            Forms\Components\TextInput::make('name')->label('الاسم')->required(),
+                            Forms\Components\Select::make('type')->label('النوع')
+                                ->options(['حي' => 'حي', 'كمبوند' => 'كمبوند'])->default('حي')->native(false),
+                        ])
+                        ->columns(2)->reorderable()->collapsible()
+                        ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                        ->addActionLabel('إضافة حي/كمبوند')->columnSpanFull()
+                        ->helperText('أحياء وكمبوندات المنطقة — بتتخفى لو فاضية.'),
                     Forms\Components\Select::make('top_services')->label('الخدمات الأكثر طلباً')->multiple()
                         ->options(fn () => Service::query()->orderBy('name_ar')->pluck('name_ar', 'slug'))
                         ->searchable()->columnSpanFull()
