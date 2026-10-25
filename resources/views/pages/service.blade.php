@@ -79,6 +79,21 @@
         </section>
     @endif
 
+    {{-- ============ الخدمة ميشملش إيه (تتخفى لو فاضية) ============ --}}
+    @if (! empty($service->excludes))
+        <section class="mx-auto max-w-6xl px-4 pb-4 md:pb-6">
+            <h2 class="text-2xl md:text-3xl font-extrabold mb-6">الخدمة ميشملش إيه</h2>
+            <ul class="grid gap-3 sm:grid-cols-2">
+                @foreach ($service->excludes as $item)
+                    <li class="flex items-start gap-3 rounded-xl border border-line bg-surface px-5 py-4">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                        <span class="leading-relaxed">{{ $item }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     {{-- ============ الأعراض ============ --}}
     @if (! empty($service->symptoms))
         <section class="bg-surface scroll-mt-20">
@@ -116,6 +131,24 @@
                     </li>
                 @endforeach
             </ol>
+        </section>
+    @endif
+
+    {{-- ============ إيه اللي بيأثر على التكلفة (تتخفى لو فاضية) ============ --}}
+    @if (! empty($service->cost_factors))
+        <section class="mx-auto max-w-6xl px-4 py-10 md:py-12">
+            <div class="max-w-2xl mb-6">
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2">إيه اللي بيأثر على التكلفة</h2>
+                <p class="text-muted leading-relaxed">التكلفة بتختلف حسب العوامل دي — بنوضّحها لك قبل أي شغل.</p>
+            </div>
+            <ul class="grid gap-3 sm:grid-cols-2">
+                @foreach ($service->cost_factors as $factor)
+                    <li class="flex items-start gap-3 rounded-xl border border-line bg-white px-5 py-4">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span class="leading-relaxed">{{ $factor }}</span>
+                    </li>
+                @endforeach
+            </ul>
         </section>
     @endif
 

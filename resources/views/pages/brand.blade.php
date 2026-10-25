@@ -125,6 +125,46 @@
         </section>
     @endif
 
+    {{-- ============ ملاحظة ضمان الوكيل (تتخفى لو فاضية) ============ --}}
+    @if (filled($brand->warranty_agent_note))
+        <section class="mx-auto max-w-6xl px-4 pb-4">
+            <div class="max-w-3xl rounded-2xl border border-line bg-surface p-5 md:p-6">
+                <h2 class="text-lg md:text-xl font-extrabold mb-2">ملاحظة عن ضمان الوكيل لـ {{ $title }}</h2>
+                <div class="text-muted leading-loose space-y-3">
+                    @foreach (preg_split('/\n\s*\n/', trim($brand->warranty_agent_note)) as $para)
+                        <p>{{ $para }}</p>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- ============ أكواد الأعطال (تتخفى لو فاضية) ============ --}}
+    @if (! empty($brand->error_codes))
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <div class="max-w-2xl mb-6">
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2">أكواد الأعطال في تكييفات {{ $title }}</h2>
+                <p class="text-muted leading-relaxed">دليل مبسّط لأكواد الأعطال الشائعة. ⚠️ المعنى تقديري و<strong>قد يختلف حسب الموديل</strong> — للتأكيد كلّم فني.</p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                @foreach ($brand->error_codes as $ec)
+                    <div class="rounded-2xl border border-line bg-white p-5">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="inline-flex items-center rounded-lg bg-brand-50 text-brand font-extrabold px-3 py-1 text-sm">{{ $ec['code'] ?? '' }}</span>
+                            <span class="font-bold leading-snug">{{ $ec['meaning'] ?? '' }}</span>
+                        </div>
+                        @if (filled($ec['safe_check'] ?? null))
+                            <p class="text-sm text-muted leading-relaxed mb-2"><span class="font-semibold text-ink">تقدر تتأكد بأمان:</span> {{ $ec['safe_check'] }}</p>
+                        @endif
+                        @if (filled($ec['when_call'] ?? null))
+                            <p class="text-sm text-muted leading-relaxed"><span class="font-semibold text-ink">كلّم فني لو:</span> {{ $ec['when_call'] }}</p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     {{-- ============ الخدمات المناسبة ============ --}}
     @if ($services->isNotEmpty())
         <section class="bg-surface scroll-mt-20">
@@ -226,7 +266,8 @@
         <div class="mx-auto max-w-4xl px-4 py-16 md:py-20">
             <x-booking-form
                 :heading="'احجز صيانة ' . $title"
-                sub="قولنا بياناتك والمنطقة والوقت المناسب، وهنتواصل معاك نأكد المعاد والسعر التقريبي." />
+                sub="قولنا بياناتك والمنطقة والوقت المناسب، وهنتواصل معاك نأكد المعاد والسعر التقريبي."
+                :brand="$brand->name_ar" />
         </div>
     </section>
 

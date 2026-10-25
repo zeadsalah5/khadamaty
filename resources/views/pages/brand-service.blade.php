@@ -70,12 +70,13 @@
         </section>
     @endif
 
-    {{-- ============ الأعطال الشائعة ============ --}}
+    {{-- ============ الأعطال الشائعة / أخطاء التركيب ============ --}}
+    @php $isInstall = \Illuminate\Support\Str::contains($service->slug, 'install'); @endphp
     @if (! empty($page->common_faults))
         <section class="bg-surface scroll-mt-20 mt-10">
             <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
                 <div class="max-w-2xl mb-6">
-                    <h2 class="text-2xl md:text-3xl font-extrabold mb-2">أعطال {{ $brand->name_ar }} الشائعة اللي بنتعامل معاها</h2>
+                    <h2 class="text-2xl md:text-3xl font-extrabold mb-2">{{ $isInstall ? 'أخطاء التركيب اللي بنتجنبها' : 'أعطال ' . $brand->name_ar . ' الشائعة اللي بنتعامل معاها' }}</h2>
                     <p class="text-muted leading-relaxed">بنكشف ونحدد السبب الحقيقي قبل أي إصلاح — من غير تغيير قطع من غير داعي.</p>
                 </div>
                 <ul class="grid gap-3 sm:grid-cols-2">
@@ -228,6 +229,7 @@
                 :heading="'احجز ' . $title"
                 sub="قولنا بياناتك والمنطقة والوقت المناسب، وهنتواصل معاك نأكد المعاد والسعر التقريبي."
                 :service="$bookingService"
+                :brand="$brand->name_ar"
                 :show-appliance="false" />
         </div>
     </section>

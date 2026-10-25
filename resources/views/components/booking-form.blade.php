@@ -3,6 +3,7 @@
     'sub'           => 'املأ البيانات وهنتواصل معاك نأكد المعاد.',
     'service'       => null,   // اسم خدمة يتحدد مبدئياً في القايمة
     'area'          => null,   // اسم منطقة يتحدد مبدئياً في القايمة
+    'brand'         => null,   // الماركة اللي جه منها العميل (صفحة ماركة/ماركة×خدمة)
     'showAppliance' => true,   // إظهار اختيار نوع الجهاز
 ])
 
@@ -35,6 +36,10 @@
                 <input type="text" name="website" tabindex="-1" autocomplete="off" value="">
             </label>
         </div>
+
+        {{-- حقول مخفية: الماركة (لو الفورم في صفحة ماركة) + رابط الصفحة المصدر --}}
+        <input type="hidden" name="brand" value="{{ old('brand', $brand) }}">
+        <input type="hidden" name="source_url" value="{{ old('source_url', url()->current()) }}">
 
         <div>
             <label for="name" class="block text-sm font-semibold mb-1.5">الاسم <span class="text-brand">*</span></label>
