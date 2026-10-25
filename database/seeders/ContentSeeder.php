@@ -183,10 +183,24 @@ class ContentSeeder extends Seeder
             unset($fields['category']);
             $fields['category_id'] = $category ? ($catIds[$category] ?? null) : null;
 
+            // مقالات K3 (من أسئلة الناس) بتتزرع مسودة إجبارياً — لازم مراجعة قبل النشر.
+            $forceDraft = ! empty($fields['force_draft']);
+            unset($fields['force_draft']);
+
             $post = Post::updateOrCreate(['slug' => $slug], $fields);
 
-            // المقال الكامل + صفر TODO + مراجَع بيتنشر؛ غير كده مسوّدة (404 + noindex + بره السايت ماب).
-            $post->forceFill($this->reviewFill($post, $reviewerId, $now))->save();
+            if ($forceDraft) {
+                $post->forceFill([
+                    'is_published'   => false,
+                    'published_at'   => null,
+                    'content_status' => Post::STATUS_DRAFT,
+                    'reviewed_by'    => null,
+                    'reviewed_at'    => null,
+                ])->save();
+            } else {
+                // المقال الكامل + صفر TODO + مراجَع بيتنشر؛ غير كده مسوّدة (404 + noindex + بره السايت ماب).
+                $post->forceFill($this->reviewFill($post, $reviewerId, $now))->save();
+            }
         }
 
         // المنتجات التجريبية بقت في StoreSeeder (المرحلة 6A) مع الأقسام والمواصفات.
