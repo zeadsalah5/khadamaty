@@ -132,6 +132,7 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
     Route::get('/request-service', [SiteController::class, 'requestService'])->name('request-service');
     Route::get('/diagnose', [SiteController::class, 'diagnose'])->name('diagnose');
     Route::get('/reviews', [SiteController::class, 'reviews'])->name('reviews');
+    Route::get('/warranty', [SiteController::class, 'warranty'])->name('warranty');
 });
 
 /*
