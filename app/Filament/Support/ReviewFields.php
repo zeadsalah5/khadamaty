@@ -2,7 +2,6 @@
 
 namespace App\Filament\Support;
 
-use App\Models\Concerns\HasReviewWorkflow;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Section;
@@ -24,12 +23,14 @@ class ReviewFields
             ->schema([
                 Select::make('content_status')
                     ->label('حالة المراجعة')
+                    // قيم HasReviewWorkflow::STATUS_* كـ literals (ثوابت الـ trait مينفعش
+                    // توصلها بالاسم مباشرة في PHP 8.2 — لازم عبر كلاس بيستخدم الـ trait).
                     ->options([
-                        HasReviewWorkflow::STATUS_DRAFT        => 'مسودة',
-                        HasReviewWorkflow::STATUS_NEEDS_REVIEW => 'محتاجة مراجعة الفني',
-                        HasReviewWorkflow::STATUS_READY        => 'جاهزة للنشر',
+                        'draft'             => 'مسودة',
+                        'needs_tech_review' => 'محتاجة مراجعة الفني',
+                        'ready'             => 'جاهزة للنشر',
                     ])
-                    ->default(HasReviewWorkflow::STATUS_DRAFT)
+                    ->default('draft')
                     ->required()
                     ->native(false)
                     ->helperText('لما تختار «جاهزة» بيتسجّل إنك راجعتها (reviewed_by).'),

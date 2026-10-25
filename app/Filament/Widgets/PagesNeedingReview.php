@@ -6,7 +6,6 @@ use App\Models\Area;
 use App\Models\AreaServicePage;
 use App\Models\Brand;
 use App\Models\BrandServicePage;
-use App\Models\Concerns\HasReviewWorkflow;
 use App\Models\Post;
 use App\Models\Service;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -34,8 +33,9 @@ class PagesNeedingReview extends BaseWidget
         $stats = [];
 
         foreach ($types as $label => $class) {
+            // 'ready' = HasReviewWorkflow::STATUS_READY (literal — ثابت trait مينفعش بالاسم).
             $pending = $class::query()
-                ->where('content_status', '!=', HasReviewWorkflow::STATUS_READY)
+                ->where('content_status', '!=', 'ready')
                 ->count();
 
             $stats[] = Stat::make('محتاجة مراجعة — ' . $label, $pending)
