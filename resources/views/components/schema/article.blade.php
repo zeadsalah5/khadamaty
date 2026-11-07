@@ -13,6 +13,7 @@
         'headline'      => $headline,
         'description'   => $description,
         'url'           => $url,
+        'mainEntityOfPage' => $url,
         'image'         => $image,
         'datePublished' => $datePublished,
         'dateModified'  => $dateModified ?: $datePublished,
