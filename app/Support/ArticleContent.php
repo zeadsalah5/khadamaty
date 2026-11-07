@@ -33,9 +33,13 @@ class ArticleContent
         // الافتراضي في league/commonmark هو html_input=allow + allow_unsafe_links=true،
         // يعني الـ HTML الخام (<script>، <img onerror>...) وروابط javascript: بتتعرض زي ما هي.
         // بنمرّر options صريحة عشان الـ HTML الخام يتشال والروابط الخطرة تتمنع — المصدر Markdown بس.
+        // + امتدادات GFM: الجداول (مقارنات) وقوائم المهام (قوائم التحقّق [ ]).
         $html = Str::markdown($markdown, [
             'html_input'         => 'strip',
             'allow_unsafe_links' => false,
+        ], [
+            new \League\CommonMark\Extension\Table\TableExtension(),
+            new \League\CommonMark\Extension\TaskList\TaskListExtension(),
         ]);
 
         [$html, $toc] = self::injectHeadingIds($html);
