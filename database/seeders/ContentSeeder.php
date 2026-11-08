@@ -189,6 +189,15 @@ class ContentSeeder extends Seeder
 
             $post = Post::updateOrCreate(['slug' => $slug], $fields);
 
+            // غلاف افتراضي حسب التصنيف لو مفيش غلاف متحدّد (صور في public/images/blog).
+            if (blank($post->cover)) {
+                $coverByCat = [
+                    'faults' => 'faults.jpg', 'maintenance' => 'maintenance.jpg',
+                    'buying-installation' => 'buying.jpg', 'energy-saving' => 'indoor.jpg',
+                ];
+                $post->cover = $coverByCat[$category] ?? 'indoor.jpg';
+            }
+
             if ($forceDraft) {
                 $post->forceFill([
                     'is_published'   => false,

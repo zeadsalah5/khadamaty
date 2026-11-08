@@ -54,8 +54,8 @@ return [
     */
     'canonical_host' => env('CANONICAL_HOST', ''),
 
-    // صورة المشاركة الافتراضية (Open Graph / Twitter) — TODO: ضع الصورة في public/images/og-image.png
-    'default_og_image' => 'images/og-image.png',
+    // صورة المشاركة الافتراضية (Open Graph / Twitter) — موجودة في public/images/og-image.jpg
+    'default_og_image' => 'images/og-image.jpg',
 
     // حساب تويتر/إكس (اختياري، بصيغة @handle) — سيبه فاضي لو مفيش
     'twitter_handle' => '',
