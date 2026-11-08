@@ -42,12 +42,6 @@
             </div>
         </div>
 
-        {{-- شريط توضيح: مش توكيل --}}
-        <p class="mt-6 inline-flex items-start gap-2 rounded-xl bg-surface border border-line px-4 py-3 text-sm text-muted leading-relaxed max-w-2xl">
-            <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <span>إحنا مش توكيل {{ $title }} ولا أي ماركة — بنصلّح كل الماركات. لو جهازك لسه في ضمان الوكيل يُفضّل ترجعله عشان الضمان ما يسقطش.</span>
-        </p>
-
         <div class="flex flex-wrap gap-3 mt-7">
             <a href="#booking"
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">

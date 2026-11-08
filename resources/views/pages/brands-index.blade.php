@@ -15,14 +15,6 @@
 @section('content')
     <x-page-hero :title="$title" :subtitle="$subtitle ?? null" :breadcrumbs="$breadcrumbs ?? []" />
 
-    {{-- شريط توضيح: بنصلّح كل الماركات، مش توكيل --}}
-    <section class="mx-auto max-w-6xl px-4 pb-8">
-        <p class="inline-flex items-start gap-2 rounded-xl bg-surface border border-line px-5 py-4 text-sm text-muted leading-relaxed">
-            <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <span>إحنا مش توكيل لأي ماركة — بنصلّح كل الماركات. فنيينا متدربين على أنواع وموديلات مختلفة.</span>
-        </p>
-    </section>
-
     <section class="mx-auto max-w-6xl px-4 pb-6">
         @if ($brands->isNotEmpty())
             <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

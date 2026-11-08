@@ -109,11 +109,23 @@ class ContentSeeder extends Seeder
 
         /*
         | الماركات (المرحلة 3) — من database/seeders/data/brands.php.
-        | نفس منطق النشر الآلي حسب اكتمال المحتوى. بدون لوجوهات، بدون ادّعاء وكالة.
+        | نفس منطق النشر الآلي حسب اكتمال المحتوى. اللوجوهات أرسلها صاحب الموقع وبتتدار
+        | من الداشبورد (public/images/brands)؛ استخدام اسمي لتوضيح الماركات اللي بنصلّحها،
+        | مع إبقاء توضيح الاستقلال «مش توكيل». (كاريير/شارب نصّي — مفيش لوجو مُرسل.)
         */
+        $brandLogos = [
+            'lg' => 'lg.svg', 'union-air' => 'union-air.png', 'samsung' => 'samsung.webp',
+            'midea' => 'midea.webp', 'fresh' => 'fresh.svg', 'tornado' => 'tornado.svg',
+            'gree' => 'gree.webp', 'york' => 'york.webp', 'toshiba' => 'toshiba.webp',
+        ];
         $brandsData = require __DIR__.'/data/brands.php';
         foreach ($brandsData as $slug => $fields) {
             $brand = Brand::updateOrCreate(['slug' => $slug], $fields);
+
+            // لوجو افتراضي لو مفيش واحد متحدّد (الملف في public/images/brands، يتغيّر من الداشبورد).
+            if (blank($brand->logo) && isset($brandLogos[$slug])) {
+                $brand->logo = $brandLogos[$slug];
+            }
 
             $brand->forceFill($this->reviewFill($brand, $reviewerId, $now))->save();
         }

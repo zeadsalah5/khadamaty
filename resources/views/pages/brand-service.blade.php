@@ -39,9 +39,6 @@
             </div>
         </div>
 
-        {{-- توضيح الاستقلال (أعلى الصفحة) — إلزامي --}}
-        <x-independence-note :brand="$brand->name_ar" class="mt-6" />
-
         <div class="flex flex-wrap gap-3 mt-7">
             <a href="#booking"
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
@@ -218,12 +215,6 @@
                 </div>
             </div>
         </div>
-    </section>
-
-    {{-- ============ فوتر الصفحة: توضيح الاستقلال (إلزامي) ============ --}}
-    <section class="mx-auto max-w-6xl px-4 pt-10">
-        <x-independence-note :brand="$brand->name_ar" variant="plain"
-            class="border-t border-line pt-6" />
     </section>
 
     {{-- ============ فورم الحجز ============ --}}

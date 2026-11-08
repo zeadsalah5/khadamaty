@@ -294,7 +294,7 @@
 
             <div>
                 <h2 class="text-xl md:text-2xl font-extrabold mb-2">بنشتغل على كل الماركات</h2>
-                <p class="text-muted leading-relaxed mb-4">إحنا مش توكيل لماركة بذاتها — فنيينا متدربين على أنواع وموديلات مختلفة. قولنا نوع جهازك وموديله وإحنا نظبّطك.</p>
+                <p class="text-muted leading-relaxed mb-4">فنيينا متدربين على أنواع وموديلات مختلفة. قولنا نوع جهازك وموديله وإحنا نظبّطك.</p>
                 <a href="{{ route('brands.index') }}"
                    class="inline-flex items-center gap-1.5 text-brand font-bold text-sm hover:gap-2.5 transition-all">
                     شوف الماركات اللي بنتعامل معاها

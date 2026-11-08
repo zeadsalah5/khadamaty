@@ -158,7 +158,7 @@
     <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div class="max-w-2xl mb-6">
             <h2 class="text-2xl md:text-3xl font-extrabold mb-2">بنصلّح كل الماركات في {{ $title }}</h2>
-            <p class="text-muted leading-relaxed">إحنا مش توكيل لماركة بذاتها — فنيينا متدربين على أنواع وموديلات مختلفة. قولنا نوع جهازك وموديله وإحنا نظبّطك.</p>
+            <p class="text-muted leading-relaxed">فنيينا متدربين على أنواع وموديلات مختلفة. قولنا نوع جهازك وموديله وإحنا نظبّطك.</p>
         </div>
         @if ($brands->isNotEmpty())
             <ul class="flex flex-wrap gap-2.5 mb-5">

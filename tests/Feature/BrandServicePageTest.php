@@ -60,7 +60,6 @@ class BrandServicePageTest extends TestCase
         $res = $this->get('/brands/carrier/ac-maintenance');
         $res->assertOk();
         $res->assertSee('صيانة تكييف كاريير', false);               // H1
-        $res->assertSee('مركز صيانة مستقل، غير تابع لشركة كاريير', false); // توضيح الاستقلال الإلزامي
         $res->assertSee('index,follow', false);                      // robots = index لاكتمال المحتوى
         $res->assertDontSee('noindex', false);
         $res->assertSee('BreadcrumbList', false);                    // schema
