@@ -33,6 +33,7 @@ class ContentSeeder extends Seeder
         */
         $servicesData = require __DIR__.'/data/services.php';
         foreach ($servicesData as $slug => $fields) {
+            $fields = $this->scrub($fields);
             $service = Service::updateOrCreate(['slug' => $slug], $fields);
 
             // النشر بناءً على اكتمال المحتوى + صفر TODO + مراجَع (سير المراجعة الموحّد).
@@ -79,6 +80,7 @@ class ContentSeeder extends Seeder
         */
         $areasData = require __DIR__.'/data/areas.php';
         foreach ($areasData as $slug => $fields) {
+            $fields = $this->scrub($fields);
             $area = Area::updateOrCreate(['slug' => $slug], $fields);
 
             // محتوى مكتمل وصفر TODO => «محتاجة مراجعة»؛ غير كده مسودة. مفيش نشر تلقائي.
@@ -120,6 +122,7 @@ class ContentSeeder extends Seeder
         ];
         $brandsData = require __DIR__.'/data/brands.php';
         foreach ($brandsData as $slug => $fields) {
+            $fields = $this->scrub($fields);
             $brand = Brand::updateOrCreate(['slug' => $slug], $fields);
 
             // لوجو افتراضي لو مفيش واحد متحدّد (الملف في public/images/brands، يتغيّر من الداشبورد).
@@ -153,7 +156,7 @@ class ContentSeeder extends Seeder
 
             BrandServicePage::updateOrCreate(
                 ['brand_id' => $brandId, 'service_id' => $serviceId],
-                $fields + ['is_published' => false, 'published_at' => null],
+                $this->scrub($fields) + ['is_published' => false, 'published_at' => null],
             );
         }
 
@@ -194,6 +197,7 @@ class ContentSeeder extends Seeder
             $category = $fields['category'] ?? null;
             unset($fields['category']);
             $fields['category_id'] = $category ? ($catIds[$category] ?? null) : null;
+            $fields = $this->scrub($fields);
 
             // مقالات K3 (من أسئلة الناس) بتتزرع مسودة إجبارياً — لازم مراجعة قبل النشر.
             $forceDraft = ! empty($fields['force_draft']);
@@ -241,6 +245,24 @@ class ContentSeeder extends Seeder
      *
      * @param  \App\Models\Concerns\HasReviewWorkflow  $model
      */
+    /**
+     * تنظيف حقول المحتوى من أي تصريح عن وضع التوكيل (حياد تام — طلب صاحب الموقع).
+     * بتتطبّق على بيانات الـ seed قبل الحفظ، فالمحتوى يفضل نضيف حتى بعد migrate:fresh.
+     */
+    private function scrub(array $fields): array
+    {
+        foreach (['excerpt', 'intro', 'body', 'seo_description'] as $k) {
+            if (isset($fields[$k])) {
+                $fields[$k] = \App\Support\AgencyScrub::text($fields[$k]);
+            }
+        }
+        if (isset($fields['faqs'])) {
+            $fields['faqs'] = \App\Support\AgencyScrub::faqs($fields['faqs']);
+        }
+
+        return $fields;
+    }
+
     private function reviewFill($model, ?int $reviewerId, $now): array
     {
         $publishable = $model->hasCompleteContent() && ! $model->hasTodo();

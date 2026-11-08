@@ -13,7 +13,10 @@ class FaqsSeeder extends Seeder
 {
     public function run(): void
     {
-        foreach ((array) config('site.faqs', []) as $i => $faq) {
+        // تنظيف أي سؤال عن وضع التوكيل بتاعنا (حياد تام — طلب صاحب الموقع).
+        $faqs = \App\Support\AgencyScrub::faqs((array) config('site.faqs', [])) ?? [];
+
+        foreach ($faqs as $i => $faq) {
             Faq::updateOrCreate(
                 ['question' => $faq['q']],
                 [

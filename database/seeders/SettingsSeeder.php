@@ -51,6 +51,9 @@ class SettingsSeeder extends Seeder
             Settings::setMany($pairs, $group);
         }
 
+        // تنظيف الأسئلة الشائعة من أي تصريح عن وضع التوكيل (حياد تام).
+        Settings::set('faqs', \App\Support\AgencyScrub::faqs((array) config('site.faqs')), 'content');
+
         Settings::flush();
     }
 }
