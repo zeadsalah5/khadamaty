@@ -176,9 +176,81 @@ function initDiagnose(root) {
     );
 }
 
+/* ========== حاسبة قدرة التكييف المناسب للغرفة (تقديرية) ========== */
+function initAcCalculator() {
+    const form = document.querySelector('[data-ac-calc]');
+    if (!form) return;
+
+    const byId = (id) => document.getElementById(id);
+    const result = document.querySelector('[data-ac-result]');
+    const errEl = form.querySelector('[data-ac-error]');
+    const hpEl = result.querySelector('[data-ac-hp]');
+    const btuEl = result.querySelector('[data-ac-btu]');
+    const areaEl = result.querySelector('[data-ac-area]');
+    const noteEl = result.querySelector('[data-ac-note]');
+
+    // مقاسات السوق المصري (BTU ← الحصان)، تصاعدي.
+    const sizes = [
+        { btu: 9000, hp: '١ حصان' },
+        { btu: 12000, hp: '١.٥ حصان' },
+        { btu: 18000, hp: '٢.٢٥ حصان' },
+        { btu: 24000, hp: '٣ حصان' },
+        { btu: 30000, hp: '٤ حصان' },
+        { btu: 36000, hp: '٥ حصان' },
+    ];
+    const sunFactor = { low: 0.9, medium: 1.0, high: 1.15 };
+    const fmt = (n) => n.toLocaleString('ar-EG');
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const L = parseFloat(byId('acLength').value);
+        const W = parseFloat(byId('acWidth').value);
+        let H = parseFloat(byId('acHeight').value);
+        const sun = byId('acSun').value;
+        const people = parseInt(byId('acPeople').value, 10);
+
+        if (!(L > 0) || !(W > 0)) {
+            errEl.textContent = 'اكتب طول وعرض الغرفة بالمتر الأول.';
+            errEl.classList.remove('hidden');
+            result.classList.add('hidden');
+            (!(L > 0) ? byId('acLength') : byId('acWidth')).focus();
+            return;
+        }
+        errEl.classList.add('hidden');
+        if (!(H > 0)) { H = 2.8; }
+
+        const area = L * W;
+        const heightFactor = Math.max(1, H / 2.8);
+        const sf = sunFactor[sun] || 1;
+        let btu = area * 600 * heightFactor * sf;
+        if (people > 2) { btu += (people - 2) * 600; }
+
+        const btuRounded = Math.round(btu / 500) * 500;
+        const overMax = btu > 36000;
+        const pick = sizes.find((s) => btu <= s.btu) || sizes[sizes.length - 1];
+
+        hpEl.textContent = overMax ? 'أكتر من ٥ حصان' : pick.hp;
+        btuEl.textContent = '≈ ' + fmt(btuRounded) + ' BTU';
+        areaEl.textContent = fmt(Math.round(area * 10) / 10) + ' م²';
+        noteEl.textContent = overMax
+            ? 'المساحة كبيرة — غالباً محتاج أكتر من وحدة أو قدرة عالية مع توزيع صح. ننصح بمعاينة فني لتحديد أفضل حل.'
+            : 'ده تقدير للقدرة الأنسب. لو غرفتك آخر دور أو واجهتها زجاج كبير، فكّر في القدرة الأعلى اللي فوقها مباشرة. المعاينة بتأكّد الاختيار.';
+
+        result.classList.remove('hidden');
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        result.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    });
+
+    form.addEventListener('reset', () => {
+        errEl.classList.add('hidden');
+        result.classList.add('hidden');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initTransparentHeader();
+    initAcCalculator();
     document.querySelectorAll('[data-hero-slider]').forEach(initHeroSlider);
     initServicePreselect();
     document.querySelectorAll('[data-diagnose]').forEach(initDiagnose);

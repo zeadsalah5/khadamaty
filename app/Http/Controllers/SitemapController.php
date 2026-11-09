@@ -125,7 +125,7 @@ class SitemapController extends Controller
 
         // الصفحات التعريفية/الوظيفية الثابتة (indexable). صفحات "قريباً"/الفاضية
         // (زي /reviews وهي فاضية) مش مدرجة هنا عمداً عشان تفضل noindex.
-        foreach (['/about', '/prices', '/faq', '/contact', '/request-service', '/diagnose'] as $staticPath) {
+        foreach (['/about', '/prices', '/faq', '/contact', '/request-service', '/diagnose', '/ac-calculator'] as $staticPath) {
             $urls[] = [
                 'loc'     => $base . $staticPath,
                 'lastmod' => $this->pagesLastmod(),
