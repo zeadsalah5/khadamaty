@@ -37,6 +37,14 @@
             <x-hero-slider />
             @break
 
+        @case('visual_services')
+            <x-home.visual-services :published-slugs="$publishedServiceSlugs" />
+            @break
+
+        @case('about')
+            <x-home.about-section />
+            @break
+
         @case('services_1')
             @if (isset($serviceSections[0]))
                 <x-services-section :section="$serviceSections[0]" :published-slugs="$publishedServiceSlugs" />

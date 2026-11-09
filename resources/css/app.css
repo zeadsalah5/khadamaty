@@ -51,15 +51,379 @@ body {
     border-radius: 6px;
 }
 
-/* القطع المائل في آخر الهيرو */
-.hero-cut {
+/* ===================== هيرو سلايدر full-bleed ===================== */
+.hero.hero-slider {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 560px;
+    min-height: min(82svh, 760px);
+    color: #fff;
+    background: var(--color-navy-deep, #141A26);
+    display: flex;
+}
+/* تكديس الشرائح في نفس الخلية + تلاشي (crossfade) بين الخلفيات */
+.hero-slides {
+    position: relative;
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-areas: "stack";
+}
+.hero-slide {
+    grid-area: stack;
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0s linear 0.6s;
+}
+.hero-slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 1;
+    transition: opacity 0.6s ease, visibility 0s;
+}
+
+/* الخلفية: تدرّج بارد (بريستات) + توهّج سماوي radial خفيف + مكان الصورة ---------- */
+.hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+.hero__bg--preset-1 { /* كحلي ← أزرق داكن */
+    background:
+        radial-gradient(58% 48% at 78% 16%, rgba(96, 200, 235, 0.20), transparent 66%),
+        linear-gradient(150deg, #1B2230 0%, #1b2a44 55%, #15324f 100%);
+}
+.hero__bg--preset-2 { /* كحلي ← تيل/سماوي داكن */
+    background:
+        radial-gradient(58% 48% at 78% 16%, rgba(70, 210, 205, 0.18), transparent 66%),
+        linear-gradient(150deg, #1B2230 0%, #16343a 60%, #123b3a 100%);
+}
+.hero__bg--preset-3 { /* كحلي ← رمادي أزرق */
+    background:
+        radial-gradient(58% 48% at 78% 16%, rgba(130, 170, 220, 0.18), transparent 66%),
+        linear-gradient(150deg, #1B2230 0%, #253149 60%, #2b3650 100%);
+}
+
+.hero__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* تدرّج غامق من تحت (تحت منطقة النص) — للتباين مع الصورة */
+.hero__scrim {
     position: absolute;
     inset-inline: 0;
-    bottom: -1px;
-    width: 100%;
-    height: clamp(40px, 7vw, 90px);
-    display: block;
+    bottom: 0;
+    height: 72%;
+    z-index: 1;
+    background: linear-gradient(to top, rgba(10, 14, 22, var(--hero-scrim, 0.55)) 0%, rgba(10, 14, 22, 0) 100%);
+    pointer-events: none;
 }
+.hero-overlay--light  { --hero-scrim: 0.35; --hero-tint: 0.12; }
+.hero-overlay--medium { --hero-scrim: 0.55; --hero-tint: 0.22; }
+.hero-overlay--strong { --hero-scrim: 0.72; --hero-tint: 0.40; }
+
+/* مع صورة خلفية: الصورة شبه مكشوفة (طبقة كحلي خفيفة جداً) + تدرّج سفلي بسيط
+   عشان الزرار/آخر النص يفضلوا مقروئين. التباين الأساسي للعنوان من text-shadow. */
+.hero--image .hero__scrim {
+    height: 100%;
+    background:
+        linear-gradient(to top, rgba(10, 14, 22, 0.5) 0%, rgba(10, 14, 22, 0) 42%),
+        linear-gradient(rgba(27, 34, 48, var(--hero-tint, 0.22)), rgba(27, 34, 48, var(--hero-tint, 0.22)));
+}
+/* النص فوق الصورة: ظل أقوى يضمن القراءة مع التعتيم الخفيف */
+.hero--image .hero__content {
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* الحاوية ------------------------------------------------------------------------ */
+.hero__inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 5.5rem 1rem 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(1.75rem, 4vw, 2.75rem);
+}
+
+/* الجزء العلوي: عمود واحد متمركز (مع صورة) أو عمودين نص+رسمة (من غير صورة) */
+.hero__main {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 2rem;
+}
+@media (min-width: 768px) {
+    .hero--art .hero__main {
+        grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+    }
+}
+
+.hero__content {
+    text-align: center;
+    max-width: 44rem;
+    margin-inline: auto;
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.25);
+}
+/* ديسكتوب بدون صورة: النص لبداية السطر (RTL) جنب الرسمة */
+@media (min-width: 768px) {
+    .hero--art .hero__content {
+        text-align: start;
+        max-width: 40rem;
+        margin-inline: 0;
+    }
+    .hero--art .hero__lead { margin-inline: 0; }
+    .hero--art .hero__cta { justify-content: flex-start; }
+}
+
+.hero__eyebrow {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    margin-bottom: 1.1rem;
+}
+.hero__title {
+    font-weight: 800;
+    line-height: 1.14;
+    letter-spacing: -0.01em;
+    font-size: clamp(2rem, 4.4vw, 3.2rem);
+    margin: 0 0 1rem;
+    text-wrap: balance;
+}
+.hero__lead {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 400;
+    line-height: 1.65;
+    color: #ffffff; /* تباين واضح WCAG AA فوق التعتيم */
+    max-width: 32rem;
+    margin: 0 auto 1.6rem;
+}
+
+/* الرسمة: وحدة تكييف سبليت + تيّار هوا بارد ------------------------------------- */
+.hero__art {
+    display: flex;
+    justify-content: center;
+}
+.hero-ac {
+    width: 100%;
+    max-width: 24rem;
+    height: auto;
+    filter: drop-shadow(0 22px 42px rgba(0, 0, 0, 0.38));
+}
+.hero-ac__stream {
+    animation: ac-flow 2.6s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+.hero-ac__stream--2 { animation-delay: 0.3s; }
+.hero-ac__stream--3 { animation-delay: 0.6s; }
+.hero-ac__stream--4 { animation-delay: 0.9s; }
+.hero-ac__dot {
+    animation: ac-fall 3s ease-in infinite;
+    transform-box: fill-box;
+}
+.hero-ac__dot--2 { animation-delay: 0.7s; }
+.hero-ac__dot--3 { animation-delay: 1.3s; }
+@keyframes ac-flow {
+    0%, 100% { opacity: 0.4; transform: translateY(-4px); }
+    50%      { opacity: 0.9; transform: translateY(4px); }
+}
+@keyframes ac-fall {
+    0%   { opacity: 0; transform: translateY(-10px); }
+    30%  { opacity: 0.9; }
+    100% { opacity: 0; transform: translateY(26px); }
+}
+@media (max-width: 767px) {
+    .hero__art { display: none; } /* موبايل: المحتوى متمركز من غير رسمة */
+}
+
+/* الأزرار — نفس شكل الـ pill */
+.hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+.hero__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.75rem;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 1.05rem;
+    transition: transform 0.18s ease, background-color 0.18s ease;
+}
+.hero__btn--primary {
+    background: var(--color-brand);
+    color: #fff;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+.hero__btn--primary:hover { background: var(--color-brand-600); transform: translateY(-2px); }
+.hero__btn--whatsapp {
+    background: var(--color-accent);
+    color: #fff;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+}
+.hero__btn--whatsapp:hover { background: var(--color-accent-600); transform: translateY(-2px); }
+.hero__btn--call {
+    background: var(--color-brand);
+    color: #fff;
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+}
+.hero__btn--call:hover { background: var(--color-brand-600); transform: translateY(-2px); }
+
+/* كروت المميزات الزجاجية ------------------------------------------------------- */
+.hero__cards {
+    width: 100%;
+    max-width: 60rem;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0;
+    list-style: none;
+}
+.hero-card {
+    flex: 0 1 15rem;
+    max-width: 16.5rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 0.95rem 1.05rem;
+    border-radius: 0.9rem;
+    text-align: start;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 28px -14px rgba(0, 0, 0, 0.5);
+}
+/* fallback لو المتصفح مبيدعمش backdrop-filter — خلفية شبه-معتمة */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .hero-card { background: rgba(23, 29, 41, 0.72); }
+    .hero__eyebrow { background: rgba(23, 29, 41, 0.55); }
+}
+.hero-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 0.6rem;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+}
+.hero-card__title { font-weight: 700; font-size: 0.95rem; }
+.hero-card__text { font-size: 0.82rem; line-height: 1.55; color: rgba(255, 255, 255, 0.88); }
+
+/* موبايل: الكروت صف أفقي قابل للسحب (scroll-snap) بدل التكديس */
+@media (max-width: 767px) {
+    .hero.hero-slider { min-height: 560px; }
+    .hero__inner { padding-top: 5rem; }
+    .hero__cards {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 0.5rem;
+        /* يمتد لحافة الشاشة عشان السحب يبان طبيعي */
+        margin-inline: -1rem;
+        padding-inline: 1rem;
+    }
+    .hero__cards::-webkit-scrollbar { display: none; }
+    .hero-card {
+        flex: 0 0 80%;
+        max-width: none;
+        scroll-snap-align: start;
+    }
+}
+
+/* عناصر تحكّم السلايدر: أسهم جانبية + نقط + زر تشغيل/إيقاف --------------------- */
+/* منع تأخير النقر المزدوج على كل عناصر التفاعل في الهيرو */
+.hero__btn, .hero-arrow, .hero-dot, .hero-playpause { touch-action: manipulation; }
+
+.hero-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 2.75rem;
+    height: 2.75rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: background-color 0.18s ease;
+}
+@media (min-width: 640px) { .hero-arrow { display: inline-flex; } }
+.hero-arrow:hover { background: rgba(255, 255, 255, 0.28); }
+.hero-arrow--next { inset-inline-start: 0.75rem; } /* RTL: الشمال = التالي */
+.hero-arrow--prev { inset-inline-end: 0.75rem; }
+
+.hero-controls {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0.9rem;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+}
+.hero-dots { display: flex; align-items: center; gap: 0.5rem; }
+.hero-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.45);
+    transition: width 0.25s ease, background-color 0.25s ease;
+}
+.hero-dot.is-active { width: 1.5rem; background: #fff; }
+.hero-playpause {
+    width: 2.1rem;
+    height: 2.1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    transition: background-color 0.18s ease;
+}
+.hero-playpause:hover { background: rgba(255, 255, 255, 0.28); }
+.hero-playpause .icon-play { display: none; }
+.hero-playpause.is-paused .icon-play { display: block; }
+.hero-playpause.is-paused .icon-pause { display: none; }
 
 /* سهم مؤشر الـ FAQ */
 details > summary {
@@ -150,4 +514,53 @@ details[open] .faq-icon {
 .slider-dot.is-active {
     background-color: #ffffff;
     width: 1.6rem; /* نقطة ممدودة للشريحة الحالية */
+}
+
+/* ===================== هيدر شفّاف فوق الهيرو (الرئيسية فقط) ===================== */
+/* الهيدر بيفضل في التدفّق (sticky)، وبنسحب الهيرو تحته بـ margin سالب عشان الخلفية
+   تبان ورا الهيدر. عند التمرير JS بيضيف .is-solid فيرجع أبيض بظل خفيف. */
+.site-header--transparent {
+    background: transparent;
+    border-color: transparent;
+    color: #fff;
+    margin-bottom: -4rem; /* = ارتفاع الهيدر (h-16) */
+    transition: background-color 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.site-header--transparent.is-solid {
+    background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-color: var(--color-line);
+    box-shadow: 0 6px 24px -16px rgba(0, 0, 0, 0.5);
+    color: var(--color-ink);
+}
+
+/* روابط القايمة كـ glass pills فوق الهيرو */
+.site-header--transparent:not(.is-solid) .hdr-link {
+    color: #fff;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: background-color 0.18s ease;
+}
+.site-header--transparent:not(.is-solid) .hdr-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+/* الصفحة الحالية = pill أبيض بنص كحلي */
+.site-header--transparent:not(.is-solid) .hdr-link[aria-current="page"] {
+    background: #fff;
+    color: var(--color-navy);
+    border-color: #fff;
+}
+/* أزرار الهيدر (اتصال/سلة/حساب) بحدود بيضا فوق الهيرو */
+.site-header--transparent:not(.is-solid) .hdr-ghost {
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+.site-header--transparent:not(.is-solid) .hdr-ghost:hover {
+    color: #fff;
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.12);
 }

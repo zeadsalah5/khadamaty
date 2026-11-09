@@ -100,6 +100,27 @@ return [
             'report' => false,
         ],
 
+        // صور خلفية الهيرو (full-bleed) — public/images/hero. الرابط نسبي (/images/hero)
+        // عشان صورة الـ LCP تشتغل على أي host/port من غير ما تعتمد على APP_URL.
+        'hero' => [
+            'driver' => 'local',
+            'root' => public_path('images/hero'),
+            'url' => '/images/hero',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // صور أقسام الصفحة الرئيسية (مين إحنا / خدماتنا بالصور) — public/images/sections.
+        'sections' => [
+            'driver' => 'local',
+            'root' => public_path('images/sections'),
+            'url' => '/images/sections',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

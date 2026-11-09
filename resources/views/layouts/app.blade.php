@@ -64,7 +64,7 @@
         </div>
     @endif
 
-    <x-site.header />
+    <x-site.header :transparent="request()->routeIs('home')" />
 
     <main id="main" class="flex-1">
         {{ $slot ?? '' }}

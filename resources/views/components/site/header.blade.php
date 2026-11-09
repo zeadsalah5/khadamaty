@@ -1,3 +1,5 @@
+@props(['transparent' => false])
+
 @php
     // قائمة الهيدر من الداشبورد (جدول menu_items)، وإلا القايمة الافتراضية.
     $nav = \App\Support\Catalog::menu('header');
@@ -49,23 +51,32 @@
     $accountLabel = $customer ? 'حسابي وطلباتي' : 'تسجيل الدخول';
 @endphp
 
-<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-line">
+<header @class([
+        'sticky top-0 z-50 site-header',
+        'bg-white/95 backdrop-blur border-b border-line' => ! $transparent,
+        'site-header--transparent border-b' => $transparent,
+    ])
+    @if ($transparent) data-transparent-header @endif>
     <nav class="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between gap-4" aria-label="التنقل الرئيسي">
-        <x-logo />
+        <x-logo :variant="$transparent ? 'auto' : 'dark'" />
 
-        {{-- روابط القايمة — ديسكتوب --}}
-        <ul class="hidden lg:flex items-center gap-5 xl:gap-6 text-sm font-semibold text-ink">
+        {{-- مجموعة ديسكتوب: روابط القايمة + الأزرار متجمّعة بنفس المحاذاة --}}
+        <div class="hidden lg:flex items-center gap-4 xl:gap-6">
+        {{-- روابط القايمة --}}
+        <ul class="flex items-center gap-4 xl:gap-5 text-sm font-semibold text-ink">
             @foreach ($nav as $item)
-                <li><a href="{{ $item['url'] }}" class="hover:text-brand transition-colors">{{ $item['label'] }}</a></li>
+                @php $isCurrent = rtrim(url()->current(), '/') === rtrim($item['url'], '/'); @endphp
+                <li><a href="{{ $item['url'] }}" @if ($isCurrent) aria-current="page" @endif
+                       class="hdr-link hover:text-brand transition-colors">{{ $item['label'] }}</a></li>
             @endforeach
         </ul>
 
         {{-- أزرار — ديسكتوب --}}
-        <div class="hidden lg:flex items-center gap-3">
+        <div class="flex items-center gap-3">
             @if ($hasShop)
                 {{-- المفضلة --}}
                 <a href="{{ route('wishlist.show') }}" aria-label="المفضلة{{ $wishlistCount ? ' (' . $wishlistCount . ')' : '' }}"
-                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand">
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-full hdr-ghost border border-line text-ink transition-colors hover:border-brand hover:text-brand">
                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
                     @if ($wishlistCount)
                         <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $wishlistCount }}</span>
@@ -73,11 +84,11 @@
                 </a>
                 {{-- حساب العميل --}}
                 <a href="{{ $accountUrl }}" aria-label="{{ $accountLabel }}"
-                   class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand">
+                   class="inline-flex h-10 w-10 items-center justify-center rounded-full hdr-ghost border border-line text-ink transition-colors hover:border-brand hover:text-brand">
                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
                 </a>
                 <a href="{{ route('cart.show') }}" aria-label="سلة المشتريات{{ $cartCount ? ' (' . $cartCount . ' منتج)' : '' }}"
-                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand">
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-full hdr-ghost border border-line text-ink transition-colors hover:border-brand hover:text-brand">
                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
                     @if ($cartCount)
                         <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $cartCount }}</span>
@@ -86,7 +97,7 @@
             @endif
             @if (\App\Support\Site::hasPhone())
             <a href="tel:{{ \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay() }}"
-               class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-line text-ink font-semibold text-sm hover:border-brand hover:text-brand transition-colors">
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-full hdr-ghost border border-line text-ink font-semibold text-sm hover:border-brand hover:text-brand transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
                 اتصل بينا
             </a>
@@ -96,19 +107,20 @@
                 احجز
             </a>
         </div>
+        </div>{{-- /مجموعة ديسكتوب --}}
 
         {{-- أيقونات السلة/المفضلة + زر القايمة — موبايل --}}
         <div class="flex items-center gap-2 lg:hidden">
             @if ($hasShop)
                 <a href="{{ route('wishlist.show') }}" aria-label="المفضلة{{ $wishlistCount ? ' (' . $wishlistCount . ')' : '' }}"
-                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink">
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg hdr-ghost border border-line text-ink">
                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
                     @if ($wishlistCount)
                         <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $wishlistCount }}</span>
                     @endif
                 </a>
                 <a href="{{ route('cart.show') }}" aria-label="سلة المشتريات{{ $cartCount ? ' (' . $cartCount . ' منتج)' : '' }}"
-                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink">
+                   class="relative inline-flex h-10 w-10 items-center justify-center rounded-lg hdr-ghost border border-line text-ink">
                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
                     @if ($cartCount)
                         <span class="absolute -top-1.5 -end-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">{{ $cartCount }}</span>
@@ -118,7 +130,7 @@
 
             {{-- زر قايمة الموبايل --}}
             <button type="button" id="menu-toggle"
-                    class="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-line text-ink"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-lg hdr-ghost border border-line text-ink"
                     aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobile-menu">
                 <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
             </button>

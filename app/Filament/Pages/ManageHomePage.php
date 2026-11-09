@@ -31,6 +31,8 @@ class ManageHomePage extends Page implements HasForms
     /** مفاتيح أقسام الهوم المعروفة (للاختيار في ترتيب الأقسام). */
     protected const SECTION_OPTIONS = [
         'hero' => 'الهيرو (السلايدر)',
+        'visual_services' => 'خدماتنا بالصور',
+        'about' => 'مين إحنا (بصورة)',
         'services_1' => 'قسم خدمات 1',
         'how' => 'إزاي بنشتغل',
         'services_2' => 'قسم خدمات 2',
@@ -56,6 +58,8 @@ class ManageHomePage extends Page implements HasForms
             'how_steps' => 'home',
             'why_us' => 'home',
             'service_sections' => 'home',
+            'about_home' => 'home',
+            'visual_services' => 'home',
             'booking_services' => 'booking',
             'booking_appliances' => 'booking',
             'areas' => 'booking',
@@ -108,6 +112,73 @@ class ManageHomePage extends Page implements HasForms
                             Forms\Components\TextInput::make('cta_service')
                                 ->label('خدمة تتحدد تلقائياً (اختياري)')
                                 ->helperText('لازم تطابق اسم خدمة من قايمة الحجز.'),
+
+                            // ===== التصميم الجديد (full-bleed) =====
+                            Forms\Components\TextInput::make('eyebrow')
+                                ->label('الشارة العلوية (eyebrow)')
+                                ->helperText('نص صغير فوق العنوان. لو فاضي بيستخدم «الشارة العلوية» القديمة.'),
+                            Forms\Components\Textarea::make('subtitle')
+                                ->label('سطر الوصف تحت العنوان')->rows(2)->columnSpanFull()
+                                ->helperText('لو فاضي بيستخدم «النص» فوق.'),
+                            Forms\Components\Toggle::make('enabled')
+                                ->label('الشريحة ظاهرة')->default(true),
+
+                            Forms\Components\Select::make('gradient_preset')
+                                ->label('تدرّج الخلفية (لو مفيش صورة)')
+                                ->options([
+                                    1 => 'كحلي ← أحمر',
+                                    2 => 'كحلي ← أزرق',
+                                    3 => 'أحمر ← كحلي',
+                                ])
+                                ->default(1),
+                            Forms\Components\Select::make('overlay_strength')
+                                ->label('قوة التعتيم فوق الصورة')
+                                ->options([
+                                    'light' => 'خفيف',
+                                    'medium' => 'متوسط',
+                                    'strong' => 'قوي',
+                                ])
+                                ->default('medium'),
+
+                            Forms\Components\FileUpload::make('background_image')
+                                ->label('صورة الخلفية (full-bleed)')
+                                ->image()->disk('hero')->visibility('public')->maxSize(8192)
+                                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                ->saveUploadedFileUsing(fn ($file) => \App\Support\ImageUploads::storeHeroResponsive($file, 'hero'))
+                                ->helperText('اختياري. بتتحوّل WebP بمقاسين (960 و1920) تلقائياً. من غير صورة بيظهر التدرّج.')
+                                ->columnSpanFull(),
+                            Forms\Components\TextInput::make('background_alt')
+                                ->label('وصف الصورة (alt) — إجباري مع الصورة')
+                                ->required(fn (Forms\Get $get) => filled($get('background_image')))
+                                ->maxLength(160),
+                            Forms\Components\Select::make('focal')
+                                ->label('تركيز الصورة')
+                                ->options(['right' => 'يمين', 'center' => 'الوسط', 'left' => 'شمال'])
+                                ->default('center'),
+
+                            Forms\Components\Repeater::make('features')
+                                ->label('كروت المميزات (٣ كحد أقصى)')
+                                ->schema([
+                                    Forms\Components\Select::make('icon')
+                                        ->label('الأيقونة')
+                                        ->options([
+                                            'booking' => 'حجز', 'coverage' => 'تغطية مناطق', 'shield' => 'ضمان',
+                                            'maintenance' => 'صيانة', 'cleaning' => 'تنظيف', 'freon' => 'فريون',
+                                            'install' => 'تركيب', 'move' => 'نقل', 'repair' => 'إصلاح',
+                                            'contract' => 'عقد', 'pipes' => 'مواسير', 'diagnose' => 'تشخيص',
+                                        ]),
+                                    Forms\Components\TextInput::make('title')->label('العنوان')->required()
+                                        ->helperText('تقدر تستخدم {areas_count} لعدد المناطق المنشورة.'),
+                                    Forms\Components\Textarea::make('text')->label('النص')->rows(2)->columnSpanFull(),
+                                ])
+                                ->maxItems(3)
+                                ->columns(2)
+                                ->reorderable()
+                                ->collapsible()
+                                ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                                ->addActionLabel('إضافة كارت')
+                                ->columnSpanFull()
+                                ->default([]),
                         ])
                         ->columns(2)
                         ->reorderable()
@@ -206,6 +277,59 @@ class ManageHomePage extends Page implements HasForms
                         ->addActionLabel('إضافة قسم خدمات')
                         ->default([]),
                 ]),
+
+                // مين إحنا (بصورة)
+                Forms\Components\Tabs\Tab::make('مين إحنا')->schema([
+                    Forms\Components\TextInput::make('about_home.eyebrow')->label('الشارة العلوية'),
+                    Forms\Components\TextInput::make('about_home.cta_label')->label('نص الزرار'),
+                    Forms\Components\TextInput::make('about_home.title')->label('العنوان')->columnSpanFull(),
+                    Forms\Components\Textarea::make('about_home.body')->label('النص')->rows(3)->columnSpanFull(),
+                    Forms\Components\FileUpload::make('about_home.image')
+                        ->label('الصورة')->image()->disk('sections')->visibility('public')->maxSize(8192)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->saveUploadedFileUsing(fn ($file) => \App\Support\ImageUploads::storeWebp($file, 'sections'))
+                        ->helperText('بتتحوّل WebP تلقائياً. من غير صورة بيظهر تدرّج بديل.')
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('about_home.image_alt')
+                        ->label('وصف الصورة (alt) — إجباري مع الصورة')
+                        ->required(fn (Forms\Get $get) => filled($get('about_home.image')))->maxLength(160),
+                    Forms\Components\TextInput::make('about_home.cta_href')->label('رابط الزرار')->default('/about'),
+                    Forms\Components\TagsInput::make('about_home.points')
+                        ->label('نقاط المميزات')->helperText('كل نقطة عنصر — Enter بعد كل واحدة.')->columnSpanFull(),
+                ])->columns(2),
+
+                // خدماتنا بالصور
+                Forms\Components\Tabs\Tab::make('خدماتنا بالصور')->schema([
+                    Forms\Components\TextInput::make('visual_services.title')->label('عنوان القسم'),
+                    Forms\Components\TextInput::make('visual_services.subtitle')->label('وصف القسم'),
+                    Forms\Components\Repeater::make('visual_services.items')
+                        ->label('الخدمات (كل واحدة بصورة)')
+                        ->schema([
+                            Forms\Components\FileUpload::make('image')
+                                ->label('الصورة')->image()->disk('sections')->visibility('public')->maxSize(8192)
+                                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                ->saveUploadedFileUsing(fn ($file) => \App\Support\ImageUploads::storeWebp($file, 'sections'))
+                                ->helperText('بتتحوّل WebP تلقائياً. من غير صورة بتظهر الأيقونة فوق تدرّج.')
+                                ->columnSpanFull(),
+                            Forms\Components\TextInput::make('image_alt')->label('وصف الصورة (alt)')
+                                ->required(fn (Forms\Get $get) => filled($get('image')))->maxLength(160),
+                            Forms\Components\Select::make('icon')->label('أيقونة احتياطية')
+                                ->options([
+                                    'maintenance' => 'صيانة', 'cleaning' => 'تنظيف', 'freon' => 'فريون',
+                                    'install' => 'تركيب', 'move' => 'نقل', 'repair' => 'إصلاح',
+                                    'contract' => 'عقد', 'pipes' => 'مواسير', 'diagnose' => 'تشخيص',
+                                ])->default('maintenance'),
+                            Forms\Components\TextInput::make('title')->label('العنوان')->required(),
+                            Forms\Components\TextInput::make('slug')->label('Slug الخدمة (اختياري)')
+                                ->helperText('يربط البطاقة بصفحة الخدمة لو منشورة.'),
+                            Forms\Components\TextInput::make('booking')->label('خدمة الحجز')
+                                ->helperText('تطابق اسم من قايمة الحجز.'),
+                            Forms\Components\Textarea::make('desc')->label('الوصف')->rows(2)->columnSpanFull(),
+                        ])
+                        ->columns(2)->reorderable()->collapsible()
+                        ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                        ->addActionLabel('إضافة خدمة')->default([])->columnSpanFull(),
+                ])->columns(2),
 
                 // قوايم الحجز والمناطق
                 Forms\Components\Tabs\Tab::make('الحجز والمناطق')->schema([

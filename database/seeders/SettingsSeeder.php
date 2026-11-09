@@ -30,6 +30,7 @@ class SettingsSeeder extends Seeder
             'home' => [
                 'announcement_enabled', 'announcement_text', 'announcement_link', 'announcement_link_label',
                 'hero_slides', 'service_sections', 'how_steps', 'why_us', 'home_sections',
+                'about_home', 'visual_services',
             ],
             'booking' => [
                 'booking_services', 'booking_appliances', 'areas',

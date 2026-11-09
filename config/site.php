@@ -89,34 +89,72 @@ return [
     | - شرائح 'photo': ضع اسم ملف الصورة، وحطّ الصورة في public/images/technicians/
     |   لو الملف موجود يظهر تلقائياً، لو مش موجود يظهر placeholder "صورة الفني هنا".
     */
+    /*
+    | شرائح سلايدر الهيرو (تصميم full-bleed)
+    | - من غير صورة خلفية (الوضع الحالي): بيظهر تدرّج هوية (gradient_preset) + باترن هوا خفيف.
+    | - مع صورة خلفية: ارفعها من الداشبورد (background_image) — بتتحوّل WebP بمقاسين،
+    |   وبيتحط فوقها تدرّج غامق (overlay_strength) تحت النص بس عشان التباين.
+    | - features: كروت زجاجية تحت النص (3 كحد أقصى). عناصر حقيقية فقط:
+    |   {areas_count} توكن بيتحسب من المناطق المنشورة؛ كارت الضمان بيظهر بس لو حقول الضمان متملّية.
+    | gradient_preset: 1 = كحلي→أحمر، 2 = كحلي→أزرق، 3 = أحمر→كحلي.
+    | overlay_strength: light | medium | strong. focal: right | center | left.
+    */
     'hero_slides' => [
         [
-            'type'        => 'illustration',
-            'image'       => null,
-            'badge'       => 'فني يوصلك في نفس اليوم',
-            'title_lines' => ['تكييفك محتاج صيانة؟', 'سيبها علينا.'],
-            'text'        => 'صيانة، غسيل، شحن فريون، تركيب وإصلاح أعطال — بأيدي فنيين متخصصين، بأسعار واضحة، والدفع بعد ما الشغل يخلص.',
-            'cta_label'   => 'احجز فني دلوقتي',
-            'cta_href'    => '#booking',
+            'type'             => 'illustration',
+            'image'            => null,
+            'background_image' => null,
+            'background_alt'   => null,
+            'focal'            => 'center',
+            'gradient_preset'  => 1,
+            'overlay_strength' => 'medium',
+            'eyebrow'          => 'فني يوصلك في نفس اليوم',
+            'badge'            => 'فني يوصلك في نفس اليوم',
+            'title_lines'      => ['تكييفك محتاج صيانة؟', 'سيبها علينا.'],
+            'subtitle'         => 'صيانة، غسيل، شحن فريون، تركيب وإصلاح أعطال — بأيدي فنيين متخصصين، بأسعار واضحة، والدفع بعد ما الشغل يخلص.',
+            'text'             => 'صيانة، غسيل، شحن فريون، تركيب وإصلاح أعطال — بأيدي فنيين متخصصين، بأسعار واضحة، والدفع بعد ما الشغل يخلص.',
+            'cta_label'        => 'احجز فني دلوقتي',
+            'cta_href'         => '#booking',
+            'features'         => [
+                ['icon' => 'booking', 'title' => 'احجز أونلاين أو واتساب', 'text' => 'اطلب فني في دقائق، والدفع بعد ما الشغل يخلص.'],
+                ['icon' => 'coverage', 'title' => 'بنخدم {areas_count} منطقة', 'text' => 'تغطية واسعة في القاهرة الكبرى، وفني قريب من بيتك.'],
+                ['icon' => 'shield', 'title' => 'ضمان على الشغل', 'text' => 'ضمان مكتوب على الصيانة والقطع اللي بنركّبها.', 'requires' => 'warranty'],
+            ],
         ],
         [
-            'type'        => 'photo',
-            'image'       => 'tech-1.jpg', // TODO: ضع الصورة في public/images/technicians/tech-1.jpg
-            'badge'       => 'فنيين مدرّبين',
-            'title_lines' => ['فنيين تثق فيهم', 'في بيتك'],
-            'text'        => 'فريق متخصص بخبرة في كل أنواع التكييفات، بيشتغل بنظافة واحترام لمكانك ومواعيد مظبوطة.',
-            'cta_label'   => 'احجز فني دلوقتي',
-            'cta_href'    => '#booking',
+            'type'             => 'photo',
+            'image'            => 'tech-1.jpg', // TODO: ضع الصورة في public/images/technicians/tech-1.jpg
+            'background_image' => null,
+            'background_alt'   => null,
+            'focal'            => 'center',
+            'gradient_preset'  => 2,
+            'overlay_strength' => 'medium',
+            'eyebrow'          => 'فنيين مدرّبين',
+            'badge'            => 'فنيين مدرّبين',
+            'title_lines'      => ['فنيين تثق فيهم', 'في بيتك'],
+            'subtitle'         => 'فريق متخصص بخبرة في كل أنواع التكييفات، بيشتغل بنظافة واحترام لمكانك ومواعيد مظبوطة.',
+            'text'             => 'فريق متخصص بخبرة في كل أنواع التكييفات، بيشتغل بنظافة واحترام لمكانك ومواعيد مظبوطة.',
+            'cta_label'        => 'احجز فني دلوقتي',
+            'cta_href'         => '#booking',
+            'features'         => [],
         ],
         [
-            'type'        => 'photo',
-            'image'       => 'tech-2.jpg', // TODO: ضع الصورة في public/images/technicians/tech-2.jpg
-            'badge'       => 'تركيب وفك ونقل',
-            'title_lines' => ['تركيب احترافي', 'من أول مرة'],
-            'text'        => 'تركيب وفك ونقل التكييفات بأمان، مع تأسيس المواسير وتجربة التشغيل كاملة قبل ما نمشي.',
-            'cta_label'   => 'اطلب التركيب',
-            'cta_href'    => '#booking',
-            'cta_service' => 'تركيب تكييف', // بيختار الخدمة تلقائياً في الفورم
+            'type'             => 'photo',
+            'image'            => 'tech-2.jpg', // TODO: ضع الصورة في public/images/technicians/tech-2.jpg
+            'background_image' => null,
+            'background_alt'   => null,
+            'focal'            => 'center',
+            'gradient_preset'  => 3,
+            'overlay_strength' => 'medium',
+            'eyebrow'          => 'تركيب وفك ونقل',
+            'badge'            => 'تركيب وفك ونقل',
+            'title_lines'      => ['تركيب احترافي', 'من أول مرة'],
+            'subtitle'         => 'تركيب وفك ونقل التكييفات بأمان، مع تأسيس المواسير وتجربة التشغيل كاملة قبل ما نمشي.',
+            'text'             => 'تركيب وفك ونقل التكييفات بأمان، مع تأسيس المواسير وتجربة التشغيل كاملة قبل ما نمشي.',
+            'cta_label'        => 'اطلب التركيب',
+            'cta_href'         => '#booking',
+            'cta_service'      => 'تركيب تكييف', // بيختار الخدمة تلقائياً في الفورم
+            'features'         => [],
         ],
     ],
 
@@ -301,23 +339,63 @@ return [
     ],
 
     /*
+    | قسم «مين إحنا» بصورة (home). الصورة تترفع من الداشبورد (قرص sections).
+    | من غير أرقام/إحصائيات مخترعة — بس نقاط مميزات حقيقية.
+    */
+    'about_home' => [
+        'eyebrow'   => 'مين إحنا',
+        'title'     => 'فريق صيانة وتركيب تكييفات تقدر تعتمد عليه',
+        'body'      => 'بنقدّم صيانة وتركيب وإصلاح التكييفات والأجهزة المنزلية بأيدي فنيين متخصصين، بأسعار واضحة ومواعيد مظبوطة، والدفع بعد ما الشغل يخلص.',
+        'image'     => null,
+        'image_alt' => null,
+        'points'    => [
+            'فنيين متخصصين ومدرّبين',
+            'أسعار واضحة من غير مفاجآت',
+            'الدفع بعد ما الشغل يخلص',
+            'مواعيد مرنة حتى في نفس اليوم',
+        ],
+        'cta_label' => 'اعرف أكتر عننا',
+        'cta_href'  => '/about',
+    ],
+
+    /*
+    | قسم «خدماتنا بالصور» (home). كل بطاقة: صورة (قرص sections) + عنوان + وصف + رابط.
+    | icon = مفتاح احتياطي (service-icon) بيظهر فوق تدرّج لو الصورة لسه مترفعتش.
+    | slug = يربط بصفحة الخدمة لو منشورة؛ booking = الخدمة اللي تتحدد في الفورم.
+    */
+    'visual_services' => [
+        'title'    => 'خدماتنا',
+        'subtitle' => 'كل اللي تكييفك محتاجه، في مكان واحد.',
+        'items'    => [
+            ['image' => null, 'image_alt' => null, 'icon' => 'maintenance', 'title' => 'صيانة دورية', 'desc' => 'كشف وتنظيف وضبط الأداء عشان التكييف يفضل يبرّد ويوفّر كهربا.', 'slug' => 'ac-maintenance', 'booking' => 'صيانة دورية'],
+            ['image' => null, 'image_alt' => null, 'icon' => 'cleaning', 'title' => 'غسيل وتنظيف', 'desc' => 'غسيل الوحدة الداخلية والخارجية وإزالة الأتربة والروائح.', 'slug' => 'ac-cleaning', 'booking' => 'غسيل وتنظيف'],
+            ['image' => null, 'image_alt' => null, 'icon' => 'install', 'title' => 'تركيب تكييفات', 'desc' => 'تركيب احترافي للوحدات الجديدة مع تأسيس المواسير وتجربة التشغيل.', 'slug' => 'ac-installation', 'booking' => 'تركيب تكييف'],
+            ['image' => null, 'image_alt' => null, 'icon' => 'freon', 'title' => 'شحن فريون', 'desc' => 'فحص تسريب الغاز وإعادة الشحن بالكمية الصح لاستعادة قوة التبريد.', 'slug' => 'ac-gas-refill', 'booking' => 'شحن فريون'],
+            ['image' => null, 'image_alt' => null, 'icon' => 'repair', 'title' => 'إصلاح أعطال', 'desc' => 'تشخيص وإصلاح أعطال التبريد والكومبروسر والكهربا وبورد التحكم.', 'slug' => 'ac-repair', 'booking' => 'إصلاح عطل'],
+            ['image' => null, 'image_alt' => null, 'icon' => 'move', 'title' => 'فك ونقل', 'desc' => 'فك الوحدة بأمان ونقلها وإعادة تركيبها في المكان الجديد.', 'booking' => 'فك ونقل'],
+        ],
+    ],
+
+    /*
     | ترتيب أقسام الصفحة الرئيسية وإظهارها/إخفاؤها.
     | الترتيب الافتراضي = نفس شكل الموقع الحالي بالظبط.
     | key => مفتاح القسم في home.blade، enabled => يظهر ولا لأ.
     */
     'home_sections' => [
-        ['key' => 'hero',         'enabled' => true],
-        ['key' => 'services_1',   'enabled' => true],
-        ['key' => 'how',          'enabled' => true],
-        ['key' => 'services_2',   'enabled' => true],
-        ['key' => 'services_3',   'enabled' => true],
-        ['key' => 'services_link', 'enabled' => true],
-        ['key' => 'pricing',      'enabled' => true],
-        ['key' => 'why',          'enabled' => true],
-        ['key' => 'reviews',      'enabled' => true],
-        ['key' => 'areas',        'enabled' => true],
-        ['key' => 'faq',          'enabled' => true],
-        ['key' => 'booking',      'enabled' => true],
+        ['key' => 'hero',            'enabled' => true],
+        ['key' => 'visual_services', 'enabled' => true],
+        ['key' => 'how',             'enabled' => true],
+        ['key' => 'about',           'enabled' => true],
+        ['key' => 'services_1',      'enabled' => true],
+        ['key' => 'services_2',      'enabled' => true],
+        ['key' => 'services_3',      'enabled' => true],
+        ['key' => 'services_link',   'enabled' => true],
+        ['key' => 'pricing',         'enabled' => true],
+        ['key' => 'why',             'enabled' => true],
+        ['key' => 'reviews',         'enabled' => true],
+        ['key' => 'areas',           'enabled' => true],
+        ['key' => 'faq',             'enabled' => true],
+        ['key' => 'booking',         'enabled' => true],
     ],
 
 ];

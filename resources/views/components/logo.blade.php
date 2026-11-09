@@ -2,8 +2,18 @@
 
 @php
     // dark = نص كحلي (للهيدر الأبيض) | light = نص أبيض (للفوتر/الهيرو)
-    $text = $variant === 'light' ? '#ffffff' : 'var(--color-navy)';
-    $sub  = $variant === 'light' ? 'rgba(255,255,255,.75)' : 'var(--color-muted)';
+    // auto = بياخد currentColor (للهيدر الشفّاف اللي بيقلب أبيض↔كحلي عند التمرير)
+    $text = match ($variant) {
+        'light' => '#ffffff',
+        'auto'  => 'currentColor',
+        default => 'var(--color-navy)',
+    };
+    $sub = match ($variant) {
+        'light' => 'rgba(255,255,255,.75)',
+        'auto'  => 'currentColor',
+        default => 'var(--color-muted)',
+    };
+    $subOpacity = $variant === 'auto' ? '0.72' : '1';
 @endphp
 
 <a href="{{ url('/') }}" {{ $attributes->merge(['class' => 'inline-flex items-center gap-2.5 group']) }}
@@ -24,7 +34,7 @@
         <span class="block text-lg font-extrabold tracking-tight" style="color: {{ $text }}">
             {{ site('name') }}
         </span>
-        <span class="block text-[11px] font-medium mt-0.5" style="color: {{ $sub }}">
+        <span class="block text-[11px] font-medium mt-0.5" style="color: {{ $sub }}; opacity: {{ $subOpacity }}">
             {{ site('tagline') }}
         </span>
     </span>
