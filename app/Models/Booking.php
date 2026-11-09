@@ -11,11 +11,14 @@ class Booking extends Model
         'phone',
         'area',
         'service',
+        'brand',
         'appliance',
         'devices_count',
         'preferred_time',
         'notes',
+        'source_url',
         'status',
+        'admin_notes',
         'ip',
     ];
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Content;
 
 use App\Http\Controllers\Content\Concerns\LinksServices;
+use App\Http\Controllers\Content\Concerns\PreviewsDrafts;
 use App\Models\Post;
 use App\Models\PostCategory;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -10,7 +11,7 @@ use Illuminate\View\View;
 
 class BlogController extends PageController
 {
-    use LinksServices;
+    use LinksServices, PreviewsDrafts;
 
     protected string $modelClass = Post::class;
 
@@ -102,6 +103,8 @@ class BlogController extends PageController
             ->ogImage($post->cover ? 'images/blog/'.$post->cover : null)
             ->robots($post->hasCompleteContent() ? 'index,follow' : 'noindex,follow');
 
+        $draft = $this->previewDraft($post);
+
         $crumbs = [
             ['label' => 'الرئيسية', 'url' => '/'],
             ['label' => $this->indexTitle, 'url' => $this->basePath],
@@ -115,6 +118,7 @@ class BlogController extends PageController
         $crumbs[] = ['label' => $post->title_ar, 'url' => $path];
 
         return view('pages.post', [
+            'draft' => $draft,
             'post' => $post,
             'title' => $post->title_ar,
             'subtitle' => $post->excerpt,

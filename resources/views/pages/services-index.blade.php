@@ -20,7 +20,7 @@
                 @foreach ($services as $service)
                     <article class="group flex flex-col rounded-2xl border border-line bg-white p-6 hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
                         <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
-                            <x-service-icon :name="$icons[$service->slug] ?? 'maintenance'" />
+                            <x-service-icon :name="$service->icon ?: ($icons[$service->slug] ?? 'maintenance')" />
                         </div>
                         <h2 class="text-lg font-bold mb-2">{{ $service->name_ar }}</h2>
                         @if ($service->excerpt)
@@ -64,7 +64,7 @@
                        class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                         اطلب خدمة
                     </a>
-                    <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+                    <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                        class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                         اسأل على واتساب
                     </a>

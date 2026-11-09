@@ -42,26 +42,24 @@
             </div>
         </div>
 
-        {{-- شريط توضيح: مش توكيل --}}
-        <p class="mt-6 inline-flex items-start gap-2 rounded-xl bg-surface border border-line px-4 py-3 text-sm text-muted leading-relaxed max-w-2xl">
-            <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-            <span>إحنا مش توكيل {{ $title }} ولا أي ماركة — بنصلّح كل الماركات. لو جهازك لسه في ضمان الوكيل يُفضّل ترجعله عشان الضمان ما يسقطش.</span>
-        </p>
-
         <div class="flex flex-wrap gap-3 mt-7">
             <a href="#booking"
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                 احجز فني
             </a>
-            <a href="tel:{{ config('site.phone_tel') }}"
+            @if (\App\Support\Site::hasPhone())
+            <a href="tel:{{ \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay() }}"
                class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
-                اتصل: {{ config('site.phone') }}
+                اتصل: {{ \App\Support\Site::phoneDisplay() }}
             </a>
-            <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+            @endif
+            @if (\App\Support\Site::hasWhatsapp())
+            <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
                class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-accent hover:text-accent font-bold transition-colors">
                 اسأل على واتساب
             </a>
+            @endif
         </div>
     </header>
 
@@ -125,6 +123,46 @@
         </section>
     @endif
 
+    {{-- ============ ملاحظة ضمان الوكيل (تتخفى لو فاضية) ============ --}}
+    @if (filled($brand->warranty_agent_note))
+        <section class="mx-auto max-w-6xl px-4 pb-4">
+            <div class="max-w-3xl rounded-2xl border border-line bg-surface p-5 md:p-6">
+                <h2 class="text-lg md:text-xl font-extrabold mb-2">ملاحظة عن ضمان الوكيل لـ {{ $title }}</h2>
+                <div class="text-muted leading-loose space-y-3">
+                    @foreach (preg_split('/\n\s*\n/', trim($brand->warranty_agent_note)) as $para)
+                        <p>{{ $para }}</p>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- ============ أكواد الأعطال (تتخفى لو فاضية) ============ --}}
+    @if (! empty($brand->error_codes))
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <div class="max-w-2xl mb-6">
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2">أكواد الأعطال في تكييفات {{ $title }}</h2>
+                <p class="text-muted leading-relaxed">دليل مبسّط لأكواد الأعطال الشائعة. ⚠️ المعنى تقديري و<strong>قد يختلف حسب الموديل</strong> — للتأكيد كلّم فني.</p>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                @foreach ($brand->error_codes as $ec)
+                    <div class="rounded-2xl border border-line bg-white p-5">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="inline-flex items-center rounded-lg bg-brand-50 text-brand font-extrabold px-3 py-1 text-sm">{{ $ec['code'] ?? '' }}</span>
+                            <span class="font-bold leading-snug">{{ $ec['meaning'] ?? '' }}</span>
+                        </div>
+                        @if (filled($ec['safe_check'] ?? null))
+                            <p class="text-sm text-muted leading-relaxed mb-2"><span class="font-semibold text-ink">تقدر تتأكد بأمان:</span> {{ $ec['safe_check'] }}</p>
+                        @endif
+                        @if (filled($ec['when_call'] ?? null))
+                            <p class="text-sm text-muted leading-relaxed"><span class="font-semibold text-ink">كلّم فني لو:</span> {{ $ec['when_call'] }}</p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     {{-- ============ الخدمات المناسبة ============ --}}
     @if ($services->isNotEmpty())
         <section class="bg-surface scroll-mt-20">
@@ -132,12 +170,19 @@
                 <h2 class="text-2xl md:text-3xl font-extrabold mb-6">خدمات بنقدّمها لتكييفات {{ $title }}</h2>
                 <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($services as $svc)
-                        <a href="{{ '/services/' . $svc->slug }}"
+                        @php
+                            // لو فيه صفحة (ماركة × خدمة) منشورة، نوصّل ليها بدل صفحة الخدمة العامة.
+                            $hasBrandPage = in_array($svc->slug, $brandServiceSlugs ?? [], true);
+                            $svcUrl = $hasBrandPage
+                                ? '/brands/' . $brand->slug . '/' . $svc->slug
+                                : '/services/' . $svc->slug;
+                        @endphp
+                        <a href="{{ $svcUrl }}"
                            class="group flex flex-col rounded-2xl border border-line bg-white p-6 hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
                             <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
                                 <x-service-icon :name="$serviceIcons[$svc->slug] ?? 'maintenance'" />
                             </div>
-                            <h3 class="text-lg font-bold mb-2">{{ $svc->name_ar }}</h3>
+                            <h3 class="text-lg font-bold mb-2">{{ $hasBrandPage ? $svc->name_ar . ' ' . $brand->name_ar : $svc->name_ar }}</h3>
                             @if ($svc->excerpt)
                                 <p class="text-muted text-sm leading-relaxed flex-1">{{ $svc->excerpt }}</p>
                             @endif
@@ -152,12 +197,29 @@
         </section>
     @endif
 
+    {{-- ============ منتجات الماركة في المتجر ============ --}}
+    @if ($products->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <div class="mb-6 flex items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold md:text-3xl">منتجات {{ $title }} في المتجر</h2>
+                    <p class="mt-2 leading-relaxed text-muted">تكييفات وقطع غيار {{ $title }} المتاحة عندنا دلوقتي.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+                @foreach ($products as $product)
+                    <x-product-card :product="$product" />
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     {{-- ============ مناطق الخدمة ============ --}}
     @if ($areas->isNotEmpty())
         <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
             <div class="max-w-2xl mb-6">
                 <h2 class="text-2xl md:text-3xl font-extrabold mb-2">بنصلّح {{ $title }} في منطقتك</h2>
-                <p class="text-muted leading-relaxed">بنغطّي {{ config('site.areas_label') }} والمناطق المحيطة. اختر منطقتك واعرف التفاصيل.</p>
+                <p class="text-muted leading-relaxed">بنغطّي {{ site('areas_label') }} والمناطق المحيطة. اختر منطقتك واعرف التفاصيل.</p>
             </div>
             <ul class="flex flex-wrap gap-2.5 mb-5">
                 @foreach ($areas as $area)
@@ -202,7 +264,8 @@
         <div class="mx-auto max-w-4xl px-4 py-16 md:py-20">
             <x-booking-form
                 :heading="'احجز صيانة ' . $title"
-                sub="قولنا بياناتك والمنطقة والوقت المناسب، وهنتواصل معاك نأكد المعاد والسعر التقريبي." />
+                sub="قولنا بياناتك والمنطقة والوقت المناسب، وهنتواصل معاك نأكد المعاد والسعر التقريبي."
+                :brand="$brand->name_ar" />
         </div>
     </section>
 

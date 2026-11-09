@@ -19,6 +19,15 @@
 /public/hot
 /public/storage
 /storage/*.key
+
+# صور مرفوعة من الداشبورد (محتوى وقت التشغيل — مش جزء من الكود)
+/public/images/media/*
+!/public/images/media/.gitkeep
+/public/images/brands/*
+!/public/images/brands/.gitkeep
+/public/images/technicians/*
+!/public/images/technicians/.gitkeep
+!/public/images/technicians/README.txt
 /storage/pail
 /vendor
 Homestead.json

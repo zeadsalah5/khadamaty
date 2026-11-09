@@ -18,58 +18,89 @@ function initMobileMenu() {
     );
 }
 
-/* ========== سلايدر الهيرو (RTL، تشغيل تلقائي، أسهم، نقط، سحب) ========== */
-function initSlider(root) {
-    const track = root.querySelector('[data-slider-track]');
-    const slides = Array.from(root.querySelectorAll('.slider-slide'));
-    const dots = Array.from(root.querySelectorAll('[data-slider-dot]'));
-    const btnNext = root.querySelector('[data-slider-next]');
-    const btnPrev = root.querySelector('[data-slider-prev]');
-    const viewport = root.querySelector('.slider-viewport');
-    const n = slides.length;
-    if (!track || n < 2) return;
+/* ========== الهيدر الشفّاف فوق الهيرو (الرئيسية): يصير أبيض عند التمرير ========== */
+function initTransparentHeader() {
+    const header = document.querySelector('[data-transparent-header]');
+    if (!header) return;
 
-    const DELAY = 3000;
+    const THRESHOLD = 40;
+    const sync = () => header.classList.toggle('is-solid', window.scrollY > THRESHOLD);
+    sync(); // الحالة الصح لو الصفحة محمّلة وهي متمرّرة
+    window.addEventListener('scroll', sync, { passive: true });
+}
+
+/* ========== سلايدر الهيرو (crossfade، RTL، تشغيل/إيقاف، أسهم، نقط، سحب، a11y) ========== */
+function initHeroSlider(root) {
+    const slides = Array.from(root.querySelectorAll('[data-hero-slide]'));
+    const dots = Array.from(root.querySelectorAll('[data-hero-dot]'));
+    const btnNext = root.querySelector('[data-hero-next]');
+    const btnPrev = root.querySelector('[data-hero-prev]');
+    const btnPlay = root.querySelector('[data-hero-playpause]');
+    const area = root.querySelector('[data-hero-slides]');
+    const n = slides.length;
+    if (n < 2) return; // شريحة واحدة: تفضل ظاهرة من غير تحكّم
+
+    const DELAY = 5000;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let i = 0;
     let timer = null;
+    let paused = reduce; // تحت تقليل الحركة: مفيش تشغيل تلقائي
 
-    const go = (idx) => {
-        i = (idx + n) % n;
-        // RTL: إزاحة موجبة تُظهر الشريحة التالية (اللي على الشمال)
-        track.style.transform = `translateX(${i * 100}%)`;
-        slides.forEach((s, k) => (k === i ? s.removeAttribute('aria-hidden') : s.setAttribute('aria-hidden', 'true')));
+    const render = () => {
+        slides.forEach((s, k) => {
+            const active = k === i;
+            s.classList.toggle('is-active', active);
+            if (active) {
+                s.removeAttribute('aria-hidden');
+                s.removeAttribute('inert');
+            } else {
+                s.setAttribute('aria-hidden', 'true');
+                s.setAttribute('inert', '');
+            }
+        });
         dots.forEach((d, k) => {
             d.classList.toggle('is-active', k === i);
-            d.setAttribute('aria-current', k === i ? 'true' : 'false');
+            k === i ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current');
         });
     };
+
+    const go = (idx) => { i = (idx + n) % n; render(); };
     const next = () => go(i + 1);
     const prev = () => go(i - 1);
+
     const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
-    // لف تلقائي دايماً. تحت "تقليل الحركة" الـ CSS بيشيل حركة الانزلاق فيتبدّل فوراً.
-    const start = () => { stop(); timer = setInterval(next, DELAY); };
+    const run = () => { if (paused) return; stop(); timer = setInterval(next, DELAY); };
 
-    btnNext && btnNext.addEventListener('click', () => { next(); start(); });
-    btnPrev && btnPrev.addEventListener('click', () => { prev(); start(); });
-    dots.forEach((d, k) => d.addEventListener('click', () => { go(k); start(); }));
+    const setPaused = (p) => {
+        paused = p;
+        if (btnPlay) {
+            btnPlay.classList.toggle('is-paused', p);
+            btnPlay.setAttribute('aria-label', p ? 'تشغيل التبديل التلقائي' : 'إيقاف التبديل التلقائي');
+        }
+        p ? stop() : run();
+    };
 
-    // الوقوف عند الـ hover
-    root.addEventListener('mouseenter', stop);
-    root.addEventListener('mouseleave', start);
+    btnNext && btnNext.addEventListener('click', () => { next(); run(); });
+    btnPrev && btnPrev.addEventListener('click', () => { prev(); run(); });
+    dots.forEach((d, k) => d.addEventListener('click', () => { go(k); run(); }));
+    btnPlay && btnPlay.addEventListener('click', () => setPaused(!paused));
 
-    // السحب بالإصبع
+    // وقوف مؤقّت عند مرور الماوس (من غير ما يغيّر زر التشغيل/الإيقاف)
+    root.addEventListener('mouseenter', () => { if (!paused) stop(); });
+    root.addEventListener('mouseleave', () => { if (!paused) run(); });
+
+    // السحب بالإصبع (RTL: سحب لليسار = التالي)
     let x0 = null;
-    viewport.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; stop(); }, { passive: true });
-    viewport.addEventListener('touchend', (e) => {
+    area && area.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+    area && area.addEventListener('touchend', (e) => {
         if (x0 === null) return;
         const dx = e.changedTouches[0].clientX - x0;
-        if (Math.abs(dx) > 40) { dx < 0 ? next() : prev(); } // RTL: سحب لليسار = التالي
+        if (Math.abs(dx) > 40) { dx < 0 ? next() : prev(); run(); }
         x0 = null;
-        start();
     }, { passive: true });
 
-    go(0);
-    start();
+    render();
+    setPaused(reduce); // يضبط الزر ويشغّل اللف لو الحركة مسموحة
 }
 
 /* ========== زراير "اطلب الخدمة": تختار الخدمة في الفورم تلقائياً ========== */
@@ -147,7 +178,8 @@ function initDiagnose(root) {
 
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
-    document.querySelectorAll('[data-slider]').forEach(initSlider);
+    initTransparentHeader();
+    document.querySelectorAll('[data-hero-slider]').forEach(initHeroSlider);
     initServicePreselect();
     document.querySelectorAll('[data-diagnose]').forEach(initDiagnose);
 });

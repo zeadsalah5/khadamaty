@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    // بوابة الدفع الأونلاين (المرحلة 6E) — المفاتيح من .env بإيد صاحب الموقع.
+    // لو فاضية، الدفع الأونلاين مابيظهرش والموقع بيكمّل بالدفع عند الاستلام.
+    'paymob' => [
+        'secret_key'     => env('PAYMOB_SECRET_KEY'),
+        'public_key'     => env('PAYMOB_PUBLIC_KEY'),
+        'hmac_secret'    => env('PAYMOB_HMAC_SECRET'),
+        'integration_id' => env('PAYMOB_INTEGRATION_ID'),
+        'base_url'       => env('PAYMOB_BASE_URL', 'https://accept.paymob.com'),
+    ],
+
+    // مهلة إتمام الدفع الأونلاين بالدقائق — بعدها يتلغي الطلب ويرجع المخزون.
+    'payment' => [
+        'pending_timeout' => (int) env('PAYMENT_PENDING_TIMEOUT_MINUTES', 30),
+    ],
+
 ];

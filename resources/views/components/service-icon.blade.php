@@ -38,6 +38,15 @@
         @case('diagnose') {{-- كشف وتشخيص --}}
             <circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M8.5 11h5M11 8.5v5"/>
             @break
+        @case('booking') {{-- حجز: نتيجة فيها علامة صح --}}
+            <rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M9 15l2 2 4-4"/>
+            @break
+        @case('coverage') {{-- تغطية مناطق: دبوس خريطة --}}
+            <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>
+            @break
+        @case('shield') {{-- ضمان: درع فيه صح --}}
+            <path d="M12 3 5 6v5c0 4.3 3 8 7 10 4-2 7-5.7 7-10V6l-7-3Z"/><path d="m9 11.5 2 2 4-4"/>
+            @break
         @default
             <circle cx="12" cy="12" r="9"/>
     @endswitch

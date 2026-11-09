@@ -19,12 +19,18 @@ trait Publishable
 
     /**
      * يربط الراوت بالمنشور فقط؛ غير المنشور => ModelNotFoundException => 404.
+     * استثناء: الأدمن/المحرّر (can_preview_drafts) بيشوف المسوّدات كمعاينة
+     * (الكونترولر بيضيف شريط «مسودة» + X-Robots-Tag: noindex).
      */
     public function resolveRouteBinding($value, $field = null)
     {
-        return $this->where($field ?? $this->getRouteKeyName(), $value)
-            ->where('is_published', true)
-            ->firstOrFail();
+        $query = $this->where($field ?? $this->getRouteKeyName(), $value);
+
+        if (! can_preview_drafts()) {
+            $query->where('is_published', true);
+        }
+
+        return $query->firstOrFail();
     }
 
     public function scopePublished(Builder $query): Builder

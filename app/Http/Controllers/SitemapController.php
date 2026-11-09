@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Appliance;
 use App\Models\Area;
+use App\Models\AreaServicePage;
 use App\Models\Brand;
+use App\Models\BrandServicePage;
 use App\Models\Post;
 use App\Models\Product;
 use App\Models\Service;
@@ -71,6 +73,24 @@ class SitemapController extends Controller
             ];
         }
 
+        // صفحات (ماركة × خدمة): بتظهر بس لو فيه صفحة واحدة مكتملة ومنشورة على الأقل.
+        $brandServices = $this->indexableBrandServices();
+        if ($brandServices->isNotEmpty()) {
+            $sitemaps[] = [
+                'loc'     => $base . '/sitemap-brand-services.xml',
+                'lastmod' => $this->iso($brandServices->max('updated_at')),
+            ];
+        }
+
+        // صفحات (منطقة × خدمة): نفس المنطق.
+        $areaServices = $this->indexableAreaServices();
+        if ($areaServices->isNotEmpty()) {
+            $sitemaps[] = [
+                'loc'     => $base . '/sitemap-area-services.xml',
+                'lastmod' => $this->iso($areaServices->max('updated_at')),
+            ];
+        }
+
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
         foreach ($sitemaps as $s) {
@@ -112,6 +132,14 @@ class SitemapController extends Controller
             ];
         }
 
+        // /used — صفحة محتوى ثابتة قابلة للفهرسة (بتدخل لو فيه منتجات أصلاً في المتجر).
+        if (Product::query()->published()->count() > 0) {
+            $urls[] = [
+                'loc'     => $base . '/used',
+                'lastmod' => $this->pagesLastmod(),
+            ];
+        }
+
         // فهرس كل نوع بيدخل بس لو فيه عناصر منشورة (غير كده هو noindex).
         foreach ($this->types() as [$model, $path]) {
             $query = $model::query()->published();
@@ -124,12 +152,39 @@ class SitemapController extends Controller
             ];
         }
 
+        // صفحات أقسام المتجر اللي فيها منتجات منشورة (محتوى فريد indexable).
+        foreach ($this->publishedShopCategoryUrls($base) as $catUrl) {
+            $urls[] = $catUrl;
+        }
+
         return $this->urlsetXml($urls);
     }
 
     /** ساب-سايت ماب لنوع واحد: روابط العناصر المنشورة مع lastmod من updated_at. */
     public function type(string $type): Response
     {
+        // صفحات (ماركة × خدمة): بنية URL مختلفة فمش ضمن types() العادية.
+        if ($type === 'brand-services') {
+            $xml = Cache::remember(
+                'sitemap:type:brand-services:' . md5($this->base()),
+                $this->ttl,
+                fn () => $this->buildBrandServices()
+            );
+
+            return $this->xml($xml);
+        }
+
+        // صفحات (منطقة × خدمة).
+        if ($type === 'area-services') {
+            $xml = Cache::remember(
+                'sitemap:type:area-services:' . md5($this->base()),
+                $this->ttl,
+                fn () => $this->buildAreaServices()
+            );
+
+            return $this->xml($xml);
+        }
+
         abort_unless(isset($this->types()[$type]), 404);
 
         $xml = Cache::remember(
@@ -145,6 +200,21 @@ class SitemapController extends Controller
     {
         [$model, $path] = $this->types()[$type];
         $base = $this->base();
+
+        // المنتجات: المسار الكانوني /shop/{category}/{slug}، والمباع القديم (٦٠ يوم+) بيخرج.
+        if ($type === 'products') {
+            $urls = Product::query()->published()
+                ->with('category')
+                ->orderByDesc('updated_at')
+                ->get()
+                ->filter(fn (Product $p) => $p->isIndexable() && $p->category)
+                ->map(fn (Product $p) => [
+                    'loc'     => $base . $p->path(),
+                    'lastmod' => $this->iso($p->updated_at),
+                ])->values()->all();
+
+            return $this->urlsetXml($urls);
+        }
 
         $urls = $model::query()->published()
             ->orderByDesc('updated_at')
@@ -177,6 +247,76 @@ class SitemapController extends Controller
                 'loc'     => $base . '/blog/category/' . $c->getRouteKey(),
                 'lastmod' => $this->iso($c->posts()->where('is_published', true)->max('updated_at')),
             ])->all();
+    }
+
+    /** روابط صفحات أقسام المتجر اللي فيها منتجات منشورة (indexable). */
+    protected function publishedShopCategoryUrls(string $base): array
+    {
+        return \App\Models\ProductCategory::query()->published()
+            ->orderBy('position')
+            ->get()
+            ->filter(fn ($c) => $c->publishedProductsQuery()->exists())
+            ->map(fn ($c) => [
+                'loc'     => $base . $c->path(),
+                'lastmod' => $this->iso($c->publishedProductsQuery()->max('updated_at')),
+            ])->values()->all();
+    }
+
+    /**
+     * صفحات (ماركة × خدمة) القابلة للفهرسة: منشورة + محتواها كامل + الماركة والخدمة منشورتين.
+     * (نفس منطق المنتجات: فلترة الـ indexable في PHP بعد تحميل العلاقات.)
+     */
+    protected function indexableBrandServices(): \Illuminate\Support\Collection
+    {
+        return BrandServicePage::query()->published()
+            ->with(['brand', 'service'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->filter(fn (BrandServicePage $p) => $p->hasCompleteContent()
+                && $p->brand && $p->brand->is_published
+                && $p->service && $p->service->is_published);
+    }
+
+    /** ساب-سايت ماب لصفحات (ماركة × خدمة) القابلة للفهرسة. */
+    protected function buildBrandServices(): string
+    {
+        $base = $this->base();
+
+        $urls = $this->indexableBrandServices()
+            ->map(fn (BrandServicePage $p) => [
+                'loc'     => $base . '/brands/' . $p->brand->slug . '/' . $p->service->slug,
+                'lastmod' => $this->iso($p->updated_at),
+            ])->values()->all();
+
+        return $this->urlsetXml($urls);
+    }
+
+    /**
+     * صفحات (منطقة × خدمة) القابلة للفهرسة: منشورة + مكتملة + المنطقة والخدمة منشورتين.
+     */
+    protected function indexableAreaServices(): \Illuminate\Support\Collection
+    {
+        return AreaServicePage::query()->published()
+            ->with(['area', 'service'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->filter(fn (AreaServicePage $p) => $p->hasCompleteContent()
+                && $p->area && $p->area->is_published
+                && $p->service && $p->service->is_published);
+    }
+
+    /** ساب-سايت ماب لصفحات (منطقة × خدمة) القابلة للفهرسة. */
+    protected function buildAreaServices(): string
+    {
+        $base = $this->base();
+
+        $urls = $this->indexableAreaServices()
+            ->map(fn (AreaServicePage $p) => [
+                'loc'     => $base . '/areas/' . $p->area->slug . '/' . $p->service->slug,
+                'lastmod' => $this->iso($p->updated_at),
+            ])->values()->all();
+
+        return $this->urlsetXml($urls);
     }
 
     protected function pagesLastmod(): ?string

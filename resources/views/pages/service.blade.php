@@ -33,6 +33,13 @@
                 @if ($subtitle)
                     <p class="text-muted text-lg leading-relaxed max-w-2xl">{{ $subtitle }}</p>
                 @endif
+                @php $hasWarranty = filled(site('warranty_scope')) && filled(site('warranty_exclusions')); @endphp
+                @if ($hasWarranty)
+                    <span class="inline-flex items-center gap-1.5 mt-3 rounded-full bg-accent/10 text-accent-600 border border-accent/30 px-3 py-1 text-sm font-bold">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+                        ضمان {{ (int) site('warranty_months', 6) }} شهور على الخدمة
+                    </span>
+                @endif
             </div>
         </div>
 
@@ -41,15 +48,19 @@
                class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                 احجز الخدمة
             </a>
-            <a href="tel:{{ config('site.phone_tel') }}"
+            @if (\App\Support\Site::hasPhone())
+            <a href="tel:{{ \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay() }}"
                class="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2Z"/></svg>
-                اتصل: {{ config('site.phone') }}
+                اتصل: {{ \App\Support\Site::phoneDisplay() }}
             </a>
-            <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+            @endif
+            @if (\App\Support\Site::hasWhatsapp())
+            <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
                class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-accent hover:text-accent font-bold transition-colors">
                 اسأل على واتساب
             </a>
+            @endif
         </div>
     </header>
 
@@ -72,6 +83,21 @@
                 @foreach ($service->includes as $item)
                     <li class="flex items-start gap-3 rounded-xl border border-line bg-white px-5 py-4">
                         <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-accent mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                        <span class="leading-relaxed">{{ $item }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
+    {{-- ============ الخدمة ميشملش إيه (تتخفى لو فاضية) ============ --}}
+    @if (! empty($service->excludes))
+        <section class="mx-auto max-w-6xl px-4 pb-4 md:pb-6">
+            <h2 class="text-2xl md:text-3xl font-extrabold mb-6">الخدمة ميشملش إيه</h2>
+            <ul class="grid gap-3 sm:grid-cols-2">
+                @foreach ($service->excludes as $item)
+                    <li class="flex items-start gap-3 rounded-xl border border-line bg-surface px-5 py-4">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
                         <span class="leading-relaxed">{{ $item }}</span>
                     </li>
                 @endforeach
@@ -119,6 +145,24 @@
         </section>
     @endif
 
+    {{-- ============ إيه اللي بيأثر على التكلفة (تتخفى لو فاضية) ============ --}}
+    @if (! empty($service->cost_factors))
+        <section class="mx-auto max-w-6xl px-4 py-10 md:py-12">
+            <div class="max-w-2xl mb-6">
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2">إيه اللي بيأثر على التكلفة</h2>
+                <p class="text-muted leading-relaxed">التكلفة بتختلف حسب العوامل دي — بنوضّحها لك قبل أي شغل.</p>
+            </div>
+            <ul class="grid gap-3 sm:grid-cols-2">
+                @foreach ($service->cost_factors as $factor)
+                    <li class="flex items-start gap-3 rounded-xl border border-line bg-white px-5 py-4">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0 text-brand mt-0.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <span class="leading-relaxed">{{ $factor }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     {{-- ============ المدة والسعر (placeholders) ============ --}}
     @if (filled($service->price_note) || filled($service->duration_note))
         <section class="mx-auto max-w-6xl px-4 pb-4">
@@ -137,6 +181,20 @@
                         <p class="text-xs text-muted mt-2">بتختلف حسب حالة الجهاز وعددها.</p>
                     </div>
                 @endif
+            </div>
+        </section>
+    @endif
+
+    {{-- ============ الضمان (يظهر بس لو النطاق والاستثناءات متملّيين) ============ --}}
+    @if (filled(site('warranty_scope')) && filled(site('warranty_exclusions')))
+        <section class="mx-auto max-w-6xl px-4 py-10 md:py-12">
+            <div class="max-w-3xl rounded-2xl border border-accent/30 bg-accent/5 p-6 md:p-7">
+                <div class="flex items-center gap-2 mb-3">
+                    <svg viewBox="0 0 24 24" class="w-6 h-6 text-accent-600" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <h2 class="text-2xl font-extrabold">ضمان {{ (int) site('warranty_months', 6) }} شهور</h2>
+                </div>
+                <p class="text-ink leading-relaxed mb-2"><span class="font-bold">نطاق الضمان:</span> {{ site('warranty_scope') }}</p>
+                <p class="text-muted leading-relaxed"><span class="font-bold text-ink">الاستثناءات:</span> {{ site('warranty_exclusions') }}</p>
             </div>
         </section>
     @endif
@@ -169,7 +227,7 @@
                         <a href="{{ '/services/' . $rel->slug }}"
                            class="group flex flex-col rounded-2xl border border-line bg-white p-6 hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
                             <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
-                                <x-service-icon :name="$relatedIcons[$rel->slug] ?? 'maintenance'" />
+                                <x-service-icon :name="$rel->icon ?: ($relatedIcons[$rel->slug] ?? 'maintenance')" />
                             </div>
                             <h3 class="text-lg font-bold mb-2">{{ $rel->name_ar }}</h3>
                             @if ($rel->excerpt)
@@ -186,13 +244,33 @@
         </section>
     @endif
 
+    {{-- ============ الخدمة حسب الماركة (صفحات ماركة × خدمة) ============ --}}
+    @if (! empty($brandPages) && $brandPages->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <div class="max-w-2xl mb-6">
+                <h2 class="text-2xl md:text-3xl font-extrabold mb-2">{{ $title }} حسب الماركة</h2>
+                <p class="text-muted leading-relaxed">صفحات بتفاصيل أكتر عن الخدمة دي لكل ماركة — أعطالها الشائعة وطريقة شغلنا معاها.</p>
+            </div>
+            <ul class="flex flex-wrap gap-2.5">
+                @foreach ($brandPages as $bp)
+                    <li>
+                        <a href="{{ $bp['url'] }}"
+                           class="inline-block bg-surface border border-line rounded-full px-4 py-2 text-sm font-medium hover:border-brand hover:text-brand transition-colors">
+                            {{ $title }} {{ $bp['name'] }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     {{-- ============ مناطق الخدمة + الماركات ============ --}}
     <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
         <div class="grid gap-8 lg:grid-cols-2">
             @if (! empty($areas))
                 <div>
                     <h2 class="text-xl md:text-2xl font-extrabold mb-2">بنغطي منطقتك؟</h2>
-                    <p class="text-muted leading-relaxed mb-4">بنخدم {{ config('site.areas_label') }} والمناطق المحيطة. مش لاقي منطقتك؟ كلّمنا ونشوفها.</p>
+                    <p class="text-muted leading-relaxed mb-4">بنخدم {{ site('areas_label') }} والمناطق المحيطة. مش لاقي منطقتك؟ كلّمنا ونشوفها.</p>
                     @php $areaLinks = \App\Models\Area::query()->published()->pluck('slug', 'name_ar'); @endphp
                     <ul class="flex flex-wrap gap-2.5">
                         @foreach ($areas as $area)
@@ -216,7 +294,7 @@
 
             <div>
                 <h2 class="text-xl md:text-2xl font-extrabold mb-2">بنشتغل على كل الماركات</h2>
-                <p class="text-muted leading-relaxed mb-4">إحنا مش توكيل لماركة بذاتها — فنيينا متدربين على أنواع وموديلات مختلفة. قولنا نوع جهازك وموديله وإحنا نظبّطك.</p>
+                <p class="text-muted leading-relaxed mb-4">فنيينا متدربين على أنواع وموديلات مختلفة. قولنا نوع جهازك وموديله وإحنا نظبّطك.</p>
                 <a href="{{ route('brands.index') }}"
                    class="inline-flex items-center gap-1.5 text-brand font-bold text-sm hover:gap-2.5 transition-all">
                     شوف الماركات اللي بنتعامل معاها

@@ -5,10 +5,11 @@ namespace Database\Seeders;
 use App\Models\Appliance;
 use App\Models\Area;
 use App\Models\Brand;
+use App\Models\BrandServicePage;
 use App\Models\Post;
 use App\Models\PostCategory;
-use App\Models\Product;
 use App\Models\Service;
+use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Database\Seeder;
 
@@ -17,6 +18,11 @@ class ContentSeeder extends Seeder
     public function run(): void
     {
         $now = now();
+
+        // مراجِع البيانات الأولية = أول أدمن (موجود في التطوير — شوف DatabaseSeeder).
+        // المحتوى اللي بيتزرع منشور بيتسجّل متراجَع بواسطته عشان يفضل قابل للنشر
+        // تحت سير المراجعة الجديد (reviewed_by مطلوب). فاضي => بيفضل مسوّدة.
+        $reviewerId = User::where('role', 'admin')->value('id');
 
         /*
         | الخدمات (المرحلة 2) — 9 خدمات بـ slugs إنجليزي ثابتة ومحتوى عربي من
@@ -27,14 +33,11 @@ class ContentSeeder extends Seeder
         */
         $servicesData = require __DIR__.'/data/services.php';
         foreach ($servicesData as $slug => $fields) {
+            $fields = $this->scrub($fields);
             $service = Service::updateOrCreate(['slug' => $slug], $fields);
 
-            // النشر بناءً على اكتمال المحتوى (مش بنلغي نشر حاجة اتنشرت يدوياً بمحتوى كامل).
-            $complete = $service->hasCompleteContent();
-            $service->forceFill([
-                'is_published' => $complete,
-                'published_at' => $complete ? ($service->published_at ?? $now) : null,
-            ])->save();
+            // النشر بناءً على اكتمال المحتوى + صفر TODO + مراجَع (سير المراجعة الموحّد).
+            $service->forceFill($this->reviewFill($service, $reviewerId, $now))->save();
         }
 
         /*
@@ -47,19 +50,57 @@ class ContentSeeder extends Seeder
         ])->delete();
 
         /*
-        | المناطق (المرحلة 3) — من database/seeders/data/areas.php.
-        | نفس منطق الخدمات: المنطقة اللي محتواها كامل بتتنشر تلقائياً،
-        | والناقصة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
+        | أيقونة الخدمة ونوع خدمة الحجز (المرحلة C2) — بتتعدّل من الداشبورد.
+        | بنملا الناقص بس (null) عشان ما نكتبش فوق تعديلات لوحة التحكم.
+        */
+        $icons = [
+            'ac-maintenance' => 'maintenance', 'ac-repair' => 'repair', 'ac-cleaning' => 'cleaning',
+            'ac-installation' => 'install', 'ac-gas-refill' => 'freon', 'ac-leak-repair' => 'diagnose',
+            'split-ac-maintenance' => 'maintenance', 'central-ac-maintenance' => 'contract',
+            'ac-piping-installation' => 'pipes',
+        ];
+        $bookingMap = [
+            'ac-maintenance' => 'صيانة دورية', 'ac-repair' => 'إصلاح عطل', 'ac-cleaning' => 'غسيل وتنظيف',
+            'ac-installation' => 'تركيب تكييف', 'ac-gas-refill' => 'شحن فريون', 'ac-leak-repair' => 'إصلاح عطل',
+            'split-ac-maintenance' => 'صيانة دورية', 'central-ac-maintenance' => 'صيانة دورية',
+            'ac-piping-installation' => 'تركيب تكييف',
+        ];
+        foreach ($icons as $slug => $icon) {
+            Service::where('slug', $slug)->whereNull('icon')->update([
+                'icon' => $icon,
+                'booking_service' => $bookingMap[$slug] ?? null,
+            ]);
+        }
+
+        /*
+        | المناطق (المرحلة 3 / K2) — من database/seeders/data/areas.php.
+        | **المعلومات المحلية (الأحياء ونوع المباني والمشاكل) اتكتبت من معرفة عامة**،
+        | فكل صفحات المناطق بتتزرع **«محتاجة مراجعة الفني» وغير منشورة** (المحتوى محفوظ
+        | كمسودة) — لازم الفني يراجعها قبل النشر. المنطقة الناقصة (زي فيصل) بتفضل draft.
         */
         $areasData = require __DIR__.'/data/areas.php';
         foreach ($areasData as $slug => $fields) {
+            $fields = $this->scrub($fields);
             $area = Area::updateOrCreate(['slug' => $slug], $fields);
 
-            $complete = $area->hasCompleteContent();
-            $area->forceFill([
-                'is_published' => $complete,
-                'published_at' => $complete ? ($area->published_at ?? $now) : null,
-            ])->save();
+            // محتوى مكتمل وصفر TODO => «محتاجة مراجعة»؛ غير كده مسودة. مفيش نشر تلقائي.
+            $complete = $area->hasCompleteContent() && ! $area->hasTodo();
+
+            $fill = [
+                'is_published'   => false,
+                'published_at'   => null,
+                'content_status' => $complete ? Area::STATUS_NEEDS_REVIEW : Area::STATUS_DRAFT,
+                'reviewed_by'    => null,
+                'reviewed_at'    => null,
+            ];
+
+            // توصيل المتجر: placeholder للمناطق المكتملة (مستقل عن نشر صفحة المنطقة).
+            if ($complete && $area->delivery_note === null && (float) $area->delivery_fee === 0.0) {
+                $fill['delivers'] = true;
+                $fill['delivery_note'] = 'TODO: صاحب الموقع يحدد رسوم التوصيل لهذه المنطقة.';
+            }
+
+            $area->forceFill($fill)->save();
         }
 
         /*
@@ -70,21 +111,54 @@ class ContentSeeder extends Seeder
 
         /*
         | الماركات (المرحلة 3) — من database/seeders/data/brands.php.
-        | نفس منطق النشر الآلي حسب اكتمال المحتوى. بدون لوجوهات، بدون ادّعاء وكالة.
+        | نفس منطق النشر الآلي حسب اكتمال المحتوى. اللوجوهات أرسلها صاحب الموقع وبتتدار
+        | من الداشبورد (public/images/brands)؛ استخدام اسمي لتوضيح الماركات اللي بنصلّحها،
+        | مع إبقاء توضيح الاستقلال «مش توكيل». (كاريير/شارب نصّي — مفيش لوجو مُرسل.)
         */
+        $brandLogos = [
+            'lg' => 'lg.svg', 'union-air' => 'union-air.png', 'samsung' => 'samsung.webp',
+            'midea' => 'midea.webp', 'fresh' => 'fresh.svg', 'tornado' => 'tornado.svg',
+            'gree' => 'gree.webp', 'york' => 'york.webp', 'toshiba' => 'toshiba.webp',
+        ];
         $brandsData = require __DIR__.'/data/brands.php';
         foreach ($brandsData as $slug => $fields) {
+            $fields = $this->scrub($fields);
             $brand = Brand::updateOrCreate(['slug' => $slug], $fields);
 
-            $complete = $brand->hasCompleteContent();
-            $brand->forceFill([
-                'is_published' => $complete,
-                'published_at' => $complete ? ($brand->published_at ?? $now) : null,
-            ])->save();
+            // لوجو افتراضي لو مفيش واحد متحدّد (الملف في public/images/brands، يتغيّر من الداشبورد).
+            if (blank($brand->logo) && isset($brandLogos[$slug])) {
+                $brand->logo = $brandLogos[$slug];
+            }
+
+            $brand->forceFill($this->reviewFill($brand, $reviewerId, $now))->save();
         }
 
         // تنظيف ماركات placeholder قديمة.
         Brand::whereIn('slug', ['brand-placeholder-1', 'brand-placeholder-2'])->delete();
+
+        /*
+        | صفحات (ماركة × خدمة) — المرحلة K1 (SEO عضوي).
+        | من database/seeders/data/brand_services.php، المفتاح 'brand|service'.
+        | **بتتزرع دايماً كمسوّدة (is_published=false)** — عكس باقي المحتوى — عشان
+        | تتراجع وتتنشر يدوياً من الداشبورد بعد ملء السعر/المدة (TODO صاحب الموقع).
+        | الصفحة الناقصة أو غير المنشورة => 404 + noindex + برّه السايت ماب.
+        */
+        $brandServicesData = require __DIR__.'/data/brand_services.php';
+        $brandIds = Brand::pluck('id', 'slug');
+        $serviceIds = Service::pluck('id', 'slug');
+        foreach ($brandServicesData as $key => $fields) {
+            [$brandSlug, $serviceSlug] = explode('|', $key);
+            $brandId = $brandIds[$brandSlug] ?? null;
+            $serviceId = $serviceIds[$serviceSlug] ?? null;
+            if (! $brandId || ! $serviceId) {
+                continue; // ماركة/خدمة مش موجودة => نتخطّى بأمان
+            }
+
+            BrandServicePage::updateOrCreate(
+                ['brand_id' => $brandId, 'service_id' => $serviceId],
+                $this->scrub($fields) + ['is_published' => false, 'published_at' => null],
+            );
+        }
 
         /*
         | ما تحت ده كله placeholders غير منشورة (is_published=false):
@@ -123,28 +197,82 @@ class ContentSeeder extends Seeder
             $category = $fields['category'] ?? null;
             unset($fields['category']);
             $fields['category_id'] = $category ? ($catIds[$category] ?? null) : null;
+            $fields = $this->scrub($fields);
+
+            // مقالات K3 (من أسئلة الناس) بتتزرع مسودة إجبارياً — لازم مراجعة قبل النشر.
+            $forceDraft = ! empty($fields['force_draft']);
+            unset($fields['force_draft']);
 
             $post = Post::updateOrCreate(['slug' => $slug], $fields);
 
-            // المقال الكامل بيتنشر تلقائياً؛ المسوّدة بتفضل غير منشورة => 404 + noindex + بره السايت ماب.
-            $complete = $post->hasCompleteContent();
-            $post->forceFill([
-                'is_published' => $complete,
-                'published_at' => $complete ? ($post->published_at ?? $now) : null,
-            ])->save();
+            // غلاف افتراضي حسب التصنيف لو مفيش غلاف متحدّد (صور في public/images/blog).
+            if (blank($post->cover)) {
+                $coverByCat = [
+                    'faults' => 'faults.jpg', 'maintenance' => 'maintenance.jpg',
+                    'buying-installation' => 'buying.jpg', 'energy-saving' => 'indoor.jpg',
+                ];
+                $post->cover = $coverByCat[$category] ?? 'indoor.jpg';
+            }
+
+            if ($forceDraft) {
+                $post->forceFill([
+                    'is_published'   => false,
+                    'published_at'   => null,
+                    'content_status' => Post::STATUS_DRAFT,
+                    'reviewed_by'    => null,
+                    'reviewed_at'    => null,
+                ])->save();
+            } else {
+                // المقال الكامل + صفر TODO + مراجَع بيتنشر؛ غير كده مسوّدة (404 + noindex + بره السايت ماب).
+                $post->forceFill($this->reviewFill($post, $reviewerId, $now))->save();
+            }
         }
 
-        Product::updateOrCreate(['slug' => 'product-placeholder-1'], [
-            'name_ar' => 'منتج تجريبي (TODO)',
-            'excerpt' => 'وصف المنتج هيتكتب هنا.',
-            'price' => null, // لا سعر => مفيش offers في الـ schema
-            'is_published' => false,
-        ]);
+        // المنتجات التجريبية بقت في StoreSeeder (المرحلة 6A) مع الأقسام والمواصفات.
 
         Vendor::updateOrCreate(['slug' => 'vendor-placeholder-1'], [
             'name_ar' => 'تاجر تجريبي (TODO)',
             'about' => 'نبذة عن التاجر هتتكتب هنا.',
             'is_published' => false,
         ]);
+    }
+
+    /**
+     * قيم النشر + سير المراجعة لعنصر محتوى:
+     * بيتنشر بس لو المحتوى مكتمل + صفر TODO (canPublish فعلياً)، ويتسجّل متراجَع
+     * بواسطة الأدمن. غير كده بيفضل مسوّدة (content_status=draft, غير منشور).
+     * مابيلغيش تاريخ/مراجعة سابقة لو كانت موجودة.
+     *
+     * @param  \App\Models\Concerns\HasReviewWorkflow  $model
+     */
+    /**
+     * تنظيف حقول المحتوى من أي تصريح عن وضع التوكيل (حياد تام — طلب صاحب الموقع).
+     * بتتطبّق على بيانات الـ seed قبل الحفظ، فالمحتوى يفضل نضيف حتى بعد migrate:fresh.
+     */
+    private function scrub(array $fields): array
+    {
+        foreach (['excerpt', 'intro', 'body', 'seo_description'] as $k) {
+            if (isset($fields[$k])) {
+                $fields[$k] = \App\Support\AgencyScrub::text($fields[$k]);
+            }
+        }
+        if (isset($fields['faqs'])) {
+            $fields['faqs'] = \App\Support\AgencyScrub::faqs($fields['faqs']);
+        }
+
+        return $fields;
+    }
+
+    private function reviewFill($model, ?int $reviewerId, $now): array
+    {
+        $publishable = $model->hasCompleteContent() && ! $model->hasTodo();
+
+        return [
+            'is_published'   => $publishable,
+            'published_at'   => $publishable ? ($model->published_at ?? $now) : null,
+            'content_status' => $publishable ? $model::STATUS_READY : $model::STATUS_DRAFT,
+            'reviewed_by'    => $publishable ? ($model->reviewed_by ?? $reviewerId) : null,
+            'reviewed_at'    => $publishable ? ($model->reviewed_at ?? $now) : null,
+        ];
     }
 }

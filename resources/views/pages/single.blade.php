@@ -19,14 +19,6 @@
                 :datePublished="optional($model->published_at)->toIso8601String()"
                 :dateModified="optional($model->updated_at)->toIso8601String()" />
             @break
-        @case('product')
-            <x-schema.product
-                :name="$title"
-                :description="$subtitle"
-                :url="$canonical"
-                :sku="$model->sku"
-                :price="$model->price" />
-            @break
     @endswitch
 @endpush
 

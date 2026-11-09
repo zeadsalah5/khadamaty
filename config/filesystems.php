@@ -58,6 +58,69 @@ return [
             'report' => false,
         ],
 
+        // قرص لوجوهات الماركات — public/images/brands (نفس نمط قرص المدونة).
+        'brands' => [
+            'driver' => 'local',
+            'root' => public_path('images/brands'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/brands',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // صور المتجر (منتجات + أقسام) — public/images/products (نفس نمط قرص الماركات).
+        // الرابط نسبي (/images/products) عشان العرض يشتغل على أي host/port من غير ما يعتمد
+        // على APP_URL؛ روابط الـ schema/og بتتعمل absolute عند الاستخدام (imageUrls + Seo).
+        'products' => [
+            'driver' => 'local',
+            'root' => public_path('images/products'),
+            'url' => '/images/products',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // مكتبة الميديا العامة — public/images/media.
+        'media' => [
+            'driver' => 'local',
+            'root' => public_path('images/media'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // صور فنيي سلايدر الهيرو — public/images/technicians.
+        'technicians' => [
+            'driver' => 'local',
+            'root' => public_path('images/technicians'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/images/technicians',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // صور خلفية الهيرو (full-bleed) — public/images/hero. الرابط نسبي (/images/hero)
+        // عشان صورة الـ LCP تشتغل على أي host/port من غير ما تعتمد على APP_URL.
+        'hero' => [
+            'driver' => 'local',
+            'root' => public_path('images/hero'),
+            'url' => '/images/hero',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // صور أقسام الصفحة الرئيسية (مين إحنا / خدماتنا بالصور) — public/images/sections.
+        'sections' => [
+            'driver' => 'local',
+            'root' => public_path('images/sections'),
+            'url' => '/images/sections',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

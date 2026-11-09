@@ -127,7 +127,7 @@
                        class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
                         احجز فني دلوقتي
                     </a>
-                    <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+                    <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                        class="inline-flex items-center px-6 py-3 rounded-full bg-accent hover:bg-accent-600 text-white font-bold transition-colors">
                         اسأل على واتساب
                     </a>

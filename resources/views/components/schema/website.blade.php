@@ -4,7 +4,7 @@
     $data = [
         '@context' => 'https://schema.org',
         '@type'    => 'WebSite',
-        'name'     => config('site.name'),
+        'name'     => site('name'),
         'url'      => $base . '/',
         'inLanguage' => 'ar-EG',
     ];

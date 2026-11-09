@@ -106,17 +106,7 @@ class PostResource extends Resource
                 ])
                 ->columns(1),
 
-            Forms\Components\Section::make('النشر')
-                ->schema([
-                    Forms\Components\DateTimePicker::make('published_at')
-                        ->label('تاريخ النشر')
-                        ->helperText('لو سِبته فاضي وفعّلت النشر هيتحط تلقائياً بتاريخ دلوقتي.'),
-
-                    Forms\Components\Toggle::make('is_published')
-                        ->label('منشور')
-                        ->helperText('لو المحتوى ناقص، هيتسجّل كمسوّدة (noindex وبره السايت ماب) حتى لو فعّلت ده.'),
-                ])
-                ->columns(2),
+            \App\Filament\Support\ReviewFields::section(),
         ]);
     }
 
@@ -140,6 +130,14 @@ class PostResource extends Resource
                     ->badge()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('content_status')->label('المراجعة')->badge()
+                    ->formatStateUsing(fn (string $state) => Post::reviewStatusLabels()[$state] ?? $state)
+                    ->color(fn (string $state) => match ($state) {
+                        Post::STATUS_READY => 'success',
+                        Post::STATUS_NEEDS_REVIEW => 'warning',
+                        default => 'gray',
+                    })->sortable(),
+
                 Tables\Columns\IconColumn::make('is_published')
                     ->label('منشور')
                     ->boolean()
@@ -156,6 +154,10 @@ class PostResource extends Resource
                 Tables\Filters\SelectFilter::make('category_id')
                     ->label('التصنيف')
                     ->relationship('category', 'name_ar'),
+
+                Tables\Filters\SelectFilter::make('content_status')
+                    ->label('حالة المراجعة')
+                    ->options(Post::reviewStatusLabels()),
 
                 Tables\Filters\TernaryFilter::make('is_published')
                     ->label('حالة النشر')

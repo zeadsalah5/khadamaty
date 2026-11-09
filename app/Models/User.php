@@ -25,6 +25,18 @@ class User extends Authenticatable implements FilamentUser
         return true;
     }
 
+    /** أدمن = كل الصلاحيات (الإعدادات والمستخدمين والـ redirects والميديا). */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /** محرر = المحتوى فقط. */
+    public function isEditor(): bool
+    {
+        return $this->role === 'editor';
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -34,6 +46,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**

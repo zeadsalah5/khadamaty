@@ -13,17 +13,18 @@
         'headline'      => $headline,
         'description'   => $description,
         'url'           => $url,
+        'mainEntityOfPage' => $url,
         'image'         => $image,
         'datePublished' => $datePublished,
         'dateModified'  => $dateModified ?: $datePublished,
         'inLanguage'    => 'ar-EG',
         'author'        => [
             '@type' => 'Organization',
-            'name'  => config('site.name'),
+            'name'  => site('name'),
         ],
         'publisher'     => [
             '@type' => 'Organization',
-            'name'  => config('site.name'),
+            'name'  => site('name'),
         ],
     ];
 @endphp

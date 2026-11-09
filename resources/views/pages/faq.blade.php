@@ -38,7 +38,7 @@
                 كلّمنا على واتساب أو اتصل بينا، أو ابعتلنا طلب خدمة وهنرجعلك نأكد كل التفاصيل.
             </p>
             <div class="flex flex-wrap justify-center gap-3">
-                <a href="https://wa.me/{{ config('site.whatsapp') }}" target="_blank" rel="noopener"
+                <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-accent hover:bg-accent-600 font-bold transition-colors">
                     اسأل على واتساب
                 </a>

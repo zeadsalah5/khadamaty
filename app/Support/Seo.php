@@ -79,9 +79,9 @@ class Seo
 
     public function getPageTitle(): string
     {
-        $company = config('site.name');
+        $company = site('name');
         $part = $this->title
-            ?: 'صيانة وتركيب تكييفات وأجهزة منزلية في ' . config('site.areas_label');
+            ?: 'صيانة وتركيب تكييفات وأجهزة منزلية في ' . site('areas_label');
 
         // الصيغة المطلوبة: {عنوان الصفحة} | خدماتي
         return $part . ' | ' . $company;
@@ -90,8 +90,8 @@ class Seo
     public function getDescription(): string
     {
         return $this->description
-            ?: config('site.name') . ' — ماركت بليس وخدمات صيانة للأجهزة والتكييفات في '
-               . config('site.areas_label') . '. احجز فني متخصص والدفع بعد الشغل.';
+            ?: site('name') . ' — ماركت بليس وخدمات صيانة للأجهزة والتكييفات في '
+               . site('areas_label') . '. احجز فني متخصص والدفع بعد الشغل.';
     }
 
     /**
@@ -100,6 +100,7 @@ class Seo
      */
     public function baseUrl(): string
     {
+        // canonical_host يفضل من config/.env (مش بينتقل للداشبورد).
         $host = trim((string) config('site.canonical_host'));
 
         if ($host !== '') {
@@ -141,7 +142,7 @@ class Seo
 
     public function getOgImage(): string
     {
-        $img = $this->ogImage ?: config('site.default_og_image');
+        $img = $this->ogImage ?: site('default_og_image');
 
         if (Str::startsWith($img, ['http://', 'https://'])) {
             return $img;

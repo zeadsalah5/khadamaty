@@ -13,9 +13,19 @@ class RobotsController extends Controller
         $lines = ['User-agent: *'];
 
         if (app()->environment('production')) {
-            // إنتاج: اسمح بكل حاجة ما عدا لوحات التحكم.
+            // إنتاج: اسمح بكل حاجة ما عدا لوحات التحكم وصفحات المعاملات.
             $lines[] = 'Disallow: /admin';
             $lines[] = 'Disallow: /vendor-dashboard';
+            $lines[] = 'Disallow: /cart';
+            $lines[] = 'Disallow: /checkout';
+            $lines[] = 'Disallow: /order/';
+            $lines[] = 'Disallow: /track';
+            // حسابات العملاء والمفضلة والمقارنة والدخول (المرحلة 6D) — كلها noindex.
+            $lines[] = 'Disallow: /account';
+            $lines[] = 'Disallow: /wishlist';
+            $lines[] = 'Disallow: /compare';
+            $lines[] = 'Disallow: /login';
+            $lines[] = 'Disallow: /register';
             $lines[] = '';
             $lines[] = 'Sitemap: ' . $base . '/sitemap.xml';
         } else {
