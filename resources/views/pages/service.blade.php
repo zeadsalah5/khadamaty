@@ -64,6 +64,17 @@
         </div>
     </header>
 
+    {{-- ============ صورة الخدمة (تتخفى لو مفيش صورة مرفوعة) ============ --}}
+    @if ($service->imageUrl())
+        <section class="mx-auto max-w-6xl px-4 pb-10 md:pb-12">
+            <div class="overflow-hidden rounded-3xl border border-line bg-surface">
+                <img src="{{ $service->imageUrl() }}" alt="{{ $title }}"
+                     width="1280" height="640" loading="eager" fetchpriority="high"
+                     class="w-full h-auto aspect-[2/1] object-cover">
+            </div>
+        </section>
+    @endif
+
     {{-- ============ المقدمة ============ --}}
     @if (filled($service->body))
         <section class="mx-auto max-w-6xl px-4 pb-4">

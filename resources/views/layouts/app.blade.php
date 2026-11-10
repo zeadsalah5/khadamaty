@@ -7,8 +7,10 @@
     <meta name="color-scheme" content="light">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- favicon — صاحب الموقع يرفع public/favicon.ico (وملف og في public/images/og-image.png) --}}
+    {{-- أيقونات الموقع (favicon) — لوجو خدماتي --}}
     <link rel="icon" href="{{ url('/favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="{{ url('/favicon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ url('/apple-touch-icon.png') }}">
 
     {{-- الميتا كلها (title / description / canonical / robots / OG / Twitter / hreflang) --}}
     @include('layouts.partials.meta')

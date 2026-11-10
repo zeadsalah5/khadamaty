@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Models\Concerns\HasReviewWorkflow;
 use App\Models\Concerns\Publishable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Service extends Model
 {
     use HasReviewWorkflow, Publishable;
 
     protected $fillable = [
-        'slug', 'name_ar', 'icon', 'booking_service', 'excerpt', 'body',
+        'slug', 'name_ar', 'icon', 'image', 'booking_service', 'excerpt', 'body',
         'symptoms', 'steps', 'includes', 'excludes', 'cost_factors', 'faqs', 'related_services',
         'price_note', 'duration_note', 'seo_title', 'seo_description',
         'is_published', 'published_at',
@@ -47,6 +48,12 @@ class Service extends Model
     public function reviewTypeLabel(): string
     {
         return 'خدمة';
+    }
+
+    /** رابط صورة الخدمة (نسبي) أو null لو مفيش صورة مرفوعة. */
+    public function imageUrl(): ?string
+    {
+        return filled($this->image) ? Storage::disk('services')->url($this->image) : null;
     }
 
     /**

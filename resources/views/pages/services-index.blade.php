@@ -18,10 +18,20 @@
         @if ($services->isNotEmpty())
             <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($services as $service)
-                    <article class="group flex flex-col rounded-2xl border border-line bg-white p-6 hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
+                    <article class="group flex flex-col overflow-hidden rounded-2xl border border-line bg-white hover:border-brand hover:shadow-lg hover:shadow-brand/5 transition-all">
+                        @if ($service->imageUrl())
+                            <a href="{{ '/services/' . $service->slug }}" class="block aspect-[16/10] overflow-hidden bg-surface">
+                                <img src="{{ $service->imageUrl() }}" alt="{{ $service->name_ar }}"
+                                     width="640" height="400" loading="lazy"
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            </a>
+                        @endif
+                        <div class="flex flex-col flex-1 p-6">
+                        @unless ($service->imageUrl())
                         <div class="w-12 h-12 rounded-xl bg-brand-50 text-brand flex items-center justify-center mb-4 group-hover:bg-brand group-hover:text-white transition-colors">
                             <x-service-icon :name="$service->icon ?: ($icons[$service->slug] ?? 'maintenance')" />
                         </div>
+                        @endunless
                         <h2 class="text-lg font-bold mb-2">{{ $service->name_ar }}</h2>
                         @if ($service->excerpt)
                             <p class="text-muted text-sm leading-relaxed mb-5 flex-1">{{ $service->excerpt }}</p>
@@ -36,6 +46,7 @@
                                class="inline-flex items-center px-4 py-2 rounded-full bg-brand hover:bg-brand-600 text-white font-bold text-sm transition-colors">
                                 احجز
                             </a>
+                        </div>
                         </div>
                     </article>
                 @endforeach

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ServiceResource\Pages;
 use App\Models\Service;
+use App\Support\ImageUploads;
 use App\Support\Settings;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -50,7 +51,17 @@ class ServiceResource extends Resource
                         ->regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')->maxLength(255),
 
                     Forms\Components\Select::make('icon')
-                        ->label('الأيقونة')->options(self::ICONS)->native(false),
+                        ->label('الأيقونة')->options(self::ICONS)->native(false)
+                        ->helperText('بتظهر كـ fallback لو مفيش صورة مرفوعة.'),
+
+                    Forms\Components\FileUpload::make('image')
+                        ->label('صورة الخدمة (اختياري)')
+                        ->image()->disk('services')->visibility('public')->maxSize(6144)
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                        ->saveUploadedFileUsing(fn ($file) => ImageUploads::storeWebp($file, 'services'))
+                        ->imagePreviewHeight('120')
+                        ->helperText('بتظهر في صفحة الخدمة وكروت الرئيسية وصفحة الخدمات. لو فاضية بتظهر الأيقونة فوق تدرّج.')
+                        ->columnSpanFull(),
 
                     Forms\Components\Select::make('booking_service')
                         ->label('خدمة الحجز المرتبطة')

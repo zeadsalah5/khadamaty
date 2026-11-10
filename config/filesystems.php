@@ -121,6 +121,17 @@ return [
             'report' => false,
         ],
 
+        // صور الخدمات — public/images/services (نفس نمط الأقسام). الرابط نسبي
+        // (/images/services) عشان العرض يشتغل على أي host/port من غير اعتماد على APP_URL.
+        'services' => [
+            'driver' => 'local',
+            'root' => public_path('images/services'),
+            'url' => '/images/services',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
