@@ -41,10 +41,9 @@ function initHeroSlider(root) {
     if (n < 2) return; // شريحة واحدة: تفضل ظاهرة من غير تحكّم
 
     const DELAY = 5000;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let i = 0;
     let timer = null;
-    let paused = reduce; // تحت تقليل الحركة: مفيش تشغيل تلقائي
+    let paused = false; // تشغيل تلقائي دايماً (مع زر إيقاف يدوي) — طلب صاحب الموقع
 
     const render = () => {
         slides.forEach((s, k) => {
@@ -85,9 +84,8 @@ function initHeroSlider(root) {
     dots.forEach((d, k) => d.addEventListener('click', () => { go(k); run(); }));
     btnPlay && btnPlay.addEventListener('click', () => setPaused(!paused));
 
-    // وقوف مؤقّت عند مرور الماوس (من غير ما يغيّر زر التشغيل/الإيقاف)
-    root.addEventListener('mouseenter', () => { if (!paused) stop(); });
-    root.addEventListener('mouseleave', () => { if (!paused) run(); });
+    // ملاحظة: مفيش وقوف عند مرور الماوس — الهيرو بيملا الشاشة فالوقوف كان بيمنع
+    // التشغيل التلقائي على الكمبيوتر. الإيقاف متاح يدوياً من زر التشغيل/الإيقاف.
 
     // السحب بالإصبع (RTL: سحب لليسار = التالي)
     let x0 = null;
@@ -100,7 +98,7 @@ function initHeroSlider(root) {
     }, { passive: true });
 
     render();
-    setPaused(reduce); // يضبط الزر ويشغّل اللف لو الحركة مسموحة
+    setPaused(false); // يبدأ التشغيل التلقائي ويضبط الزر
 }
 
 /* ========== زراير "اطلب الخدمة": تختار الخدمة في الفورم تلقائياً ========== */

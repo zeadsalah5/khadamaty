@@ -86,7 +86,7 @@
                              alt="{{ $s['bgAlt'] }}"
                              loading="{{ $i === 0 ? 'eager' : 'lazy' }}" @if ($i === 0) fetchpriority="high" @endif
                              decoding="async"
-                             style="object-position: {{ $s['focal'] === 'right' ? 'right' : ($s['focal'] === 'left' ? 'left' : 'center') }} center;">
+                             style="object-position: {{ $s['focal'] === 'right' ? 'right' : ($s['focal'] === 'left' ? 'left' : 'center') }} top;">
                     @endif
                 </div>
 
