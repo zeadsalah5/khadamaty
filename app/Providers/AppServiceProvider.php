@@ -66,5 +66,13 @@ class AppServiceProvider extends ServiceProvider
         foreach ($observed as $model) {
             $model::observe(ContentCacheObserver::class);
         }
+
+        // تطبيق إعدادات البريد (SMTP) المضبوطة من الداشبورد — لو مفعّلة.
+        // آمن: بيرجع بدري لو مش مفعّل، وأي خطأ مايكسرش الموقع.
+        try {
+            \App\Support\MailSettings::apply();
+        } catch (\Throwable $e) {
+            // تجاهُل — الموقع يفضل شغّال حتى لو إعدادات البريد ناقصة.
+        }
     }
 }

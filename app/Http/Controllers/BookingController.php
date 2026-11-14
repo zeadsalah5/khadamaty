@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
+use App\Support\BookingNotifier;
 
 class BookingController extends Controller
 {
@@ -13,7 +14,10 @@ class BookingController extends Controller
         $data['ip'] = $request->ip();
         $data['devices_count'] = $data['devices_count'] ?? 1;
 
-        Booking::create($data);
+        $booking = Booking::create($data);
+
+        // إشعار صاحب الموقع بالإيميل (best-effort — مايكسرش الحجز لو فشل).
+        BookingNotifier::notify($booking);
 
         // بنرجّع لنفس الصفحة اللي اتبعت منها الفورم (الرئيسية أو /request-service)
         // ونوقف عند قسم الحجز عشان رسالة النجاح تبان.

@@ -32,13 +32,17 @@ return Application::configure(basePath: dirname(__DIR__))
         }
 
         // إجبار النطاق الأساسي (non-www + HTTPS) — متحكوم بالشروط جوّه الكلاس نفسه.
+        // + تسجيل زيارات التحليلات (بيشتغل في terminate بعد الرد، مايبطّأش الصفحة).
         $middleware->web(append: [
             \App\Http\Middleware\ForceCanonicalDomain::class,
+            \App\Http\Middleware\RecordVisit::class,
         ]);
 
         // webhook الدفع server-to-server — مستثنى من CSRF (محمي بالتحقق من HMAC بدلاً منه).
+        // + beacon تتبّع الكليك (مفيهوش بيانات حساسة؛ sendBeacon مابيبعتش توكن).
         $middleware->validateCsrfTokens(except: [
             'payments/*/webhook',
+            't/click',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

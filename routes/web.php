@@ -55,6 +55,11 @@ Route::post('/booking', [BookingController::class, 'store'])
     ->middleware('throttle:6,1') // حماية من السبام: 6 محاولات في الدقيقة
     ->name('booking.store');
 
+// تتبّع ضغطات أزرار التواصل (اتصال/واتساب) — beacon خفيف، مستثنى من CSRF.
+Route::post('/t/click', \App\Http\Controllers\TrackClickController::class)
+    ->middleware('throttle:60,1')
+    ->name('track.click');
+
 /*
 |--------------------------------------------------------------------------
 | المتجر: السلة + الدفع عند الاستلام + التتبّع (المرحلة 6C)
@@ -148,6 +153,7 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
     Route::get('/sitemap-{type}.xml', [SitemapController::class, 'type'])
         ->where('type', 'services|appliances|areas|brands|brand-services|area-services|blog|products|vendors');
     Route::get('/robots.txt', RobotsController::class);
+    Route::get('/llms.txt', \App\Http\Controllers\LlmsTxtController::class);
 });
 
 /*

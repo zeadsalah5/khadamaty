@@ -245,6 +245,26 @@ function initAcCalculator() {
     });
 }
 
+/* ========== تتبّع ضغطات أزرار التواصل (اتصال / واتساب) ========== */
+function initContactClickTracking() {
+    document.addEventListener('click', (e) => {
+        const a = e.target.closest('a[href^="tel:"], a[href*="wa.me"], a[href^="whatsapp:"], a[href*="api.whatsapp.com"]');
+        if (!a) return;
+
+        const href = a.getAttribute('href') || '';
+        const type = href.startsWith('tel:') ? 'call' : 'whatsapp';
+        const url = '/t/click?type=' + type + '&path=' + encodeURIComponent(location.pathname);
+
+        try {
+            if (navigator.sendBeacon) {
+                navigator.sendBeacon(url);
+            } else {
+                fetch(url, { method: 'POST', keepalive: true });
+            }
+        } catch (_) { /* التتبّع مش حرج */ }
+    }, { capture: true });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initTransparentHeader();
@@ -252,4 +272,5 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-hero-slider]').forEach(initHeroSlider);
     initServicePreselect();
     document.querySelectorAll('[data-diagnose]').forEach(initDiagnose);
+    initContactClickTracking();
 });
