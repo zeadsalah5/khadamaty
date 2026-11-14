@@ -87,20 +87,6 @@ class ManageHomePage extends Page implements HasForms
                     Forms\Components\Repeater::make('hero_slides')
                         ->label('شرائح السلايدر')
                         ->schema([
-                            Forms\Components\Select::make('type')
-                                ->label('النوع')
-                                ->options([
-                                    'illustration' => 'رسم (التصميم الافتراضي)',
-                                    'photo' => 'صورة فني',
-                                ])
-                                ->default('photo')->required()->live(),
-                            Forms\Components\FileUpload::make('image')
-                                ->label('صورة الفني')
-                                ->image()->disk('technicians')->visibility('public')->maxSize(4096)
-                                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                                ->saveUploadedFileUsing(fn ($file) => \App\Support\ImageUploads::storeWebp($file, 'technicians'))
-                                ->helperText('ارفع الصورة من هنا — بتتحوّل WebP تلقائياً. (لنوع «صورة فني» فقط.)')
-                                ->visible(fn (Forms\Get $get) => $get('type') === 'photo'),
                             Forms\Components\TextInput::make('badge')->label('الشارة العلوية'),
                             Forms\Components\TagsInput::make('title_lines')
                                 ->label('سطور العنوان')
@@ -141,11 +127,11 @@ class ManageHomePage extends Page implements HasForms
                                 ->default('medium'),
 
                             Forms\Components\FileUpload::make('background_image')
-                                ->label('صورة الخلفية (full-bleed)')
+                                ->label('صورة السلايد (خلفية بعرض الشاشة)')
                                 ->image()->disk('hero')->visibility('public')->maxSize(8192)
                                 ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
                                 ->saveUploadedFileUsing(fn ($file) => \App\Support\ImageUploads::storeHeroResponsive($file, 'hero'))
-                                ->helperText('اختياري. بتتحوّل WebP بمقاسين (960 و1920) تلقائياً. من غير صورة بيظهر التدرّج.')
+                                ->helperText('دي الصورة اللي بتظهر في السلايد. استخدم صورة عريضة (أفقية) عالية الجودة — عرض ١٦٠٠ بكسل على الأقل ونسبة قريبة من 16:9. الصور الطولية (من الموبايل) بتتقص. من غير صورة بيظهر تدرّج + رسمة تكييف.')
                                 ->columnSpanFull(),
                             Forms\Components\TextInput::make('background_alt')
                                 ->label('وصف الصورة (alt) — إجباري مع الصورة')
