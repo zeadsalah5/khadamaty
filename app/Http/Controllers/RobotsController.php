@@ -27,6 +27,12 @@ class RobotsController extends Controller
             $lines[] = 'Disallow: /login';
             $lines[] = 'Disallow: /register';
             $lines[] = '';
+            // زواحف الـ AI (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, PerplexityBot,
+            // Google-Extended, Applebot-Extended, Amazonbot, FacebookBot…) مرحّب بيها —
+            // بتورث قاعدة «*» فوق (بتزحف كل المحتوى وتتمنع من صفحات الإدارة بس).
+            // إعلان صريح بالموافقة على استخدام الـ AI (معيار Content-Signal — IETF draft).
+            $lines[] = 'Content-Signal: ai-train=yes, search=yes, ai-retrieval=yes';
+            $lines[] = '';
             $lines[] = 'Sitemap: ' . $base . '/sitemap.xml';
         } else {
             // غير الإنتاج: احجب الموقع كله من الأرشفة.
