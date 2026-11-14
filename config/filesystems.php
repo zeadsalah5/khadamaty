@@ -132,6 +132,16 @@ return [
             'report' => false,
         ],
 
+        // صور معرض الأعمال (Portfolio) — public/images/portfolio.
+        'portfolio' => [
+            'driver' => 'local',
+            'root' => public_path('images/portfolio'),
+            'url' => '/images/portfolio',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

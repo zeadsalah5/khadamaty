@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\BrandServicePage;
 use App\Models\Post;
 use App\Models\Product;
+use App\Models\Project;
 use App\Models\Service;
 use App\Models\Vendor;
 use App\Support\Seo;
@@ -32,6 +33,7 @@ class SitemapController extends Controller
             'blog'       => [Post::class,      '/blog'],
             'products'   => [Product::class,   '/shop'],
             'vendors'    => [Vendor::class,    '/vendors'],
+            'portfolio'  => [Project::class,   '/portfolio'],
         ];
     }
 

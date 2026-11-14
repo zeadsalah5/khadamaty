@@ -151,7 +151,7 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
     Route::get('/sitemap.xml', [SitemapController::class, 'index']);
     Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages']);
     Route::get('/sitemap-{type}.xml', [SitemapController::class, 'type'])
-        ->where('type', 'services|appliances|areas|brands|brand-services|area-services|blog|products|vendors');
+        ->where('type', 'services|appliances|areas|brands|brand-services|area-services|blog|products|vendors|portfolio');
     Route::get('/robots.txt', RobotsController::class);
     Route::get('/llms.txt', \App\Http\Controllers\LlmsTxtController::class);
 });
@@ -183,6 +183,10 @@ Route::middleware(SetCacheHeaders::class)->group(function () {
     Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
     Route::get('/blog/category/{category}', [BlogController::class, 'category'])->name('blog.category');
     Route::get('/blog/{post}', [BlogController::class, 'show'])->name('blog.show');
+
+    // معرض الأعمال (Portfolio)
+    Route::get('/portfolio', [\App\Http\Controllers\PortfolioController::class, 'index'])->name('portfolio.index');
+    Route::get('/portfolio/{project}', [\App\Http\Controllers\PortfolioController::class, 'show'])->name('portfolio.show');
 
     // المتجر: هب + فهرس قسم + صفحة منتج (مسار كانوني /shop/{category}/{product}).
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');

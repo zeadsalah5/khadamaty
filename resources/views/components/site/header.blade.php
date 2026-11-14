@@ -33,6 +33,24 @@
         $nav = array_values(array_filter($nav, fn ($i) => ! $isShopLink($i['url'] ?? '')));
     }
 
+    // رابط «أعمالنا» يظهر بس لو فيه عمل منشور في المعرض (زي المتجر).
+    $hasPortfolio = \App\Models\Project::query()->published()->exists();
+    $isPortfolioLink = fn ($url) => \Illuminate\Support\Str::contains($url, '/portfolio');
+    $navHasPortfolio = collect($nav)->contains(fn ($i) => $isPortfolioLink($i['url'] ?? ''));
+
+    if ($hasPortfolio && ! $navHasPortfolio) {
+        // ندخّل «أعمالنا» بعد المدونة لو موجودة، وإلا في الآخر.
+        $pos = collect($nav)->search(fn ($i) => \Illuminate\Support\Str::contains($i['url'] ?? '', '/blog'));
+        $portfolioItem = ['label' => 'أعمالنا', 'url' => route('portfolio.index')];
+        if ($pos !== false) {
+            array_splice($nav, $pos + 1, 0, [$portfolioItem]);
+        } else {
+            $nav[] = $portfolioItem;
+        }
+    } elseif (! $hasPortfolio && $navHasPortfolio) {
+        $nav = array_values(array_filter($nav, fn ($i) => ! $isPortfolioLink($i['url'] ?? '')));
+    }
+
     // الروابط النسبية (/services) تتحوّل لمطلقة؛ الروابط الكاملة والأنكور تفضل زيّها.
     $nav = array_map(function ($i) {
         $i['url'] = \Illuminate\Support\Str::startsWith($i['url'], ['http://', 'https://', '#', 'mailto:', 'tel:', '//'])

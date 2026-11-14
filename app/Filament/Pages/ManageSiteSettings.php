@@ -40,6 +40,7 @@ class ManageSiteSettings extends Page implements HasForms
             'order_notify_email' => 'company',
             'order_notify_whatsapp' => 'company',
             'working_hours' => 'company',
+            'experience_years' => 'company',
             'social_links' => 'company',
             'warranty_months' => 'warranty',
             'warranty_scope' => 'warranty',
@@ -78,6 +79,9 @@ class ManageSiteSettings extends Page implements HasForms
                     Forms\Components\Textarea::make('working_hours')
                         ->label('ساعات العمل (اختياري)')->rows(2)
                         ->helperText('بيظهر في الفوتر لو متملّي.'),
+                    Forms\Components\TextInput::make('experience_years')
+                        ->label('سنوات الخبرة')->numeric()->minValue(1)->maxValue(80)
+                        ->helperText('بتظهر في صفحة «أعمالنا» (مثلاً 15).'),
                     Forms\Components\TextInput::make('order_notify_email')
                         ->label('إيميل إشعارات الطلبات (اختياري)')->email()->maxLength(255)
                         ->helperText('يتبعتله إيميل بكل طلب جديد من المتجر. سيبه فاضي لو مش عايز.'),
