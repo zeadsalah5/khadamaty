@@ -135,4 +135,34 @@ class PublicTodoGateTest extends TestCase
             ->assertSee('"@type":"City"', false)
             ->assertSee($area->name_ar);
     }
+
+    public function test_relocation_service_is_seeded_as_draft_until_reviewed(): void
+    {
+        $s = Service::where('slug', 'ac-relocation')->firstOrFail();
+
+        $this->assertFalse((bool) $s->is_published, 'الخدمة الجديدة لازم تفضل مسودة لحد مراجعة الفني.');
+        $this->assertTrue($s->hasCompleteContent());
+        $this->assertTrue($s->hasTodo());
+        $this->assertSame('فك ونقل', $s->booking_service);
+
+        $this->get('/services/ac-relocation')->assertNotFound();
+        $this->get('/sitemap-services.xml')->assertDontSee('ac-relocation');
+    }
+
+    public function test_import_draft_service_adds_only_missing_and_never_touches_existing(): void
+    {
+        Service::where('slug', 'ac-relocation')->delete();
+        DB::table('services')->where('slug', 'ac-maintenance')->update(['price_note' => 'سعر معدّل من الداشبورد']);
+
+        $this->artisan('khadamaty:import-draft-service', ['slug' => 'ac-relocation'])->assertSuccessful();
+        $this->artisan('khadamaty:import-draft-service', ['slug' => 'ac-maintenance'])->assertSuccessful();
+        $this->artisan('khadamaty:import-draft-service', ['slug' => 'no-such-service'])->assertFailed();
+
+        $new = Service::where('slug', 'ac-relocation')->firstOrFail();
+        $this->assertFalse((bool) $new->is_published);
+        $this->assertSame(Service::STATUS_DRAFT, $new->content_status);
+        $this->assertSame('move', $new->icon);
+        $this->assertSame('سعر معدّل من الداشبورد', Service::where('slug', 'ac-maintenance')->value('price_note'));
+        $this->get('/services/ac-relocation')->assertNotFound();
+    }
 }

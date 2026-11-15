@@ -58,12 +58,14 @@ class ContentSeeder extends Seeder
             'ac-installation' => 'install', 'ac-gas-refill' => 'freon', 'ac-leak-repair' => 'diagnose',
             'split-ac-maintenance' => 'maintenance', 'central-ac-maintenance' => 'contract',
             'ac-piping-installation' => 'pipes',
+            'ac-relocation' => 'move',
         ];
         $bookingMap = [
             'ac-maintenance' => 'صيانة دورية', 'ac-repair' => 'إصلاح عطل', 'ac-cleaning' => 'غسيل وتنظيف',
             'ac-installation' => 'تركيب تكييف', 'ac-gas-refill' => 'شحن فريون', 'ac-leak-repair' => 'إصلاح عطل',
             'split-ac-maintenance' => 'صيانة دورية', 'central-ac-maintenance' => 'صيانة دورية',
             'ac-piping-installation' => 'تركيب تكييف',
+            'ac-relocation' => 'فك ونقل',
         ];
         foreach ($icons as $slug => $icon) {
             Service::where('slug', $slug)->whereNull('icon')->update([
