@@ -16,6 +16,7 @@ class AreaController extends PageController
     protected string $modelClass = Area::class;
     protected string $basePath = '/areas';
     protected string $indexTitle = 'مناطق الخدمة';
+    protected string $indexSeoTitle = 'مناطق خدمة صيانة التكييفات — فني تكييف قريب منك';
     protected string $indexSubtitle = '';
     protected string $singleType = 'area';
 
@@ -37,7 +38,7 @@ class AreaController extends PageController
         ])->all();
 
         $this->seo()
-            ->title($this->indexTitle)
+            ->title($this->indexSeoTitle())
             ->description($this->indexSubtitle)
             ->canonical($this->basePath)
             ->robots(empty($items) ? 'noindex,follow' : 'index,follow');

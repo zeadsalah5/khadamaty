@@ -18,6 +18,7 @@ class BlogController extends PageController
     protected string $basePath = '/blog';
 
     protected string $indexTitle = 'المدونة';
+    protected string $indexSeoTitle = 'مدونة التكييفات — أعطال وصيانة وأسعار ونصايح';
 
     protected string $indexSubtitle = 'نصايح ومقالات عن صيانة التكييفات وأعطالها وتركيبها وتوفير الكهرباء.';
 
@@ -37,7 +38,7 @@ class BlogController extends PageController
 
         // canonical: الصفحة الأولى /blog، والصفحات بعدها rel canonical لنفسها (?page=N).
         $this->seo()
-            ->title($this->indexTitle)
+            ->title($this->indexSeoTitle())
             ->description($this->indexSubtitle)
             ->canonical($this->paginatedCanonical($this->basePath, $posts))
             ->robots($posts->total() > 0 ? 'index,follow' : 'noindex,follow');

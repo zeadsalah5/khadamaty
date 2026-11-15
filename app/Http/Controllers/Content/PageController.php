@@ -22,6 +22,26 @@ abstract class PageController extends Controller
     protected string $singleType;    // service|post|product|area|appliance|brand|vendor
     protected string $nameField = 'name_ar';
 
+    /** عنوان الـ SEO لصفحة الفهرس (لو فاضي بيستخدم indexTitle). الـ H1 ومسار التصفّح بيفضلوا indexTitle. */
+    protected string $indexSeoTitle = '';
+
+    /**
+     * قسم محتواه لسه خفيف/خارج تركيز الموقع (زي التجار والأجهزة غير التكييف):
+     * صفحاته بتفضل شغّالة للزائر لكن noindex وبره السايت ماب لحد ما يتبني له محتوى حقيقي.
+     */
+    protected bool $thinSection = false;
+
+    protected function indexSeoTitle(): string
+    {
+        return $this->indexSeoTitle !== '' ? $this->indexSeoTitle : $this->indexTitle;
+    }
+
+    /** عنصر اسمه لسه فيه TODO (بيانات تجريبية) => مايظهرش للزائر. */
+    protected function isPlaceholderName(?string $name): bool
+    {
+        return stripos((string) $name, 'TODO') !== false;
+    }
+
     protected function seo(): Seo
     {
         return app(Seo::class);
@@ -30,7 +50,9 @@ abstract class PageController extends Controller
     /** صفحة الفهرس. */
     protected function renderIndex(): View
     {
-        $models = $this->modelClass::query()->published()->orderByDesc('updated_at')->get();
+        $models = $this->modelClass::query()->published()->orderByDesc('updated_at')->get()
+            ->reject(fn (Model $m) => $this->isPlaceholderName($m->{$this->nameField}))
+            ->values();
 
         $items = $models->map(fn (Model $m) => [
             'name'    => $m->{$this->nameField},
@@ -40,10 +62,10 @@ abstract class PageController extends Controller
 
         // فهرس فاضي => noindex,follow ومش بيدخل السايت ماب.
         $this->seo()
-            ->title($this->indexTitle)
+            ->title($this->indexSeoTitle())
             ->description($this->indexSubtitle)
             ->canonical($this->basePath)
-            ->robots(empty($items) ? 'noindex,follow' : 'index,follow');
+            ->robots(empty($items) || $this->thinSection ? 'noindex,follow' : 'index,follow');
 
         return view('pages.listing', [
             'title'        => $this->indexTitle,
@@ -61,6 +83,7 @@ abstract class PageController extends Controller
     protected function renderShow(Model $model): View
     {
         $name = $model->{$this->nameField};
+        abort_if($this->isPlaceholderName($name) && ! can_preview_drafts(), 404);
         $desc = $model->excerpt ?? null;
         $path = $this->basePath . '/' . $model->getRouteKey();
 
@@ -69,7 +92,7 @@ abstract class PageController extends Controller
             ->description($desc)
             ->canonical($path)
             ->ogType($this->singleType === 'post' ? 'article' : 'website')
-            ->robots('index,follow');
+            ->robots($this->thinSection ? 'noindex,follow' : 'index,follow');
 
         return view('pages.single', [
             'title'       => $name,

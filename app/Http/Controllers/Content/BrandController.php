@@ -16,6 +16,7 @@ class BrandController extends PageController
     protected string $modelClass = Brand::class;
     protected string $basePath = '/brands';
     protected string $indexTitle = 'الماركات';
+    protected string $indexSeoTitle = 'صيانة تكييفات كل الماركات — كاريير وشارب وميديا ويونيون إير';
     protected string $indexSubtitle = 'بنصلّح كل الماركات. اختر ماركتك واعرف الأعطال الشائعة والخدمات المناسبة ليها.';
     protected string $singleType = 'brand';
 
@@ -30,7 +31,7 @@ class BrandController extends PageController
         ])->all();
 
         $this->seo()
-            ->title($this->indexTitle)
+            ->title($this->indexSeoTitle())
             ->description($this->indexSubtitle)
             ->canonical($this->basePath)
             ->robots(empty($items) ? 'noindex,follow' : 'index,follow');

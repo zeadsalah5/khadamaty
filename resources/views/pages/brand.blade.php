@@ -35,7 +35,7 @@
             </div>
             <div class="min-w-0">
                 <p class="text-muted font-semibold mb-1">صيانة وإصلاح تكييفات</p>
-                <h1 class="text-3xl md:text-4xl font-extrabold mb-3">{{ $title }}</h1>
+                <h1 class="text-3xl md:text-4xl font-extrabold mb-3">صيانة تكييفات {{ $title }}</h1>
                 @if ($subtitle)
                     <p class="text-muted text-lg leading-relaxed max-w-2xl">{{ $subtitle }}</p>
                 @endif

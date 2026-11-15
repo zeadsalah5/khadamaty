@@ -11,6 +11,7 @@ class VendorController extends PageController
     protected string $basePath = '/vendors';
     protected string $indexTitle = 'التجار';
     protected string $indexSubtitle = 'تجار ومراكز صيانة موثوقة.';
+    protected bool $thinSection = true;
     protected string $singleType = 'vendor';
 
     public function index(): View

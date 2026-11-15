@@ -27,12 +27,10 @@ class SitemapController extends Controller
     {
         return [
             'services'   => [Service::class,   '/services'],
-            'appliances' => [Appliance::class, '/appliances'],
             'areas'      => [Area::class,      '/areas'],
             'brands'     => [Brand::class,     '/brands'],
             'blog'       => [Post::class,      '/blog'],
             'products'   => [Product::class,   '/shop'],
-            'vendors'    => [Vendor::class,    '/vendors'],
             'portfolio'  => [Project::class,   '/portfolio'],
         ];
     }

@@ -14,6 +14,7 @@ class ServiceController extends PageController
     protected string $modelClass = Service::class;
     protected string $basePath = '/services';
     protected string $indexTitle = 'خدماتنا';
+    protected string $indexSeoTitle = 'خدمات صيانة وتركيب وتنظيف التكييفات';
     protected string $indexSubtitle = 'صيانة وتركيب وشحن وإصلاح التكييفات والأجهزة — بأيدي فنيين متخصصين.';
     protected string $singleType = 'service';
 
@@ -61,7 +62,7 @@ class ServiceController extends PageController
 
         // فهرس فاضي => noindex,follow ومش بيدخل السايت ماب.
         $this->seo()
-            ->title($this->indexTitle)
+            ->title($this->indexSeoTitle())
             ->description($this->indexSubtitle)
             ->canonical($this->basePath)
             ->robots(empty($items) ? 'noindex,follow' : 'index,follow');

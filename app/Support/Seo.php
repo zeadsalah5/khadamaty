@@ -83,6 +83,9 @@ class Seo
         $part = $this->title
             ?: 'صيانة وتركيب تكييفات وأجهزة منزلية في ' . site('areas_label');
 
+        // لو العنوان (من الداشبورد) منتهي باسم الموقع أصلاً، مانكررهوش.
+        $part = trim(preg_replace('/\s*[|\-–—]\s*' . preg_quote($company, '/') . '\s*$/u', '', $part));
+
         // الصيغة المطلوبة: {عنوان الصفحة} | خدماتي
         return $part . ' | ' . $company;
     }
