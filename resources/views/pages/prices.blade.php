@@ -72,7 +72,7 @@
             </p>
 
             <div class="overflow-x-auto rounded-2xl border border-line">
-                <table class="w-full text-start border-collapse min-w-[32rem]">
+                <table class="w-full text-start border-collapse">
                     <caption class="sr-only">جدول الأسعار الإرشادية للخدمات</caption>
                     <thead>
                         <tr class="bg-surface text-sm text-ink">
