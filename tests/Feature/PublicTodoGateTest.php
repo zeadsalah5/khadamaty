@@ -136,17 +136,15 @@ class PublicTodoGateTest extends TestCase
             ->assertSee($area->name_ar);
     }
 
-    public function test_relocation_service_is_seeded_as_draft_until_reviewed(): void
+    public function test_relocation_service_is_seeded_published_without_todo(): void
     {
         $s = Service::where('slug', 'ac-relocation')->firstOrFail();
 
-        $this->assertFalse((bool) $s->is_published, 'الخدمة الجديدة لازم تفضل مسودة لحد مراجعة الفني.');
-        $this->assertTrue($s->hasCompleteContent());
-        $this->assertTrue($s->hasTodo());
+        $this->assertTrue((bool) $s->is_published);
+        $this->assertFalse($s->hasTodo());
         $this->assertSame('فك ونقل', $s->booking_service);
 
-        $this->get('/services/ac-relocation')->assertNotFound();
-        $this->get('/sitemap-services.xml')->assertDontSee('ac-relocation');
+        $this->get('/services/ac-relocation')->assertOk()->assertDontSee('TODO')->assertDontSee('**');
     }
 
     public function test_import_draft_service_adds_only_missing_and_never_touches_existing(): void
@@ -164,5 +162,46 @@ class PublicTodoGateTest extends TestCase
         $this->assertSame('move', $new->icon);
         $this->assertSame('سعر معدّل من الداشبورد', Service::where('slug', 'ac-maintenance')->value('price_note'));
         $this->get('/services/ac-relocation')->assertNotFound();
+    }
+
+    public function test_publish_service_replace_publishes_a_draft(): void
+    {
+        DB::table('services')->where('slug', 'ac-relocation')->update([
+            'is_published' => false, 'content_status' => Service::STATUS_DRAFT, 'reviewed_by' => null,
+            'body' => 'نص قديم. TODO: مراجعة', 'price_note' => 'TODO: حدّد السعر',
+        ]);
+        Cache::flush();
+        $this->get('/services/ac-relocation')->assertNotFound();
+
+        $this->artisan('khadamaty:publish-service', ['slug' => 'ac-relocation', '--replace' => true])->assertSuccessful();
+
+        $s = Service::where('slug', 'ac-relocation')->firstOrFail();
+        $this->assertTrue((bool) $s->is_published);
+        $this->assertNotNull($s->reviewed_by);
+        $this->assertNull($s->price_note);
+        $this->get('/services/ac-relocation')->assertOk()->assertDontSee('TODO');
+    }
+
+    public function test_publish_service_appends_additions_once_and_keeps_dashboard_edits(): void
+    {
+        $slug = 'ac-piping-installation';
+        DB::table('services')->where('slug', $slug)->update(['price_note' => 'سعر من الداشبورد 100 ج.م']);
+        $before = Service::where('slug', $slug)->firstOrFail();
+        $faqCount = count($before->faqs);
+
+        $this->artisan('khadamaty:publish-service', ['slug' => $slug])->assertSuccessful();
+        $this->artisan('khadamaty:publish-service', ['slug' => $slug])->assertSuccessful();
+
+        $after = Service::where('slug', $slug)->firstOrFail();
+        $this->assertStringStartsWith(trim($before->body), $after->body);
+        $this->assertSame(1, substr_count($after->body, 'تأسيس صرف التكييف:'));
+        $this->assertCount($faqCount + 6, $after->faqs);
+        $this->assertSame('سعر من الداشبورد 100 ج.م', $after->price_note);
+        $this->assertTrue((bool) $after->is_published);
+
+        $this->get('/services/' . $slug)->assertOk()
+            ->assertSee('دفن مواسير التكييف في الحائط')
+            ->assertSee('سعر متر تأسيس مواسير التكييف بيتحسب إزاي؟');
+        $this->artisan('khadamaty:publish-service', ['slug' => 'no-such'])->assertFailed();
     }
 }
