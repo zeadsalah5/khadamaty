@@ -13,7 +13,8 @@
         :name="$page->h1"
         :description="$page->seo_description ?: $service->excerpt"
         :url="$canonical"
-        :areaServed="$areas->pluck('name_ar')->all() ?: null" />
+        :areaServed="$areas->pluck('name_ar')->all() ?: null"
+        :priceNote="$page->price_note" />
 
     @if (! empty($page->faqs))
         <x-schema.faq-page :items="$page->faqs" />
@@ -145,14 +146,14 @@
             <div class="grid gap-4 sm:grid-cols-2 max-w-3xl">
                 @if ($priceNote)
                     <div class="rounded-2xl border border-dashed border-line bg-surface p-6">
-                        <div class="text-sm font-bold text-muted mb-1">السعر</div>
+                        <h2 class="text-sm font-bold text-muted mb-1">السعر</h2>
                         <p class="text-ink leading-relaxed">{{ $priceNote }}</p>
                         <p class="text-xs text-muted mt-2">السعر النهائي بيتأكد وقت المعاينة قبل أي شغل.</p>
                     </div>
                 @endif
                 @if ($durationNote)
                     <div class="rounded-2xl border border-dashed border-line bg-surface p-6">
-                        <div class="text-sm font-bold text-muted mb-1">المدة التقريبية</div>
+                        <h2 class="text-sm font-bold text-muted mb-1">المدة التقريبية</h2>
                         <p class="text-ink leading-relaxed">{{ $durationNote }}</p>
                         <p class="text-xs text-muted mt-2">بتختلف حسب حالة الجهاز وعددها.</p>
                     </div>

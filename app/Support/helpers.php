@@ -27,6 +27,34 @@ if (! function_exists('public_note')) {
     }
 }
 
+if (! function_exists('price_from_note')) {
+    /**
+     * أول سعر رقمي مكتوب في ملاحظة السعر (رقم متبوع بـ «ج.م» أو «جنيه») — للـ schema بس.
+     * الملاحظة نص حر من الداشبورد؛ لو مفيهاش رقم واضح بترجع null (مفيش offers).
+     * مبيألّفش سعر: الرقم لازم يكون ظاهر للزائر في نفس النص.
+     */
+    function price_from_note(?string $note): ?float
+    {
+        $note = public_note($note);
+
+        if ($note === null) {
+            return null;
+        }
+
+        // أرقام عربية/هندية => لاتينية
+        $note = strtr($note, ['٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9']);
+
+        if (! preg_match('/(\d[\d,]*(?:\.\d+)?)\s*(?:ج\.?\s?م|جنيه)/u', $note, $m)) {
+            return null;
+        }
+
+        $price = (float) str_replace(',', '', $m[1]);
+
+        return $price > 0 ? $price : null;
+    }
+}
+
 if (! function_exists('can_preview_drafts')) {
     /**
      * هل المستخدم الحالي مسموح له يشوف المسوّدات (الصفحات غير المنشورة)؟

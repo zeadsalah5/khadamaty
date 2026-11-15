@@ -15,6 +15,7 @@ class ContentCache
         'home.published_service_slugs',
         'home.area_links',
         'footer.areas',
+        'schema.area_names',
         'menu.header',
         'menu.footer',
         'catalog.packages',

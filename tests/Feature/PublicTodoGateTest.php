@@ -93,4 +93,46 @@ class PublicTodoGateTest extends TestCase
             ->assertSee('أسعار الخدمات (إرشادية)')
             ->assertSee('سعر تجريبي للاختبار');
     }
+
+    public function test_price_from_note_reads_only_a_visible_egp_price(): void
+    {
+        $this->assertSame(300.0, price_from_note('300 ج.م'));
+        $this->assertSame(800.0, price_from_note('بداية من 1.5 حصان 800 ج.م ويزيد 200 ج.م'));
+        $this->assertSame(1300.0, price_from_note('الشحنة الكاملة ١٣٠٠ جنيه'));
+        $this->assertNull(price_from_note('السعر بيتحدد وقت المعاينة'));
+        $this->assertNull(price_from_note('TODO: 300 ج.م'));
+        $this->assertNull(price_from_note(null));
+    }
+
+    public function test_service_schema_has_offer_only_with_real_price(): void
+    {
+        $service = Service::firstOrFail();
+        DB::table('services')->where('id', $service->id)->update([
+            'is_published' => true,
+            'price_note'   => '300 ج.م',
+        ]);
+        Cache::flush();
+        $this->get('/services/' . $service->slug)
+            ->assertOk()
+            ->assertSee('"priceCurrency":"EGP"', false)
+            ->assertSee('"price":300', false);
+
+        DB::table('services')->where('id', $service->id)->update(['price_note' => 'TODO: حدّد السعر']);
+        Cache::flush();
+        $this->get('/services/' . $service->slug)
+            ->assertOk()
+            ->assertDontSee('"priceCurrency"', false);
+    }
+
+    public function test_business_schema_lists_published_areas(): void
+    {
+        $area = Area::firstOrFail();
+        DB::table('areas')->where('id', $area->id)->update(['is_published' => true]);
+        Cache::flush();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('"@type":"City"', false)
+            ->assertSee($area->name_ar);
+    }
 }
