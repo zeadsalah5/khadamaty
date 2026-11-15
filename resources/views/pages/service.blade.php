@@ -175,20 +175,25 @@
     @endif
 
     {{-- ============ المدة والسعر (placeholders) ============ --}}
-    @if (filled($service->price_note) || filled($service->duration_note))
+    @php
+        // ملاحظات اختيارية: لو فيها TODO (تذكير لصاحب الموقع) متظهرش للزائر.
+        $priceNote = public_note($service->price_note);
+        $durationNote = public_note($service->duration_note);
+    @endphp
+    @if ($priceNote || $durationNote)
         <section class="mx-auto max-w-6xl px-4 pb-4">
             <div class="grid gap-4 sm:grid-cols-2 max-w-3xl">
-                @if (filled($service->price_note))
+                @if ($priceNote)
                     <div class="rounded-2xl border border-dashed border-line bg-surface p-6">
                         <div class="text-sm font-bold text-muted mb-1">السعر</div>
-                        <p class="text-ink leading-relaxed">{{ $service->price_note }}</p>
+                        <p class="text-ink leading-relaxed">{{ $priceNote }}</p>
                         <p class="text-xs text-muted mt-2">السعر النهائي بيتأكد وقت المعاينة قبل أي شغل.</p>
                     </div>
                 @endif
-                @if (filled($service->duration_note))
+                @if ($durationNote)
                     <div class="rounded-2xl border border-dashed border-line bg-surface p-6">
                         <div class="text-sm font-bold text-muted mb-1">المدة التقريبية</div>
-                        <p class="text-ink leading-relaxed">{{ $service->duration_note }}</p>
+                        <p class="text-ink leading-relaxed">{{ $durationNote }}</p>
                         <p class="text-xs text-muted mt-2">بتختلف حسب حالة الجهاز وعددها.</p>
                     </div>
                 @endif

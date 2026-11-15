@@ -131,7 +131,6 @@
                         </div>
                     @endforeach
                 </div>
-                <p class="text-xs text-muted mt-4">* الأسعار المعروضة مبدئية (placeholder) — عدّلها من ملف الإعدادات.</p>
             </section>
             @break
 

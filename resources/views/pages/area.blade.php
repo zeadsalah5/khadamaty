@@ -142,11 +142,11 @@
                 </div>
             @endif
 
-            @if (filled($area->eta_note))
+            @if ($etaNote = public_note($area->eta_note))
                 <div>
                     <h2 class="text-xl md:text-2xl font-extrabold mb-3">زمن الوصول التقريبي</h2>
                     <div class="rounded-2xl border border-dashed border-line bg-surface p-6">
-                        <p class="text-ink leading-relaxed">{{ $area->eta_note }}</p>
+                        <p class="text-ink leading-relaxed">{{ $etaNote }}</p>
                         <p class="text-xs text-muted mt-2">بيختلف حسب زحمة الطريق وتوفّر الفنيين — بنأكدلك المعاد وقت الحجز.</p>
                     </div>
                 </div>

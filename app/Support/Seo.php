@@ -90,7 +90,7 @@ class Seo
     public function getDescription(): string
     {
         return $this->description
-            ?: site('name') . ' — ماركت بليس وخدمات صيانة للأجهزة والتكييفات في '
+            ?: site('name') . ' — صيانة وتركيب وإصلاح التكييفات والأجهزة المنزلية في '
                . site('areas_label') . '. احجز فني متخصص والدفع بعد الشغل.';
     }
 

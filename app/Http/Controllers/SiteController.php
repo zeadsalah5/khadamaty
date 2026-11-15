@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Review;
+use App\Models\Service;
 use App\Support\Seo;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -49,7 +50,16 @@ class SiteController extends Controller
             ->canonical('/prices')
             ->robots('index,follow');
 
+        // أسعار الخدمات من الداشبورد: المنشورة اللي سعرها معبّى فعلاً (من غير TODO).
+        $priceRows = Service::query()
+            ->where('is_published', true)
+            ->orderBy('id')
+            ->get(['slug', 'name_ar', 'price_note', 'duration_note'])
+            ->filter(fn (Service $s) => public_note($s->price_note) !== null)
+            ->values();
+
         return view('pages.prices', [
+            'priceRows'   => $priceRows,
             'breadcrumbs' => $this->crumbs('الأسعار', '/prices'),
         ]);
     }

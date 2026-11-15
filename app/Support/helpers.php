@@ -13,6 +13,20 @@ if (! function_exists('site')) {
     }
 }
 
+if (! function_exists('public_note')) {
+    /**
+     * ملاحظة اختيارية (سعر/مدة/زمن وصول/توصيل) جاهزة للعرض على الزائر.
+     * الحقول دي مسموح يفضل فيها «TODO» كتذكير لصاحب الموقع من غير ما يمنع النشر،
+     * فلازم تتفلتر عند العرض: فاضية أو فيها TODO => null (القسم كله بيتخفى).
+     */
+    function public_note(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return ($value === '' || stripos($value, 'TODO') !== false) ? null : $value;
+    }
+}
+
 if (! function_exists('can_preview_drafts')) {
     /**
      * هل المستخدم الحالي مسموح له يشوف المسوّدات (الصفحات غير المنشورة)؟

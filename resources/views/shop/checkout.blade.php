@@ -64,7 +64,7 @@
                                     <option value="" selected disabled>اختار المنطقة...</option>
                                     @foreach ($areas as $area)
                                         <option value="{{ $area->id }}" data-fee="{{ (float) $area->delivery_fee }}"
-                                                data-note="{{ $area->delivery_note }}" @selected(old('area') == $area->id)>
+                                                data-note="{{ public_note($area->delivery_note) }}" @selected(old('area') == $area->id)>
                                             {{ $area->name_ar }} — {{ (float) $area->delivery_fee > 0 ? number_format($area->delivery_fee) . ' ج.م توصيل' : 'توصيل مجاني' }}
                                         </option>
                                     @endforeach

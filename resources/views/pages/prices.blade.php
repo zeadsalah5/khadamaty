@@ -2,23 +2,11 @@
 
 {{--
     صفحة الأسعار والباقات.
-    كل الأرقام هنا placeholders واضحة (TODO) — صاحب الموقع يعدّلها من config/site.php
-    أو من الجدول تحت. متحطّش أسعار نهائية على إنها مؤكدة.
-    متغيرات: $breadcrumbs
+    الباقات من الداشبورد (Catalog::packages)، وجدول الخدمات من حقل «السعر» (price_note)
+    للخدمات المنشورة. مفيش أرقام في الكود: الخدمة اللي سعرها فاضي أو فيه TODO مبتظهرش،
+    ولو مفيش ولا سعر الجدول كله بيتخفى.
+    متغيرات: $breadcrumbs, $priceRows (Collection من Service)
 --}}
-
-@php
-    // جدول أسعار إرشادي لكل خدمة — الأعمدة placeholders لحد ما تتحط الأسعار الحقيقية.
-    // TODO (صاحب الموقع): غيّر "from" لرقم حقيقي، وشيل علامة الـ placeholder.
-    $priceRows = [
-        ['service' => 'صيانة دورية',  'from' => '٠٠٠', 'note' => 'كشف وتنظيف وضبط أداء'],
-        ['service' => 'غسيل وتنظيف',  'from' => '٠٠٠', 'note' => 'غسيل داخلي وخارجي بالبخار'],
-        ['service' => 'شحن فريون',    'from' => '٠٠٠', 'note' => 'حسب نوع الغاز والكمية'],
-        ['service' => 'تركيب تكييف',  'from' => '٠٠٠', 'note' => 'يشمل تأسيس المواسير والتجربة'],
-        ['service' => 'فك ونقل',      'from' => '٠٠٠', 'note' => 'فك + نقل + إعادة تركيب'],
-        ['service' => 'إصلاح عطل',    'from' => '٠٠٠', 'note' => 'بعد الكشف وتحديد العطل'],
-    ];
-@endphp
 
 @section('content')
     <x-page-hero
@@ -75,42 +63,39 @@
         </div>
     </section>
 
-    {{-- جدول أسعار الخدمات (إرشادي) --}}
-    <section class="mx-auto max-w-6xl px-4 pb-6">
-        <h2 class="text-2xl md:text-3xl font-extrabold mb-2">أسعار الخدمات (إرشادية)</h2>
-        <p class="text-muted mb-6 max-w-2xl leading-relaxed">
-            دي أسعار مبدئية للاسترشاد بس. السعر النهائي بيتحدد بعد المعاينة حسب حالة الجهاز وحجم الشغل.
-        </p>
+    {{-- جدول أسعار الخدمات (إرشادي) — من الداشبورد --}}
+    @if ($priceRows->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 pb-6">
+            <h2 class="text-2xl md:text-3xl font-extrabold mb-2">أسعار الخدمات (إرشادية)</h2>
+            <p class="text-muted mb-6 max-w-2xl leading-relaxed">
+                دي أسعار مبدئية للاسترشاد بس. السعر النهائي بيتحدد بعد المعاينة حسب حالة الجهاز وحجم الشغل.
+            </p>
 
-        <div class="overflow-x-auto rounded-2xl border border-line">
-            <table class="w-full text-start border-collapse min-w-[32rem]">
-                <caption class="sr-only">جدول الأسعار الإرشادية للخدمات</caption>
-                <thead>
-                    <tr class="bg-surface text-sm text-ink">
-                        <th scope="col" class="text-start font-bold px-5 py-3.5">الخدمة</th>
-                        <th scope="col" class="text-start font-bold px-5 py-3.5">يبدأ من</th>
-                        <th scope="col" class="text-start font-bold px-5 py-3.5 hidden sm:table-cell">ملاحظات</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-line">
-                    @foreach ($priceRows as $row)
-                        <tr class="bg-white">
-                            <th scope="row" class="text-start font-semibold px-5 py-4">{{ $row['service'] }}</th>
-                            <td class="px-5 py-4 whitespace-nowrap">
-                                <span class="font-extrabold text-brand">{{ $row['from'] }}</span>
-                                <span class="text-muted text-sm">ج.م</span>
-                            </td>
-                            <td class="px-5 py-4 text-muted text-sm hidden sm:table-cell">{{ $row['note'] }}</td>
+            <div class="overflow-x-auto rounded-2xl border border-line">
+                <table class="w-full text-start border-collapse min-w-[32rem]">
+                    <caption class="sr-only">جدول الأسعار الإرشادية للخدمات</caption>
+                    <thead>
+                        <tr class="bg-surface text-sm text-ink">
+                            <th scope="col" class="text-start font-bold px-5 py-3.5">الخدمة</th>
+                            <th scope="col" class="text-start font-bold px-5 py-3.5">السعر</th>
+                            <th scope="col" class="text-start font-bold px-5 py-3.5 hidden sm:table-cell">المدة التقريبية</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-
-        <p class="text-xs text-muted mt-4">
-            * الأرقام المعروضة مبدئية (placeholder) لحد ما تتظبط الأسعار الحقيقية — بتتأكد وقت المعاينة.
-        </p>
-    </section>
+                    </thead>
+                    <tbody class="divide-y divide-line">
+                        @foreach ($priceRows as $row)
+                            <tr class="bg-white">
+                                <th scope="row" class="text-start font-semibold px-5 py-4">
+                                    <a href="{{ url('/services/' . $row->slug) }}" class="hover:text-brand transition-colors">{{ $row->name_ar }}</a>
+                                </th>
+                                <td class="px-5 py-4 font-bold text-brand">{{ public_note($row->price_note) }}</td>
+                                <td class="px-5 py-4 text-muted text-sm hidden sm:table-cell">{{ public_note($row->duration_note) ?? '—' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    @endif
 
     {{-- CTA --}}
     <section class="mx-auto max-w-6xl px-4 pb-16 md:pb-20">
