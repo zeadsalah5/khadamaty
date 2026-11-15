@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Block direct download of archives/dumps left in the web root (backups).
+    RewriteRule \.(zip|tar|tgz|gz|rar|7z|sql|bak)$ - [F,L,NC]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
