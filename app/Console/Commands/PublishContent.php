@@ -29,6 +29,7 @@ class PublishContent extends Command
         {type : brand | area | brand-service | area-service}
         {key : slug الماركة، أو brand|service، أو area|service}
         {--replace : استبدال محتوى سجل منشور بالفعل}
+        {--draft : حفظ الصفحة «جاهزة للنشر» من غير نشرها (صاحب الموقع ينشرها من الداشبورد)}
         {--ack-similarity : النشر حتى لو التشابه فوق 30%}';
 
     protected $description = 'إضافة/نشر صفحة محتوى واحدة من بيانات الـ seed';
@@ -102,6 +103,17 @@ class PublishContent extends Command
             $record->similarity_ack_at = now();
         }
         $record->similarity_pct = $pct;
+
+        if ($this->option('draft')) {
+            // جاهزة ومتراجعة لكن غير منشورة: 404 للزائر لحد ما تتنشر من الداشبورد.
+            if (! $record->is_published) {
+                $record->forceFill(['is_published' => false, 'published_at' => null])->save();
+                ContentCache::flush();
+            }
+            $this->info("اتحفظت «{$type}: {$key}» جاهزة للنشر من غير نشر (تشابه {$pct}%).");
+
+            return self::SUCCESS;
+        }
 
         $record->forceFill([
             'is_published' => true,

@@ -115,6 +115,30 @@ class PublishContentTest extends TestCase
         $this->get('/brands/lg/ac-maintenance')->assertOk()->assertSee('CH')->assertDontSee('TODO');
     }
 
+    public function test_draft_option_saves_ready_pages_without_publishing(): void
+    {
+        DB::table('areas')->update(['is_published' => true]);
+        DB::table('services')->update(['is_published' => true]);
+        DB::table('brands')->update(['is_published' => true]);
+        Cache::flush();
+
+        $this->artisan('khadamaty:publish-content', ['type' => 'area-service', '--draft' => true,
+            'key' => 'dokki:ac-maintenance,mohandessin:ac-repair,rehab:ac-repair,new-cairo:ac-cleaning'])->assertSuccessful();
+        $this->artisan('khadamaty:publish-content', ['type' => 'brand-service', '--draft' => true,
+            'key' => 'york:ac-maintenance,toshiba:ac-maintenance,samsung:ac-repair,lg:ac-repair'])->assertSuccessful();
+
+        $page = BrandServicePage::whereHas('brand', fn ($q) => $q->where('slug', 'york'))
+            ->whereHas('service', fn ($q) => $q->where('slug', 'ac-maintenance'))->firstOrFail();
+        $this->assertFalse((bool) $page->is_published);
+        $this->assertSame(BrandServicePage::STATUS_READY, $page->content_status);
+        $this->assertNotNull($page->reviewed_by);
+        $this->assertTrue($page->canPublish(), 'لازم تبقى جاهزة للنشر بضغطة من الداشبورد.');
+
+        $this->get('/brands/york/ac-maintenance')->assertNotFound();
+        $this->get('/areas/dokki/ac-maintenance')->assertNotFound();
+        $this->get('/sitemap-area-services.xml')->assertDontSee('dokki/ac-maintenance');
+    }
+
     public function test_does_not_touch_an_already_published_page_and_fails_on_unknown(): void
     {
         $this->artisan('khadamaty:publish-content', ['type' => 'brand', 'key' => 'haier'])->assertSuccessful();
