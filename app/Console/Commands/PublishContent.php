@@ -35,7 +35,8 @@ class PublishContent extends Command
     public function handle(ContentSimilarity $similarity): int
     {
         $type = (string) $this->argument('type');
-        $key = (string) $this->argument('key');
+        // «:» مقبولة بدل «|» عشان الأمر يتكتب في cron من غير رموز shell.
+        $key = str_replace(':', '|', (string) $this->argument('key'));
 
         $record = match ($type) {
             'brand'         => $this->brand($key),
