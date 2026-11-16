@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -48,3 +48,18 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+
+/*
+| على الاستضافة المشتركة التطبيق موجود في public_html/laravel والجذر العام هو public_html
+| نفسه (index.php هناك بينادي usePublicPath). أوامر artisan (cron / config:cache) مابتعدّيش
+| على index.php، فمن غير السطور دي public_path() بيبقى laravel/public — وconfig:cache
+| بيخزّن مسارات رفع الصور غلط فالصور الجديدة ماتظهرش. بنثبّت نفس الجذر هنا للـ CLI والويب.
+*/
+$webRoot = dirname(__DIR__, 2);
+if (basename(dirname(__DIR__)) === 'laravel'
+    && is_file($webRoot . '/index.php')
+    && str_contains((string) @file_get_contents($webRoot . '/index.php'), '/laravel/bootstrap/app.php')) {
+    $app->usePublicPath($webRoot);
+}
+
+return $app;
