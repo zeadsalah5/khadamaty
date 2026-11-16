@@ -123,9 +123,9 @@ class PublishContentTest extends TestCase
         Cache::flush();
 
         $this->artisan('khadamaty:publish-content', ['type' => 'area-service', '--draft' => true,
-            'key' => 'dokki:ac-maintenance,mohandessin:ac-repair,rehab:ac-repair,new-cairo:ac-cleaning'])->assertSuccessful();
+            'key' => 'dokki:ac-maintenance,mohandessin:ac-repair,rehab:ac-repair,new-cairo:ac-cleaning,shorouk:ac-installation,badr:ac-maintenance,hadayek-el-ahram:ac-repair,new-capital:ac-installation'])->assertSuccessful();
         $this->artisan('khadamaty:publish-content', ['type' => 'brand-service', '--draft' => true,
-            'key' => 'york:ac-maintenance,toshiba:ac-maintenance,samsung:ac-repair,lg:ac-repair'])->assertSuccessful();
+            'key' => 'york:ac-maintenance,toshiba:ac-maintenance,samsung:ac-repair,lg:ac-repair,fresh:ac-cleaning,tornado:ac-repair,toshiba:ac-repair,gree:ac-maintenance'])->assertSuccessful();
 
         $page = BrandServicePage::whereHas('brand', fn ($q) => $q->where('slug', 'york'))
             ->whereHas('service', fn ($q) => $q->where('slug', 'ac-maintenance'))->firstOrFail();
