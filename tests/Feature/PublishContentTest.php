@@ -66,10 +66,10 @@ class PublishContentTest extends TestCase
     public function test_publishes_new_area_and_removes_its_old_redirect(): void
     {
         \App\Models\Redirect::create(['from' => 'areas/heliopolis', 'to' => '/areas', 'status' => 301, 'is_active' => true]);
-        DB::table('areas')->whereIn('slug', ['heliopolis', 'mokattam'])->update(['is_published' => false]);
+        DB::table('areas')->whereIn('slug', ['heliopolis', 'mokattam', 'north-coast'])->update(['is_published' => false]);
         Cache::flush();
 
-        foreach (['heliopolis', 'mokattam'] as $slug) {
+        foreach (['heliopolis', 'mokattam', 'north-coast'] as $slug) {
             $this->artisan('khadamaty:publish-content', ['type' => 'area', 'key' => $slug])->assertSuccessful();
         }
 
