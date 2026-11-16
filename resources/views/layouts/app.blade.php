@@ -8,6 +8,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     {{-- أيقونات الموقع (favicon) — لوجو خدماتي --}}
+    {{-- جوجل بيطلب أيقونة مربعة بمقاس من مضاعفات 48px عشان تظهر في نتايج البحث (192 = 48×4). --}}
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url('/icon-192.png') }}">
     <link rel="icon" href="{{ url('/favicon.ico') }}" sizes="any">
     <link rel="icon" type="image/svg+xml" href="{{ url('/favicon.svg') }}">
     <link rel="apple-touch-icon" href="{{ url('/apple-touch-icon.png') }}">
