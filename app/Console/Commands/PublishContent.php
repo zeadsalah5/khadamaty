@@ -6,6 +6,7 @@ use App\Models\Area;
 use App\Models\AreaServicePage;
 use App\Models\Brand;
 use App\Models\BrandServicePage;
+use App\Models\Redirect;
 use App\Models\Service;
 use App\Models\User;
 use App\Support\AgencyScrub;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
 class PublishContent extends Command
 {
     protected $signature = 'khadamaty:publish-content
-        {type : brand | brand-service | area-service}
+        {type : brand | area | brand-service | area-service}
         {key : slug الماركة، أو brand|service، أو area|service}
         {--replace : استبدال محتوى سجل منشور بالفعل}
         {--ack-similarity : النشر حتى لو التشابه فوق 30%}';
@@ -40,6 +41,7 @@ class PublishContent extends Command
 
         $record = match ($type) {
             'brand'         => $this->brand($key),
+            'area'          => $this->area($key),
             'brand-service' => $this->brandService($key),
             'area-service'  => $this->areaService($key),
             default         => null,
@@ -110,6 +112,26 @@ class PublishContent extends Command
             ?? tap(new Brand, fn (Brand $b) => $b->slug = $slug);
 
         return $this->fillFrom($brand, $data);
+    }
+
+    private function area(string $slug): ?Model
+    {
+        $data = (require database_path('seeders/data/areas.php'))[$slug] ?? null;
+        if (! $data) {
+            return null;
+        }
+
+        $area = Area::withoutGlobalScopes()->where('slug', $slug)->first()
+            ?? tap(new Area, fn (Area $a) => $a->slug = $slug);
+
+        // منطقة كانت متشالة قبل كده ومتحوّلة (301) لهب المناطق => التحويل القديم بيتشال.
+        Redirect::query()->whereIn('from', ["areas/{$slug}", "/areas/{$slug}"])->delete();
+
+        if (filled($data['eta_note'] ?? null) && public_note($data['eta_note']) === null) {
+            $data['eta_note'] = null;
+        }
+
+        return $this->fillFrom($area, $data);
     }
 
     private function brandService(string $key): ?Model

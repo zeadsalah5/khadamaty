@@ -63,6 +63,39 @@ class PublishContentTest extends TestCase
         $this->get('/areas/6th-october/ac-installation')->assertOk()->assertSee('حدائق أكتوبر')->assertDontSee('TODO');
     }
 
+    public function test_publishes_new_area_and_removes_its_old_redirect(): void
+    {
+        \App\Models\Redirect::create(['from' => 'areas/heliopolis', 'to' => '/areas', 'status' => 301, 'is_active' => true]);
+        DB::table('areas')->whereIn('slug', ['heliopolis', 'mokattam'])->update(['is_published' => false]);
+        Cache::flush();
+
+        foreach (['heliopolis', 'mokattam'] as $slug) {
+            $this->artisan('khadamaty:publish-content', ['type' => 'area', 'key' => $slug])->assertSuccessful();
+        }
+
+        $this->assertSame(0, \App\Models\Redirect::where('from', 'areas/heliopolis')->count());
+        $this->get('/areas/heliopolis')->assertOk()->assertSee('الكوربة')->assertDontSee('TODO');
+        $this->get('/areas/mokattam')->assertOk()->assertSee('الهضبة العليا')->assertDontSee('TODO');
+    }
+
+    public function test_publishes_the_second_batch_without_similarity_block(): void
+    {
+        DB::table('areas')->whereIn('slug', ['nasr-city', 'sheikh-zayed', 'maadi'])->update(['is_published' => true]);
+        DB::table('services')->whereIn('slug', ['ac-repair', 'ac-maintenance', 'ac-cleaning'])->update(['is_published' => true]);
+        $this->artisan('khadamaty:publish-content', ['type' => 'brand', 'key' => 'haier'])->assertSuccessful();
+        Cache::flush();
+
+        foreach (['nasr-city:ac-repair', '6th-october:ac-repair', 'sheikh-zayed:ac-maintenance', 'maadi:ac-maintenance'] as $key) {
+            $this->artisan('khadamaty:publish-content', ['type' => 'area-service', 'key' => $key])->assertSuccessful();
+        }
+        foreach (['haier:ac-maintenance', 'midea:ac-cleaning'] as $key) {
+            $this->artisan('khadamaty:publish-content', ['type' => 'brand-service', 'key' => $key])->assertSuccessful();
+        }
+
+        $this->get('/areas/maadi/ac-maintenance')->assertOk()->assertSee('سرايات');
+        $this->get('/brands/midea/ac-cleaning')->assertOk()->assertSee('ريشة المروحة');
+    }
+
     public function test_does_not_touch_an_already_published_page_and_fails_on_unknown(): void
     {
         $this->artisan('khadamaty:publish-content', ['type' => 'brand', 'key' => 'haier'])->assertSuccessful();

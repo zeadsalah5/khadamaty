@@ -28,7 +28,6 @@ return [
     // مفيش بديل مباشر لكل منطقة، فبنوجّه للهب بدل 404.
     'areas/cairo'      => '/areas',
     'areas/giza'       => '/areas',
-    'areas/heliopolis' => '/areas',
     'areas/helwan'     => '/areas',
     'areas/shubra'     => '/areas',
 

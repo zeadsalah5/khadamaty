@@ -109,7 +109,7 @@ class ContentSeeder extends Seeder
         | تنظيف slugs مناطق قديمة اتشالت من القايمة (المرحلة 1/2).
         | الـ 301 من القديم لـ /areas متظبّط في config/redirects.php.
         */
-        Area::whereIn('slug', ['cairo', 'giza', 'heliopolis', 'helwan', 'shubra'])->delete();
+        Area::whereIn('slug', ['cairo', 'giza', 'helwan', 'shubra'])->delete();
 
         /*
         | الماركات (المرحلة 3) — من database/seeders/data/brands.php.
