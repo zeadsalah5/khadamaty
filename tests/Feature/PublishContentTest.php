@@ -103,10 +103,10 @@ class PublishContentTest extends TestCase
         DB::table('brands')->update(['is_published' => true]);
         Cache::flush();
 
-        foreach (['obour:ac-maintenance', 'heliopolis:ac-maintenance', 'mokattam:ac-cleaning', 'tagamoa:ac-installation'] as $key) {
+        foreach (['obour:ac-maintenance,heliopolis:ac-maintenance,mokattam:ac-cleaning,tagamoa:ac-installation', 'nasr-city:ac-cleaning,haram:ac-maintenance,madinaty:ac-repair,mokattam:ac-maintenance'] as $key) {
             $this->artisan('khadamaty:publish-content', ['type' => 'area-service', 'key' => $key])->assertSuccessful();
         }
-        foreach (['carrier:ac-repair', 'sharp:ac-repair', 'union-air:ac-cleaning', 'lg:ac-maintenance'] as $key) {
+        foreach (['carrier:ac-repair,sharp:ac-repair', 'union-air:ac-cleaning,lg:ac-maintenance,carrier:ac-gas-refill,union-air:ac-repair,fresh:ac-repair,tornado:ac-maintenance'] as $key) {
             $this->artisan('khadamaty:publish-content', ['type' => 'brand-service', 'key' => $key])->assertSuccessful();
         }
 

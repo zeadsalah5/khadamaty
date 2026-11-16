@@ -36,8 +36,22 @@ class PublishContent extends Command
     public function handle(ContentSimilarity $similarity): int
     {
         $type = (string) $this->argument('type');
-        // «:» مقبولة بدل «|» عشان الأمر يتكتب في cron من غير رموز shell.
-        $key = str_replace(':', '|', (string) $this->argument('key'));
+        // أكتر من مفتاح مفصولين بفاصلة => كل واحد بيتنشر لوحده (دفعة في أمر واحد).
+        $keys = array_filter(array_map('trim', explode(',', (string) $this->argument('key'))));
+        $failed = 0;
+
+        foreach ($keys as $key) {
+            // «:» مقبولة بدل «|» عشان الأمر يتكتب في cron من غير رموز shell.
+            if ($this->publishOne($type, str_replace(':', '|', $key), $similarity) !== self::SUCCESS) {
+                $failed++;
+            }
+        }
+
+        return $failed === 0 && $keys !== [] ? self::SUCCESS : self::FAILURE;
+    }
+
+    private function publishOne(string $type, string $key, ContentSimilarity $similarity): int
+    {
 
         $record = match ($type) {
             'brand'         => $this->brand($key),
@@ -54,7 +68,7 @@ class PublishContent extends Command
         }
 
         if ($record->exists && $record->is_published && ! $this->option('replace')) {
-            $this->info('الصفحة منشورة بالفعل — مفيش أي تعديل.');
+            $this->info("«{$type}: {$key}» منشورة بالفعل — مفيش أي تعديل.");
 
             return self::SUCCESS;
         }
