@@ -101,12 +101,13 @@ class PublishContentTest extends TestCase
         DB::table('areas')->update(['is_published' => true]);
         DB::table('services')->update(['is_published' => true]);
         DB::table('brands')->update(['is_published' => true]);
+        $this->artisan('khadamaty:publish-content', ['type' => 'brand', 'key' => 'haier'])->assertSuccessful();
         Cache::flush();
 
-        foreach (['obour:ac-maintenance,heliopolis:ac-maintenance,mokattam:ac-cleaning,tagamoa:ac-installation', 'nasr-city:ac-cleaning,haram:ac-maintenance,madinaty:ac-repair,mokattam:ac-maintenance'] as $key) {
+        foreach (['obour:ac-maintenance,heliopolis:ac-maintenance,mokattam:ac-cleaning,tagamoa:ac-installation', 'nasr-city:ac-cleaning,haram:ac-maintenance,madinaty:ac-repair,mokattam:ac-maintenance', '6th-october:ac-cleaning,sheikh-zayed:ac-repair,heliopolis:ac-installation,maadi:ac-repair'] as $key) {
             $this->artisan('khadamaty:publish-content', ['type' => 'area-service', 'key' => $key])->assertSuccessful();
         }
-        foreach (['carrier:ac-repair,sharp:ac-repair', 'union-air:ac-cleaning,lg:ac-maintenance,carrier:ac-gas-refill,union-air:ac-repair,fresh:ac-repair,tornado:ac-maintenance'] as $key) {
+        foreach (['carrier:ac-repair,sharp:ac-repair', 'union-air:ac-cleaning,lg:ac-maintenance,carrier:ac-gas-refill,union-air:ac-repair,fresh:ac-repair,tornado:ac-maintenance', 'midea:ac-repair,samsung:ac-maintenance,gree:ac-repair,haier:ac-installation'] as $key) {
             $this->artisan('khadamaty:publish-content', ['type' => 'brand-service', 'key' => $key])->assertSuccessful();
         }
 
