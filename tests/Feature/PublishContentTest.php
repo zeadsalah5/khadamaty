@@ -96,6 +96,24 @@ class PublishContentTest extends TestCase
         $this->get('/brands/midea/ac-cleaning')->assertOk()->assertSee('ريشة المروحة');
     }
 
+    public function test_publishes_the_third_batch(): void
+    {
+        DB::table('areas')->update(['is_published' => true]);
+        DB::table('services')->update(['is_published' => true]);
+        DB::table('brands')->update(['is_published' => true]);
+        Cache::flush();
+
+        foreach (['obour:ac-maintenance', 'heliopolis:ac-maintenance', 'mokattam:ac-cleaning', 'tagamoa:ac-installation'] as $key) {
+            $this->artisan('khadamaty:publish-content', ['type' => 'area-service', 'key' => $key])->assertSuccessful();
+        }
+        foreach (['carrier:ac-repair', 'sharp:ac-repair', 'union-air:ac-cleaning', 'lg:ac-maintenance'] as $key) {
+            $this->artisan('khadamaty:publish-content', ['type' => 'brand-service', 'key' => $key])->assertSuccessful();
+        }
+
+        $this->get('/areas/mokattam/ac-cleaning')->assertOk()->assertDontSee('TODO');
+        $this->get('/brands/lg/ac-maintenance')->assertOk()->assertSee('CH')->assertDontSee('TODO');
+    }
+
     public function test_does_not_touch_an_already_published_page_and_fails_on_unknown(): void
     {
         $this->artisan('khadamaty:publish-content', ['type' => 'brand', 'key' => 'haier'])->assertSuccessful();
