@@ -7,7 +7,10 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Cache-Control خفيف للصفحات العامة اللي مفيهاش فورم.
+ * Cache-Control خفيف للصفحات العامة.
+ *
+ * private (المتصفح بس): صفحات الخدمات/المناطق/الماركات فيها فورم حجز بتوكن @csrf،
+ * فممنوع تتخزّن في كاش مشترك (بروكسي/CDN) يوزّع نفس التوكن على زوار مختلفين.
  *
  * بيتطبّق بس على GET/HEAD اللي رجعت 200. مابيتحطّش على الرئيسية ولا الحجز
  * (علشان توكن الـ @csrf مايتخزّنش ويكسر الفورم — 419). ومابيلمسش أي رد فيه
@@ -35,7 +38,7 @@ class SetCacheHeaders
         if ($isSafe && $response->getStatusCode() === 200 && ! $hasSetCookie) {
             $response->headers->set(
                 'Cache-Control',
-                "public, max-age={$this->maxAge}, s-maxage={$this->maxAge}"
+                "private, max-age={$this->maxAge}"
             );
         }
 

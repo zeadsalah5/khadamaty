@@ -27,6 +27,17 @@
         </div>
     @endif
 
+    @if ($errors->any())
+        <div class="mb-6 rounded-xl bg-brand/10 border border-brand/30 text-brand px-5 py-4 font-semibold" role="alert">
+            <p>الطلب ماتبعتش — صلّح البيانات دي وابعته تاني:</p>
+            <ul class="mt-2 list-disc ps-5 text-sm font-normal">
+                @foreach ($errors->all() as $message)
+                    <li>{{ $message }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('booking.store') }}" class="grid gap-5 sm:grid-cols-2" novalidate>
         @csrf
 

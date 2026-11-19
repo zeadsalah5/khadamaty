@@ -11,6 +11,39 @@ class StoreBookingRequest extends FormRequest
         return true;
     }
 
+    /**
+     * بيرجّع للفورم نفسه (#booking) لو فيه خطأ — من غيره الصفحة بتفتح من فوق
+     * ورسايل الخطأ بتبقى تحت خالص، فالعميل بيفتكر إن الطلب اتبعت وهو ماتبعتش.
+     */
+    protected function getRedirectUrl()
+    {
+        $back = strtok((string) url()->previous(), '#');
+
+        return $back . '#booking';
+    }
+
+    /**
+     * تنضيف رقم الموبايل قبل الفحص: أرقام عربية، مسافات/شرطات، و+20 أو 0020.
+     * مثال: «+20 101 234 5678» أو «٠١٠١٢٣٤٥٦٧٨» => 01012345678.
+     */
+    protected function prepareForValidation(): void
+    {
+        $phone = (string) $this->input('phone', '');
+        $phone = strtr($phone, [
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+            '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
+            '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
+        ]);
+        $phone = preg_replace('/[\s\-().]/u', '', $phone);
+        $phone = preg_replace('/^(\+20|0020)/', '0', $phone);
+        if (preg_match('/^1[0-9]{9}$/', $phone)) {
+            $phone = '0' . $phone;
+        }
+
+        $this->merge(['phone' => $phone]);
+    }
+
     public function rules(): array
     {
         return [
