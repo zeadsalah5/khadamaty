@@ -184,6 +184,39 @@ class VisitClassifier
      * بيرجّع مصفوفة الحقول الجاهزة للتخزين في جدول visits.
      * $selfHost = نطاق الموقع نفسه (عشان نكتشف التنقّل الداخلي).
      */
+    /** اسم البوت اللي بيتسجّل لطلبات فحص الثغرات. */
+    public const PROBE_BOT_NAME = 'فاحص ثغرات آلي';
+
+    /**
+     * مسارات بتطلبها سكربتات فحص الثغرات بس (ووردبريس/لوحات/ملفات أسرار) —
+     * الموقع Laravel ومفيهوش أي منها، فأي طلب ليها = بوت مهما كان الـ User-Agent.
+     */
+    private const PROBE_PATTERNS = [
+        '#(^|/)wp-(admin|login|content|includes|json|config)#',
+        '#(^|/)(xmlrpc|wlwmanifest|setup-config|install|phpinfo|info|shell|eval-stdin)\.php$#',
+        '#\.(php\d?|phtml|asp|aspx|jsp|cgi|env|ini|bak|old|sql|swp|git|ds_store)(/|$)#',
+        '#(^|/)\.(env|git|svn|hg|aws|ssh|vscode|idea|htpasswd|htaccess|well-known/security\.txt\.bak)#',
+        '#(^|/)(phpmyadmin|pma|myadmin|adminer|cgi-bin|vendor/phpunit|_ignition|telescope|solr|actuator|boaform|owa|autodiscover|hnap1)(/|$)#i',
+        '#(^|/)(wordpress|wp|blog/wp|old|new|backup|bak)/wp-#',
+    ];
+
+    /** هل المسار ده طلب فحص ثغرات (مش صفحة حقيقية)؟ */
+    public static function isProbePath(?string $path): bool
+    {
+        $path = strtolower(trim((string) $path, '/'));
+        if ($path === '') {
+            return false;
+        }
+
+        foreach (self::PROBE_PATTERNS as $pattern) {
+            if (preg_match($pattern, $path)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static function classify(?string $userAgent, ?string $referer, ?string $selfHost = null): array
     {
         $ua = mb_strtolower(trim((string) $userAgent));

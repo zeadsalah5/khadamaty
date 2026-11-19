@@ -42,6 +42,37 @@ class VisitTrackingTest extends TestCase
         $this->assertSame('Googlebot', $visit->bot_name);
     }
 
+    public function test_vulnerability_probe_is_flagged_as_bot_even_with_browser_agent(): void
+    {
+        $chrome = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
+
+        foreach (['/wp-admin/install.php', '/wp-login.php', '/.env', '/xmlrpc.php', '/phpmyadmin/'] as $path) {
+            $this->get($path, ['User-Agent' => $chrome]);
+        }
+
+        $this->assertSame(5, Visit::count());
+        $this->assertSame(0, Visit::where('is_bot', false)->count());
+        $this->assertSame(5, Visit::where('bot_name', \App\Support\VisitClassifier::PROBE_BOT_NAME)->count());
+    }
+
+    public function test_real_pages_are_not_probes(): void
+    {
+        foreach (['', 'services/ac-installation', 'areas/new-capital/ac-installation', 'blog/how-to-clean-ac', 'prices'] as $path) {
+            $this->assertFalse(\App\Support\VisitClassifier::isProbePath($path), $path);
+        }
+    }
+
+    public function test_reclassify_command_fixes_old_probe_visits(): void
+    {
+        Visit::create(['ip' => '1.1.1.1', 'path' => '/wp-admin/install.php', 'method' => 'GET', 'is_bot' => false, 'device' => 'desktop', 'source_type' => 'direct']);
+        Visit::create(['ip' => '2.2.2.2', 'path' => '/prices', 'method' => 'GET', 'is_bot' => false, 'device' => 'desktop', 'source_type' => 'direct']);
+
+        $this->artisan('khadamaty:reclassify-probe-visits')->assertSuccessful();
+
+        $this->assertTrue((bool) Visit::where('path', '/wp-admin/install.php')->value('is_bot'));
+        $this->assertFalse((bool) Visit::where('path', '/prices')->value('is_bot'));
+    }
+
     public function test_search_referer_is_classified(): void
     {
         $this->get('/', ['referer' => 'https://www.google.com/search?q=تكييف'])->assertOk();

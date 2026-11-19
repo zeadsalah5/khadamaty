@@ -51,6 +51,16 @@ class RecordVisit
                 $request->getHost(),
             );
 
+            // طلبات فحص الثغرات (wp-admin, .env, ...) = بوت حتى لو الـ User-Agent شكله متصفح.
+            if (VisitClassifier::isProbePath($request->path())) {
+                $data = array_merge($data, [
+                    'is_bot'   => true,
+                    'bot_name' => VisitClassifier::PROBE_BOT_NAME,
+                    'browser'  => null,
+                    'device'   => 'bot',
+                ]);
+            }
+
             Visit::create(array_merge($data, [
                 'ip'         => (string) $request->ip(),
                 'path'       => mb_substr('/' . ltrim($request->path(), '/'), 0, 512),
