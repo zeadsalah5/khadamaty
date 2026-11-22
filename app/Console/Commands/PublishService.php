@@ -86,6 +86,10 @@ class PublishService extends Command
     private function applyAdditions(Service $service, array $additions): void
     {
         $body = (string) $service->body;
+        // فقرة افتتاحية (للكلمة المفتاحية في أول 100 كلمة) — بتتضاف مرة واحدة بس.
+        if (filled($additions['body_prepend'] ?? null) && ! str_contains($body, trim($additions['body_prepend']))) {
+            $body = trim($additions['body_prepend']) . "\n\n" . ltrim($body);
+        }
         foreach ($additions['body_append'] ?? [] as $paragraph) {
             // العنوان اللي قبل «:» هو مفتاح عدم التكرار.
             $key = trim(explode(':', $paragraph, 2)[0]);
@@ -109,7 +113,7 @@ class PublishService extends Command
             $service->cost_factors = $additions['cost_factors'];
         }
 
-        foreach (['seo_title', 'seo_description'] as $field) {
+        foreach (['seo_title', 'seo_description', 'excerpt'] as $field) {
             if (isset($additions[$field])) {
                 $service->{$field} = $additions[$field];
             }
@@ -118,7 +122,7 @@ class PublishService extends Command
 
     private function scrub(array $fields): array
     {
-        foreach (['excerpt', 'body', 'seo_description'] as $key) {
+        foreach (['excerpt', 'body', 'body_prepend', 'seo_description'] as $key) {
             if (isset($fields[$key])) {
                 $fields[$key] = AgencyScrub::text($fields[$key]);
             }

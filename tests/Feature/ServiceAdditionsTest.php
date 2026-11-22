@@ -62,4 +62,18 @@ class ServiceAdditionsTest extends TestCase
             $this->assertContains('ac-repair', (array) $post->suitable_services, $slug);
         }
     }
+
+    public function test_ac_maintenance_targets_plural_keyword_in_title_intro_and_subtitle(): void
+    {
+        $this->artisan('khadamaty:publish-service', ['slug' => 'ac-maintenance'])->assertSuccessful();
+        $this->artisan('khadamaty:publish-service', ['slug' => 'ac-maintenance'])->assertSuccessful();
+
+        $service = \App\Models\Service::where('slug', 'ac-maintenance')->firstOrFail();
+        $this->assertStringStartsWith('خدماتي بتقدّم صيانة تكييفات ومكيفات', $service->body);
+        $this->assertSame(1, substr_count($service->body, 'خدماتي بتقدّم صيانة تكييفات'));
+
+        $this->get('/services/ac-maintenance')->assertOk()
+            ->assertSee('<title>صيانة تكييفات ومكيفات', false)
+            ->assertSee('صيانة تكييفات ومكيفات في البيت لكل الماركات');
+    }
 }
