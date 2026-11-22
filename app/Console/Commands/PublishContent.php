@@ -143,10 +143,11 @@ class PublishContent extends Command
         return $this->fillFrom($brand, $data);
     }
 
-    /** مقالة من fault_posts.php (مقالات أعطال الماركات). */
+    /** مقالة من fault_posts.php (أعطال الماركات) أو service_posts.php (أدلة الخدمات). */
     private function post(string $slug): ?Model
     {
-        $data = (require database_path('seeders/data/fault_posts.php'))[$slug] ?? null;
+        $data = (require database_path('seeders/data/fault_posts.php'))[$slug]
+            ?? (require database_path('seeders/data/service_posts.php'))[$slug] ?? null;
         if (! $data) {
             return null;
         }
