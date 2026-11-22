@@ -22,6 +22,8 @@
 
     // روابط المناطق المنشورة (تتحوّل للينك في قسم المناطق).
     $areaLinks = \App\Models\Area::query()->published()->pluck('slug', 'name_ar');
+    // الماركات المنشورة (من الداشبورد) — روابط داخلية لصفحات الماركات من الرئيسية.
+    $brandLinks = \App\Models\Brand::query()->published()->orderBy('name_ar')->pluck('name_ar', 'slug');
 @endphp
 
 @push('schema')
@@ -192,6 +194,18 @@
                             </li>
                         @endforeach
                     </ul>
+
+                    @if ($brandLinks->isNotEmpty())
+                        <h3 class="text-lg font-extrabold mt-8 mb-3">صيانة تكييفات الماركات</h3>
+                        <ul class="flex flex-wrap gap-2.5">
+                            @foreach ($brandLinks as $slug => $name)
+                                <li>
+                                    <a href="{{ '/brands/' . $slug }}"
+                                       class="inline-block bg-white border border-line rounded-full px-4 py-2 text-sm font-medium hover:border-brand hover:text-brand transition-colors">صيانة {{ $name }}</a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
 
                     <div class="flex flex-wrap gap-5 mt-7">
                         <a href="{{ route('areas.index') }}"
