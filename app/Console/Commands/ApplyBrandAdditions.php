@@ -9,15 +9,16 @@ use Illuminate\Console\Command;
 
 /**
  * يطبّق إضافات صفحات الماركات من database/seeders/data/brand_additions.php:
- * - warranty_agent_note بيتكتب بس لو الحقل فاضي (تعديلات الداشبورد بتفضل).
+ * - مابيكتبش warranty_agent_note خالص (اتشالت بطلب صاحب الموقع)؛ --clear-warranty بيمسح نصّنا القديم بس.
  * - faqs_append: الأسئلة اللي مش موجودة بنفس النص بتتضاف في الآخر.
  * مابيغيّرش حالة النشر، وبيفشل للماركة لو الإضافة هتطلّع TODO.
  */
 class ApplyBrandAdditions extends Command
 {
-    protected $signature = 'khadamaty:brand-additions {slugs? : slugs مفصولة بفاصلة (الافتراضي: كل اللي في الملف)}';
+    protected $signature = 'khadamaty:brand-additions {slugs? : slugs مفصولة بفاصلة (الافتراضي: كل اللي في الملف)}
+        {--clear-warranty : مسح فقرة «بعد الضمان» اللي اتضافت قبل كده (النص بتاعنا بس)}';
 
-    protected $description = 'إضافة «بعد الضمان» وأسئلة شائعة لصفحات الماركات';
+    protected $description = 'إضافة أسئلة شائعة لصفحات الماركات (و--clear-warranty لمسح فقرة الضمان القديمة)';
 
     public function handle(): int
     {
@@ -38,9 +39,12 @@ class ApplyBrandAdditions extends Command
             }
 
             $notes = [];
-            if (blank($brand->warranty_agent_note) && filled($add['warranty_agent_note'] ?? null)) {
-                $brand->warranty_agent_note = AgencyScrub::text($add['warranty_agent_note']);
-                $notes[] = 'بعد الضمان';
+            // بطلب صاحب الموقع: فقرة «بعد الضمان» اتشالت. بنمسح النص اللي ضفناه بس،
+            // ومابنلمسش أي نص كتبه صاحب الموقع من الداشبورد.
+            if ($this->option('clear-warranty')
+                && str_contains((string) $brand->warranty_agent_note, 'بعد ما ضمان الجهاز يخلص')) {
+                $brand->warranty_agent_note = null;
+                $notes[] = 'اتمسحت فقرة الضمان';
             }
 
             $faqs = (array) $brand->faqs;

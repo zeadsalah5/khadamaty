@@ -23,24 +23,30 @@ class BrandAdditionsTest extends TestCase
         Cache::flush();
     }
 
-    public function test_adds_after_warranty_note_and_faqs_once_without_touching_dashboard_text(): void
+    public function test_adds_faqs_once_and_never_writes_a_warranty_note(): void
     {
-        DB::table('brands')->where('slug', 'sharp')->update(['warranty_agent_note' => 'نص من الداشبورد']);
         $before = count(Brand::where('slug', 'carrier')->firstOrFail()->faqs);
 
         $this->artisan('khadamaty:brand-additions')->assertSuccessful();
         $this->artisan('khadamaty:brand-additions')->assertSuccessful();
 
         $carrier = Brand::where('slug', 'carrier')->firstOrFail();
-        $this->assertStringContainsString('بعد ما ضمان الجهاز يخلص', $carrier->warranty_agent_note);
+        $this->assertNull($carrier->warranty_agent_note);
         $this->assertCount($before + 4, $carrier->faqs);
-        $this->assertSame('نص من الداشبورد', Brand::where('slug', 'sharp')->value('warranty_agent_note'));
-        $this->assertTrue((bool) $carrier->is_published);
-
         $this->get('/brands/carrier')->assertOk()
-            ->assertSee('ملاحظة عن ضمان الوكيل')
-            ->assertSee('تكييف كاريير الشباك القديم يستاهل صيانة؟')
-            ->assertDontSee('TODO');
+            ->assertDontSee('ملاحظة عن ضمان الوكيل')
+            ->assertSee('تكييف كاريير الشباك القديم يستاهل صيانة؟');
+    }
+
+    public function test_clear_warranty_removes_only_our_text(): void
+    {
+        DB::table('brands')->where('slug', 'carrier')->update(['warranty_agent_note' => 'نص... بعد ما ضمان الجهاز يخلص، بتبقى حر.']);
+        DB::table('brands')->where('slug', 'sharp')->update(['warranty_agent_note' => 'نص كتبه صاحب الموقع']);
+
+        $this->artisan('khadamaty:brand-additions', ['--clear-warranty' => true])->assertSuccessful();
+
+        $this->assertNull(Brand::where('slug', 'carrier')->value('warranty_agent_note'));
+        $this->assertSame('نص كتبه صاحب الموقع', Brand::where('slug', 'sharp')->value('warranty_agent_note'));
     }
 
     public function test_home_links_to_published_brand_pages(): void
