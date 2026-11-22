@@ -86,12 +86,12 @@
         <div class="rounded-3xl bg-navy text-white p-8 md:p-12 text-center">
             <h2 class="text-2xl md:text-3xl font-extrabold mb-3">جاهزين نساعدك</h2>
             <p class="text-white/70 mb-7 max-w-xl mx-auto leading-relaxed">
-                احجز فني دلوقتي أو كلّمنا، وهنتفق على كل حاجة قبل ما نبدأ.
+                كلّمنا أو احجز فني، وهنتفق على كل حاجة قبل ما نبدأ.
             </p>
             <div class="flex flex-wrap justify-center gap-3">
-                <a href="{{ url('/') }}#booking"
+                <a href="{{ call_href(url('/') . '#booking') }}"
                    class="inline-flex items-center px-7 py-3.5 rounded-full bg-brand hover:bg-brand-600 font-bold transition-colors">
-                    احجز فني دلوقتي
+                    {{ call_label() }}
                 </a>
                 <a href="tel:{{ site('phone_tel') }}"
                    class="inline-flex items-center px-7 py-3.5 rounded-full border border-white/25 hover:border-white font-bold transition-colors">

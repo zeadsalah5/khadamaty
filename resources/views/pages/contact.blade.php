@@ -78,9 +78,9 @@
             <p class="text-white/75 leading-relaxed mb-5">
                 بنحاول نوصلك في نفس اليوم حسب توفر الفنيين في منطقتك. احجز بدري عشان نضمنلك أقرب معاد.
             </p>
-            <a href="{{ route('request-service') }}"
+            <a href="{{ call_href(route('request-service')) }}"
                class="inline-flex self-start items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 font-bold transition-colors">
-                احجز فني دلوقتي
+                {{ call_label() }}
             </a>
         </div>
     </section>

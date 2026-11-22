@@ -42,9 +42,9 @@
                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-accent hover:bg-accent-600 font-bold transition-colors">
                     اسأل على واتساب
                 </a>
-                <a href="{{ url('/') }}#booking"
+                <a href="{{ call_href(url('/') . '#booking') }}"
                    class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand hover:bg-brand-600 font-bold transition-colors">
-                    احجز فني دلوقتي
+                    {{ call_label() }}
                 </a>
             </div>
         </div>

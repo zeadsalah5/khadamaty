@@ -15,9 +15,9 @@
         <section class="mx-auto max-w-6xl px-4 pb-20">
             <div class="rounded-2xl border border-dashed border-line bg-surface px-4 py-16 text-center">
                 <p class="text-lg text-muted">المنتجات قريباً — بنجهّز المتجر.</p>
-                <a href="{{ url('/') }}#booking"
+                <a href="{{ call_href(url('/') . '#booking') }}"
                    class="mt-5 inline-block rounded-full bg-brand px-6 py-3 font-bold text-white transition-colors hover:bg-brand-600">
-                    احجز فني دلوقتي
+                    {{ call_label() }}
                 </a>
             </div>
         </section>

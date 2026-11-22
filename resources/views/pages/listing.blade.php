@@ -34,9 +34,9 @@
             {{-- فاضي => "قريباً" (الصفحة دي noindex من الـ Controller) --}}
             <div class="rounded-2xl border border-dashed border-line bg-surface text-center py-16 px-4">
                 <p class="text-muted text-lg">المحتوى قريباً — بنجهّز القسم ده.</p>
-                <a href="{{ url('/') }}#booking"
+                <a href="{{ call_href(url('/') . '#booking') }}"
                    class="inline-block mt-5 px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
-                    احجز فني دلوقتي
+                    {{ call_label() }}
                 </a>
             </div>
         @endif

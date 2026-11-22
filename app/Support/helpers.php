@@ -72,3 +72,28 @@ if (! function_exists('can_preview_drafts')) {
             || (method_exists($user, 'isEditor') && $user->isEditor());
     }
 }
+
+if (! function_exists('call_tel')) {
+    /** رقم الاتصال من الإعدادات (لزرار «اتصل الآن»)، أو null لو مش متسجّل. */
+    function call_tel(): ?string
+    {
+        $tel = \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay();
+
+        return filled($tel) ? $tel : null;
+    }
+}
+
+if (! function_exists('call_href')) {
+    /** رابط زرار «اتصل الآن»؛ لو مفيش رقم بيرجع لرابط الحجز. */
+    function call_href(string $fallback): string
+    {
+        return ($tel = call_tel()) ? 'tel:' . $tel : $fallback;
+    }
+}
+
+if (! function_exists('call_label')) {
+    function call_label(): string
+    {
+        return call_tel() ? 'اتصل الآن' : 'احجز فني دلوقتي';
+    }
+}

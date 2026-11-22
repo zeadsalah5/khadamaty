@@ -70,9 +70,9 @@
                     هنعرض هنا آراء عملائنا الحقيقية أول ما تتجمّع وتتراجع. جرّب خدمتنا وكن أول من يقيّمنا.
                 </p>
                 <div class="flex flex-wrap justify-center gap-3">
-                    <a href="{{ route('request-service') }}"
+                    <a href="{{ call_href(route('request-service')) }}"
                        class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
-                        احجز فني دلوقتي
+                        {{ call_label() }}
                     </a>
                     <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                        class="inline-flex items-center px-6 py-3 rounded-full border border-line hover:border-brand hover:text-brand font-bold transition-colors">

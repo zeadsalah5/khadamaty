@@ -104,9 +104,9 @@
         @else
             <div class="rounded-2xl border border-dashed border-line bg-surface text-center py-16 px-4">
                 <p class="text-muted text-lg">لسه مفيش مقالات في القسم ده — بنجهّز المحتوى.</p>
-                <a href="{{ url('/') }}#booking"
+                <a href="{{ call_href(url('/') . '#booking') }}"
                    class="inline-block mt-5 px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
-                    احجز فني دلوقتي
+                    {{ call_label() }}
                 </a>
             </div>
         @endif

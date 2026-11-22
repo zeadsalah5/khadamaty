@@ -178,8 +178,8 @@
                 @endif
             @endif
             <li class="pt-2">
-                <a href="{{ $bookUrl }}" data-close-menu
-                   class="block text-center py-2.5 rounded-full bg-brand text-white font-bold">احجز فني دلوقتي</a>
+                <a href="{{ call_href($bookUrl) }}" data-close-menu
+                   class="block text-center py-2.5 rounded-full bg-brand text-white font-bold">{{ call_label() }}</a>
             </li>
         </ul>
     </div>
