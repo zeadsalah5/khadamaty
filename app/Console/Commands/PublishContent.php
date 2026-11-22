@@ -6,6 +6,8 @@ use App\Models\Area;
 use App\Models\AreaServicePage;
 use App\Models\Brand;
 use App\Models\BrandServicePage;
+use App\Models\Post;
+use App\Models\PostCategory;
 use App\Models\Redirect;
 use App\Models\Service;
 use App\Models\User;
@@ -26,7 +28,7 @@ use Illuminate\Database\Eloquent\Model;
 class PublishContent extends Command
 {
     protected $signature = 'khadamaty:publish-content
-        {type : brand | area | brand-service | area-service}
+        {type : brand | area | brand-service | area-service | post}
         {key : slug الماركة، أو brand|service، أو area|service}
         {--replace : استبدال محتوى سجل منشور بالفعل}
         {--draft : حفظ الصفحة «جاهزة للنشر» من غير نشرها (صاحب الموقع ينشرها من الداشبورد)}
@@ -59,6 +61,7 @@ class PublishContent extends Command
             'area'          => $this->area($key),
             'brand-service' => $this->brandService($key),
             'area-service'  => $this->areaService($key),
+            'post'          => $this->post($key),
             default         => null,
         };
 
@@ -138,6 +141,29 @@ class PublishContent extends Command
             ?? tap(new Brand, fn (Brand $b) => $b->slug = $slug);
 
         return $this->fillFrom($brand, $data);
+    }
+
+    /** مقالة من fault_posts.php (مقالات أعطال الماركات). */
+    private function post(string $slug): ?Model
+    {
+        $data = (require database_path('seeders/data/fault_posts.php'))[$slug] ?? null;
+        if (! $data) {
+            return null;
+        }
+
+        $category = $data['category'] ?? null;
+        unset($data['category']);
+        $data['category_id'] = $category ? PostCategory::where('slug', $category)->value('id') : null;
+
+        $post = Post::withoutGlobalScopes()->where('slug', $slug)->first()
+            ?? tap(new Post, fn (Post $p) => $p->slug = $slug);
+
+        if (blank($post->cover)) {
+            $post->cover = ['faults' => 'faults.jpg', 'maintenance' => 'maintenance.jpg',
+                'buying-installation' => 'buying.jpg', 'energy-saving' => 'indoor.jpg'][$category] ?? 'indoor.jpg';
+        }
+
+        return $this->fillFrom($post, $data);
     }
 
     private function area(string $slug): ?Model
