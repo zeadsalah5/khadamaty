@@ -47,6 +47,9 @@ class ManageSiteSettings extends Page implements HasForms
             'warranty_exclusions' => 'warranty',
             'default_og_image' => 'seo',
             'twitter_handle' => 'seo',
+            'hub_link_lead' => 'seo',
+            'hub_link_text' => 'seo',
+            'hub_link_url' => 'seo',
             'ga4_id' => 'seo',
             'gtm_id' => 'seo',
             'meta_pixel_id' => 'seo',
@@ -110,6 +113,15 @@ class ManageSiteSettings extends Page implements HasForms
                     Forms\Components\TextInput::make('twitter_handle')
                         ->label('حساب تويتر/إكس (اختياري)')->maxLength(255)
                         ->helperText('بصيغة @handle'),
+                    Forms\Components\TextInput::make('hub_link_lead')
+                        ->label('جملة قبل رابط الصفحة الأساسية')->maxLength(150)
+                        ->helperText('بتظهر في الرئيسية وصفحات المناطق والماركات. سيب النص أو الرابط فاضي عشان تخفيه.'),
+                    Forms\Components\TextInput::make('hub_link_text')
+                        ->label('نص رابط الصفحة الأساسية')->maxLength(100)
+                        ->helperText('الكلمة اللي عايز تتصدّر بيها، مثال: صيانة تكييفات ومكيفات'),
+                    Forms\Components\TextInput::make('hub_link_url')
+                        ->label('رابط الصفحة الأساسية')->maxLength(255)
+                        ->helperText('رابط داخلي يبدأ بـ / ، مثال: /services/ac-maintenance'),
                     Forms\Components\TextInput::make('ga4_id')
                         ->label('Google Analytics 4 (اختياري)')->maxLength(50)
                         ->helperText('مثال: G-XXXXXXX'),

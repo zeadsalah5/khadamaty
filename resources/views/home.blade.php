@@ -207,6 +207,8 @@
                         </ul>
                     @endif
 
+                    @include('pages.partials.hub-link')
+
                     <div class="flex flex-wrap gap-5 mt-7">
                         <a href="{{ route('areas.index') }}"
                            class="inline-flex items-center gap-1.5 text-brand font-bold hover:gap-2.5 transition-all">
