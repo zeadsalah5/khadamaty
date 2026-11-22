@@ -113,7 +113,7 @@ class PublishService extends Command
             $service->cost_factors = $additions['cost_factors'];
         }
 
-        foreach (['seo_title', 'seo_description', 'excerpt'] as $field) {
+        foreach (['seo_title', 'seo_description', 'excerpt', 'price_note'] as $field) {
             if (isset($additions[$field])) {
                 $service->{$field} = $additions[$field];
             }
