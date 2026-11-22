@@ -123,10 +123,18 @@
                 <h2 class="text-2xl md:text-3xl font-extrabold mb-2">محتاج فني تكييفات؟</h2>
                 <p class="text-white/80 leading-relaxed mb-6 max-w-xl mx-auto">احجز معاينة وصيانة بأيدي فنيين متخصصين، بأسعار واضحة، والدفع بعد ما الشغل يخلص.</p>
                 <div class="flex flex-wrap justify-center gap-3">
-                    <a href="{{ url('/') }}#booking"
-                       class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
-                        احجز فني دلوقتي
-                    </a>
+                    @php($ctaTel = \App\Support\Site::phoneTel() ?? \App\Support\Site::phoneDisplay())
+                    @if ($ctaTel)
+                        <a href="tel:{{ $ctaTel }}"
+                           class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
+                            اتصل الآن
+                        </a>
+                    @else
+                        <a href="{{ url('/') }}#booking"
+                           class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">
+                            احجز فني دلوقتي
+                        </a>
+                    @endif
                     <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
                        class="inline-flex items-center px-6 py-3 rounded-full bg-accent hover:bg-accent-600 text-white font-bold transition-colors">
                         اسأل على واتساب
