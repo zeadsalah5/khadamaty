@@ -1,5 +1,5 @@
 @props([
-    'heading'       => 'احجز فني دلوقتي',
+    'heading'       => null, // فاضي = «اتصل الآن» برابط الاتصال (أو «احجز فني دلوقتي» لو مفيش رقم)
     'sub'           => 'املأ البيانات وهنتواصل معاك نأكد المعاد.',
     'service'       => null,   // اسم خدمة يتحدد مبدئياً في القايمة
     'area'          => null,   // اسم منطقة يتحدد مبدئياً في القايمة
@@ -17,7 +17,15 @@
 
 <div class="bg-white rounded-3xl p-6 md:p-10 shadow-2xl">
     <div class="text-center mb-8">
-        <h2 class="text-3xl md:text-4xl font-extrabold mb-2">{{ $heading }}</h2>
+        <h2 class="text-3xl md:text-4xl font-extrabold mb-2">
+            @if ($heading)
+                {{ $heading }}
+            @elseif (call_tel())
+                <a href="{{ call_href('#booking') }}" class="hover:text-brand transition-colors">{{ call_label() }}</a>
+            @else
+                {{ call_label() }}
+            @endif
+        </h2>
         <p class="text-muted text-lg">{{ $sub }}</p>
     </div>
 
