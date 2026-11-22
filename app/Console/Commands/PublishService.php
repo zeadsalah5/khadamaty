@@ -104,6 +104,11 @@ class PublishService extends Command
         }
         $service->faqs = $faqs;
 
+        // عوامل التكلفة: بتتكتب بس لو الخدمة مالهاش (تعديلات الداشبورد بتفضل).
+        if (empty($service->cost_factors) && ! empty($additions['cost_factors'])) {
+            $service->cost_factors = $additions['cost_factors'];
+        }
+
         foreach (['seo_title', 'seo_description'] as $field) {
             if (isset($additions[$field])) {
                 $service->{$field} = $additions[$field];

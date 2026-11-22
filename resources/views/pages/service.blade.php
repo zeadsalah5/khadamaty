@@ -234,6 +234,31 @@
         </section>
     @endif
 
+    {{-- ============ مقالات مرتبطة (من حقل «الخدمات المناسبة» في المقالات المنشورة) ============ --}}
+    @php
+        $relatedPosts = \App\Models\Post::query()->published()
+            ->whereJsonContains('suitable_services', $service->slug)
+            ->latest('published_at')->take(4)->get(['slug', 'title_ar', 'excerpt']);
+    @endphp
+    @if ($relatedPosts->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+            <h2 class="text-2xl md:text-3xl font-extrabold mb-6">اقرا كمان عن {{ $service->name_ar }}</h2>
+            <ul class="grid gap-4 sm:grid-cols-2">
+                @foreach ($relatedPosts as $post)
+                    <li>
+                        <a href="{{ '/blog/' . $post->slug }}"
+                           class="block h-full rounded-2xl border border-line bg-white p-5 hover:border-brand transition-colors">
+                            <h3 class="font-bold leading-relaxed">{{ $post->title_ar }}</h3>
+                            @if ($post->excerpt)
+                                <p class="text-muted text-sm leading-relaxed mt-2">{{ \Illuminate\Support\Str::limit($post->excerpt, 140) }}</p>
+                            @endif
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     {{-- ============ خدمات مرتبطة ============ --}}
     @if ($related->isNotEmpty())
         <section class="bg-surface scroll-mt-20">
