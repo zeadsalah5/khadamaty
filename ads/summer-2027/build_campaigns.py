@@ -234,7 +234,7 @@ for camp, cfg in CAMPAIGNS.items():
     sched_rows.append({'Campaign': camp, 'Ad Schedule': ';'.join(f'({d}[09:00-22:00])' for d in days)})
     dev_rows.append({'Campaign': camp, 'Mobile Bid Modifier': '0%', 'Desktop Bid Modifier': '-40%',
                      'Tablet Bid Modifier': '-50%'})
-    call_rows.append({'Campaign': camp, 'Country': 'Egypt', 'Phone Number': PHONE, 'Status': 'Paused'})
+    call_rows.append({'Campaign': camp, 'Country': 'EG', 'Phone Number': PHONE, 'Status': 'Paused'})
 
     for kw in NEGATIVES:
         neg_rows.append({'Campaign': camp, 'Keyword': kw, 'Criterion Type': 'Campaign Negative Phrase'})
