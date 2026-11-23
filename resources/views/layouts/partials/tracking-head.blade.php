@@ -6,6 +6,11 @@
     $ga4 = trim((string) site('ga4_id'));
     $gtm = trim((string) site('gtm_id'));
     $pixel = trim((string) site('meta_pixel_id'));
+    // Google Ads: معرّف الوسم (AW-…) + label تحويل «ضغطة على رقم التليفون» (اختياري).
+    $adsId = trim((string) site('google_ads_id'));
+    $adsCallLabel = trim((string) site('google_ads_call_label'));
+    if (! preg_match('/^AW-\d+$/', $adsId)) { $adsId = ''; }
+    if (! preg_match('/^[A-Za-z0-9_-]+$/', $adsCallLabel)) { $adsCallLabel = ''; }
     $customHead = (string) site('custom_head');
 @endphp
 
@@ -15,14 +20,29 @@
 <!-- End Google Tag Manager -->
 @endif
 
-@if ($ga4 !== '')
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ $ga4 }}"></script>
+@if ($ga4 !== '' || $adsId !== '')
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ $ga4 !== '' ? $ga4 : $adsId }}"></script>
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', '{{ $ga4 }}');
+    @if ($ga4 !== '') gtag('config', '{{ $ga4 }}'); @endif
+    @if ($adsId !== '') gtag('config', '{{ $adsId }}'); @endif
 </script>
+@if ($adsId !== '')
+<script>
+    // ضغطة على أي رابط اتصال (tel:) => تحويل في Google Ads.
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[href^="tel:"]');
+        if (!a) return;
+        @if ($adsCallLabel !== '')
+        gtag('event', 'conversion', {send_to: '{{ $adsId }}/{{ $adsCallLabel }}'});
+        @else
+        gtag('event', 'phone_call_click', {send_to: '{{ $adsId }}'});
+        @endif
+    }, true);
+</script>
+@endif
 @endif
 
 @if ($pixel !== '')
