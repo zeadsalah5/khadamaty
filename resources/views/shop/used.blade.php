@@ -68,7 +68,7 @@
                 بنوفّر ضمان تشغيل على كل جهاز مستعمل حسب حالته، ومدته مكتوبة في تفاصيل كل منتج. الضمان بيغطّي أعطال التشغيل الأساسية
                 ومبيغطّيش سوء الاستخدام أو التركيب من حد تاني.
             </p>
-            <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
+            <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
                class="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-navy transition-colors hover:bg-white/90">اسأل عن الضمان</a>
         </div>
     </section>
@@ -85,7 +85,7 @@
         @else
             <div class="rounded-2xl border border-dashed border-line bg-surface px-4 py-16 text-center">
                 <p class="text-lg text-muted">مفيش أجهزة مستعملة متاحة حالياً — بنجدّد المعروض باستمرار.</p>
-                <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
+                <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
                    class="mt-5 inline-block rounded-full bg-accent px-6 py-3 font-bold text-white transition-colors hover:bg-accent-600">سجّل طلبك على واتساب</a>
             </div>
         @endif

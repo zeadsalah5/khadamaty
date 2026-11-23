@@ -9,8 +9,10 @@
     // Google Ads: معرّف الوسم (AW-…) + label تحويل «ضغطة على رقم التليفون» (اختياري).
     $adsId = trim((string) site('google_ads_id'));
     $adsCallLabel = trim((string) site('google_ads_call_label'));
+    $adsWaLabel = trim((string) site('google_ads_whatsapp_label'));
     if (! preg_match('/^AW-\d+$/', $adsId)) { $adsId = ''; }
     if (! preg_match('/^[A-Za-z0-9_-]+$/', $adsCallLabel)) { $adsCallLabel = ''; }
+    if (! preg_match('/^[A-Za-z0-9_-]+$/', $adsWaLabel)) { $adsWaLabel = ''; }
     $customHead = (string) site('custom_head');
 @endphp
 
@@ -41,6 +43,14 @@
         gtag('event', 'phone_call_click', {send_to: '{{ $adsId }}'});
         @endif
     }, true);
+    @if ($adsWaLabel !== '')
+    // ضغطة على أي رابط واتساب => تحويل «WhatsApp Click».
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[href*="wa.me"], a[href*="api.whatsapp.com"], a[href^="whatsapp:"]');
+        if (!a) return;
+        gtag('event', 'conversion', {send_to: '{{ $adsId }}/{{ $adsWaLabel }}'});
+    }, true);
+    @endif
 </script>
 @endif
 @endif

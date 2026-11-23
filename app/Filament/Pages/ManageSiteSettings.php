@@ -49,6 +49,7 @@ class ManageSiteSettings extends Page implements HasForms
             'twitter_handle' => 'seo',
             'google_ads_id' => 'seo',
             'google_ads_call_label' => 'seo',
+            'google_ads_whatsapp_label' => 'seo',
             'hub_link_lead' => 'seo',
             'hub_link_text' => 'seo',
             'hub_link_url' => 'seo',
@@ -133,6 +134,8 @@ class ManageSiteSettings extends Page implements HasForms
                     Forms\Components\TextInput::make('google_ads_call_label')
                         ->label('Google Ads — label تحويل الضغط على رقم التليفون (اختياري)')->maxLength(100)
                         ->helperText('الجزء اللي بعد «/» في send_to. فاضي = بيتبعت حدث phone_call_click بس.'),
+                    Forms\Components\TextInput::make('google_ads_whatsapp_label')
+                        ->label('Google Ads — label تحويل الضغط على واتساب (اختياري)')->maxLength(100),
                     Forms\Components\TextInput::make('gtm_id')
                         ->label('Google Tag Manager (اختياري)')->maxLength(50)
                         ->helperText('مثال: GTM-XXXXXXX'),

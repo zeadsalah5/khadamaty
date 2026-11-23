@@ -117,7 +117,7 @@
             <h2 class="text-xl font-bold">محتار تختار إيه؟</h2>
             <p class="mx-auto mt-2 max-w-xl leading-relaxed text-muted">كلّمنا وهنرشّحلك الجهاز المناسب لمساحتك وميزانيتك، وبنركّب ونصلّح كل الماركات.</p>
             <div class="mt-5 flex flex-wrap justify-center gap-3">
-                <a href="https://wa.me/{{ site('whatsapp') }}" target="_blank" rel="noopener"
+                <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}" target="_blank" rel="noopener"
                    class="rounded-full bg-accent px-6 py-3 font-bold text-white transition-colors hover:bg-accent-600">اسأل على واتساب</a>
                 <a href="tel:{{ site('phone_tel') }}"
                    class="rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-brand hover:text-brand">اتصل: {{ site('phone') }}</a>

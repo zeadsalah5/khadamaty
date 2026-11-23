@@ -38,8 +38,23 @@ class Site
     public static function whatsappNumber(): ?string
     {
         $value = trim((string) site('whatsapp'));
+        if (! self::looksReal($value)) {
+            return null;
+        }
 
-        return self::looksReal($value) ? $value : null;
+        // wa.me محتاج الصيغة الدولية من غير + ومن غير صفر محلي:
+        // 01012345678 / 2001012345678 / +20 101... => 201012345678
+        $digits = preg_replace('/\D+/', '', $value);
+        if (str_starts_with($digits, '00')) {
+            $digits = substr($digits, 2);
+        }
+        if (str_starts_with($digits, '200')) {
+            $digits = '20' . substr($digits, 3);
+        } elseif (str_starts_with($digits, '0')) {
+            $digits = '20' . substr($digits, 1);
+        }
+
+        return $digits !== '' ? $digits : null;
     }
 
     /** فيه رقم واتساب حقيقي نعرض زراره؟ */

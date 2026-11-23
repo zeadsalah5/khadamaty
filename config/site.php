@@ -65,6 +65,7 @@ return [
     // Google Ads (وسم التحويلات) — بيتعدّل من الداشبورد.
     'google_ads_id' => 'AW-18548697970',
     'google_ads_call_label' => 'B3zaCODE9L0dEPLW2oxF',
+    'google_ads_whatsapp_label' => '0c5ACNz_4K8dEPLW2oxF',
 
     'hub_link_lead' => 'محتاج صيانة دورية لكل تكييفات البيت؟',
     'hub_link_text' => 'صيانة تكييفات ومكيفات لكل الماركات',

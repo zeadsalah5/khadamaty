@@ -30,7 +30,7 @@
     $inStock  = $product->isInStock();
 
     $waText = rawurlencode('عايز أستفسر عن: ' . $product->name_ar . ' — ' . $canonical);
-    $waUrl  = 'https://wa.me/' . site('whatsapp') . '?text=' . $waText;
+    $waUrl  = 'https://wa.me/' . \App\Support\Site::whatsappNumber() . '?text=' . $waText;
 @endphp
 
 @push('schema')
@@ -163,7 +163,7 @@
                     <div class="mt-3 flex flex-wrap gap-3">
                         <x-shop.wishlist-button :product="$product" variant="full" />
                         <x-shop.compare-button :product="$product" variant="full" />
-                        <a href="https://wa.me/{{ site('whatsapp') }}?text={{ $waText }}" target="_blank" rel="noopener"
+                        <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}?text={{ $waText }}" target="_blank" rel="noopener"
                            class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-accent hover:text-accent">اسأل على واتساب</a>
                         <a href="tel:{{ site('phone_tel') }}"
                            class="inline-flex items-center gap-2 rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-brand hover:text-brand">اتصل</a>

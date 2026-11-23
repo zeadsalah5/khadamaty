@@ -61,7 +61,7 @@
 
         <div class="mt-6 flex flex-wrap justify-center gap-3">
             <a href="{{ route('shop.index') }}" class="rounded-full bg-brand px-6 py-3 font-bold text-white transition-colors hover:bg-brand-600">مواصلة التسوّق</a>
-            <a href="https://wa.me/{{ site('whatsapp') }}?text={{ rawurlencode('استفسار عن طلب رقم ' . $order->order_number) }}" target="_blank" rel="noopener"
+            <a href="https://wa.me/{{ \App\Support\Site::whatsappNumber() }}?text={{ rawurlencode('استفسار عن طلب رقم ' . $order->order_number) }}" target="_blank" rel="noopener"
                class="rounded-full border border-line px-6 py-3 font-bold transition-colors hover:border-accent hover:text-accent">تواصل على واتساب</a>
         </div>
     </section>
