@@ -63,11 +63,18 @@
     {{-- ============ المقدمة ============ --}}
     @if (filled($page->intro))
         <section class="mx-auto max-w-6xl px-4 pb-4">
-            <div class="max-w-3xl space-y-4 text-lg leading-loose text-ink/90">
-                @foreach (preg_split('/\n\s*\n/', trim($page->intro)) as $para)
-                    <p>{{ $para }}</p>
-                @endforeach
-            </div>
+            @if (preg_match('/^(## |\|)/m', $page->intro))
+                {{-- مقدمة طويلة بعناوين/جداول: Markdown آمن (نفس محرّك المقالات) --}}
+                <div class="max-w-3xl article-body">
+                    {!! \App\Support\ArticleContent::fromMarkdown($page->intro)->html !!}
+                </div>
+            @else
+                <div class="max-w-3xl space-y-4 text-lg leading-loose text-ink/90">
+                    @foreach (preg_split('/\n\s*\n/', trim($page->intro)) as $para)
+                        <p>{{ $para }}</p>
+                    @endforeach
+                </div>
+            @endif
         </section>
     @endif
 
