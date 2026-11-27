@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Post;
+use App\Models\Service;
 use App\Support\ContentCache;
 use Illuminate\Console\Command;
 
@@ -13,17 +14,19 @@ use Illuminate\Console\Command;
  */
 class ApplyPostSeo extends Command
 {
-    protected $signature = 'khadamaty:post-seo {--force : تطبيق حتى على المقالات اللي اتعدّلت يدوياً}';
+    protected $signature = 'khadamaty:post-seo {--force : تطبيق حتى على المقالات اللي اتعدّلت يدوياً} {--services : صفحات الخدمات بدل المقالات}';
 
     protected $description = 'تحديث عنوان ووصف SEO لمقالات المناطق (من غير لمس المحتوى)';
 
     public function handle(): int
     {
-        $data = require database_path('seeders/data/post_seo_actions.php');
+        $services = (bool) $this->option('services');
+        $data = require database_path('seeders/data/' . ($services ? 'service_seo_actions.php' : 'post_seo_actions.php'));
+        $model = $services ? Service::class : Post::class;
         $updated = $skipped = $missing = 0;
 
         foreach ($data as $slug => $row) {
-            $post = Post::withoutGlobalScopes()->where('slug', $slug)->first();
+            $post = $model::withoutGlobalScopes()->where('slug', $slug)->first();
             if (! $post) {
                 $missing++;
                 continue;
