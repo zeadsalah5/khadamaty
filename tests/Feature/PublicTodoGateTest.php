@@ -193,9 +193,10 @@ class PublicTodoGateTest extends TestCase
         $this->artisan('khadamaty:publish-service', ['slug' => $slug])->assertSuccessful();
 
         $after = Service::where('slug', $slug)->firstOrFail();
-        $this->assertStringStartsWith(trim($before->body), $after->body);
+        $this->assertStringContainsString(trim($before->body), $after->body);
+        $this->assertSame(1, substr_count($after->body, 'ضمان مدى الحياة على التأسيس'));
         $this->assertSame(1, substr_count($after->body, 'تأسيس صرف التكييف:'));
-        $this->assertCount($faqCount + 6, $after->faqs);
+        $this->assertCount($faqCount + 7, $after->faqs);
         $this->assertSame('سعر من الداشبورد 100 ج.م', $after->price_note);
         $this->assertTrue((bool) $after->is_published);
 
