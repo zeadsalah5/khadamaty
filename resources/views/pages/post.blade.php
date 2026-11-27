@@ -11,7 +11,42 @@
     $published = $post->published_at;
     $modified = $post->updated_at;
     $showModified = $published && $modified && $modified->gt($published->copy()->addDay());
+
+    // رابط تحويلي جوّه المقال (قبل أول H2) + أسئلة FAQPage من متن المقال.
+    $primaryLink = \App\Support\ArticleLinks::primary($post);
+    $articleFaqs = \App\Support\ArticleLinks::faqs((string) $post->body);
+    $bodyHtml = $content->html;
+    if ($primaryLink) {
+        $box = '<aside class="not-prose my-8 rounded-2xl border-2 border-brand/20 bg-brand-50 p-5 md:p-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">'
+            .'<div><p class="font-extrabold text-lg text-ink">محتاج '.e($primaryLink['label']).'؟</p>'
+            .'<p class="text-muted text-sm mt-1">فني في نفس اليوم، والدفع بعد ما تجرّب.</p></div>'
+            .'<a href="'.e($primaryLink['url']).'" class="shrink-0 inline-flex items-center justify-center px-5 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">'
+            .'تفاصيل وأسعار '.e($primaryLink['label']).'</a></aside>';
+        $pos = strpos($bodyHtml, '<h2');
+        $bodyHtml = $pos === false ? $bodyHtml.$box : substr_replace($bodyHtml, $box, $pos, 0);
+    }
+
+    // CTA اتصال في نص المقال (قبل H2 اللي في النص) — يحث العميل يطلب الخدمة من جوّه المقال.
+    preg_match_all('/<h2/', $bodyHtml, $h2s, PREG_OFFSET_CAPTURE);
+    if (count($h2s[0]) >= 3) {
+        $mid = $h2s[0][intdiv(count($h2s[0]), 2)][1];
+        $wa = \App\Support\Site::whatsappNumber();
+        $callBox = '<aside class="not-prose my-8 rounded-2xl bg-navy text-white p-5 md:p-6 text-center">'
+            .'<p class="font-extrabold text-xl">عايز فني يشوف تكييفك النهارده؟</p>'
+            .'<p class="text-white/80 text-sm mt-1 mb-4">'.($primaryLink ? e($primaryLink['label']).' — ' : '').'الكشف والتكلفة قبل الشغل، والدفع بعد ما تجرّب.</p>'
+            .'<div class="flex flex-wrap justify-center gap-3">'
+            .'<a href="'.e(call_href(url('/').'#booking')).'" class="inline-flex items-center px-6 py-3 rounded-full bg-brand hover:bg-brand-600 text-white font-bold transition-colors">'.e(call_label()).'</a>'
+            .($wa ? '<a href="https://wa.me/'.e($wa).'" target="_blank" rel="noopener" class="inline-flex items-center px-6 py-3 rounded-full bg-accent hover:bg-accent-600 text-white font-bold transition-colors">اطلب على واتساب</a>' : '')
+            .'</div></aside>';
+        $bodyHtml = substr_replace($bodyHtml, $callBox, $mid, 0);
+    }
 @endphp
+
+@if (! empty($articleFaqs))
+    @push('schema')
+        <x-schema.faq-page :items="$articleFaqs" />
+    @endpush
+@endif
 
 @push('schema')
     <x-schema.article
@@ -97,7 +132,7 @@
         {{-- متن المقال --}}
         <article class="min-w-0 max-w-3xl">
             <div class="article-body">
-                {!! $content->html !!}
+                {!! $bodyHtml !!}
             </div>
 
             {{-- خدمات مناسبة (روابط داخلية) --}}
